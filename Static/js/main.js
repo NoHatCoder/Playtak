@@ -67,6 +67,10 @@ function combinefrustumvectors(a,b){
 	return a.clone().multiplyScalar(amul).addScaledVector(b,bmul)
 }
 
+function frustumprojectionhelper(invcam,fv){
+	return fv.dot(fv)/fv.dot(invcam)
+}
+
 function generateCamera(){
 	if(!rendererdone){
 		return
@@ -76,6 +80,8 @@ function generateCamera(){
 	var cutright=($('#chat').hasClass('hidden')?0:6+(+localStorage.getItem('chat_size')||180))+10
 	var cutbottom=0+10
 	
+	
+
 	/*
 	var cuttop=0
 	var cutleft=0
@@ -99,8 +105,14 @@ function generateCamera(){
 			pointlist.push(new THREE.Vector3(a*xsizeb,yposb,b*zsizeb))
 		}
 	}
-	var camdir=new THREE.Vector3(4,-25,-25).normalize()
-	var invcamdir=camdir.clone().negate()
+	var invcamdir
+	if(camera && !fixedcamera){
+		invcamdir=camera.position.clone().sub(controls.center).normalize()
+	}
+	else{
+		invcamdir=new THREE.Vector3(-4,25,25).normalize()
+	}
+	var camdir=invcamdir.clone().negate()
 	var up=new THREE.Vector3(0,1,0)
 	var camleft=new THREE.Vector3()
 	camleft.crossVectors(up,camdir).normalize()
@@ -111,12 +123,19 @@ function generateCamera(){
 	//console.log(camleft)
 	//console.log(camup)
 	if(perspective>0){
-		var scaletop=Math.tan(perspective*Math.PI/360/2)
-		var scalebottom=scaletop-scaletop*2*cutbottom/window.innerHeight
-		var scaleleft=scaletop*window.innerWidth/window.innerHeight
-		var scaleright=scaleleft-scaleleft*2*cutright/window.innerWidth
-		scaletop-=scaletop*2*cuttop/window.innerHeight
-		scaleleft-=scaleleft*2*cutleft/window.innerWidth
+		var fw=window.innerWidth+Math.abs(cutleft-cutright)
+		var fh=window.innerHeight+Math.abs(cuttop-cutbottom)
+		var ox=Math.max(0,cutright-cutleft)
+		var oy=Math.max(0,cutbottom-cuttop)
+		var xv=window.innerWidth-cutleft-cutright
+		var yv=window.innerHeight-cuttop-cutbottom
+		var perspectiveheight=fh*perspective/(yv+xv)/90
+		var perspectivewidth=perspectiveheight*fw/fh
+		var perspectiveangle=Math.atan(perspectiveheight)*360/Math.PI
+		var scaletop=perspectiveheight*yv/fh
+		var scalebottom=scaletop
+		var scaleleft=perspectivewidth*xv/fw
+		var scaleright=scaleleft
 		var fvtop=camup.clone().divideScalar(scaletop).add(invcamdir).normalize()
 		var fvbottom=camdown.clone().divideScalar(scalebottom).add(invcamdir).normalize()
 		var fvleft=camleft.clone().divideScalar(scaleleft).add(invcamdir).normalize()
@@ -137,42 +156,63 @@ function generateCamera(){
 		}
 		console.log(maxleft,maxright,maxtop,maxbottom)
 		console.log(fvtop,fvbottom,fvleft,fvright)
-		var lrcampos=combinefrustumvectors(fvleft.clone().multiplyScalar(maxleft),fvright.clone().multiplyScalar(maxright))
-		var tbcampos=combinefrustumvectors(fvtop.clone().multiplyScalar(maxtop),fvbottom.clone().multiplyScalar(maxbottom))
-		var lrlen=lrcampos.dot(invcamdir)
-		var tblen=tbcampos.dot(invcamdir)
 		
-		console.log(lrcampos.dot(invcamdir),tbcampos.dot(invcamdir))
-		if(lrlen<tblen){
-			var addin=(maxleft+maxright)*(tblen/lrlen-1)/2
-			lrcampos=combinefrustumvectors(fvleft.clone().multiplyScalar(maxleft+addin),fvright.clone().multiplyScalar(maxright+addin))
+		var camdist=0
+		var camcenter=new THREE.Vector3(0,0,0)
+		
+		if(fixedcamera){
+			var lrcampos=combinefrustumvectors(fvleft.clone().multiplyScalar(maxleft),fvright.clone().multiplyScalar(maxright))
+			var tbcampos=combinefrustumvectors(fvtop.clone().multiplyScalar(maxtop),fvbottom.clone().multiplyScalar(maxbottom))
+			var lrlen=lrcampos.dot(invcamdir)
+			var tblen=tbcampos.dot(invcamdir)
 			
-			lrlen=lrcampos.dot(invcamdir)
-			addin+=(maxleft+maxright+addin*2)*(tblen/lrlen-1)/2
-			lrcampos=combinefrustumvectors(fvleft.clone().multiplyScalar(maxleft+addin),fvright.clone().multiplyScalar(maxright+addin))
+			console.log(lrcampos.dot(invcamdir),tbcampos.dot(invcamdir))
+			if(lrlen<tblen){
+				var addin=(maxleft+maxright)*(tblen/lrlen-1)/2
+				lrcampos=combinefrustumvectors(fvleft.clone().multiplyScalar(maxleft+addin),fvright.clone().multiplyScalar(maxright+addin))
+				
+				lrlen=lrcampos.dot(invcamdir)
+				addin+=(maxleft+maxright+addin*2)*(tblen/lrlen-1)/2
+				lrcampos=combinefrustumvectors(fvleft.clone().multiplyScalar(maxleft+addin),fvright.clone().multiplyScalar(maxright+addin))
+				
+			}
+			else{
+				var addin=(maxtop+maxbottom)*(lrlen/tblen-1)/2
+				tbcampos=combinefrustumvectors(fvtop.clone().multiplyScalar(maxtop+addin),fvbottom.clone().multiplyScalar(maxbottom+addin))
+				
+				tblen=tbcampos.dot(invcamdir)
+				addin+=(maxtop+maxbottom+addin*2)*(lrlen/tblen-1)/2
+				tbcampos=combinefrustumvectors(fvtop.clone().multiplyScalar(maxtop+addin),fvbottom.clone().multiplyScalar(maxbottom+addin))
+				
+			}
 			
+			camdist=lrcampos.dot(invcamdir)
+			console.log(lrcampos.dot(invcamdir),tbcampos.dot(invcamdir))
+			var camdiff=tbcampos.clone().sub(lrcampos)
+			var lradjust=camup.clone().multiplyScalar(camdiff.dot(camup))
+			var finalcampos=lrcampos.clone().add(lradjust)
+			
+
+			var centeroffset=camdir.clone().multiplyScalar(finalcampos.dot(invcamdir))
+			camcenter=finalcampos.clone().add(centeroffset)
+			
+			//camera = new THREE.PerspectiveCamera(perspective/2, canvas.width / canvas.height, Math.max(lrlen-2000,1),lrlen+2000);
+			camera = new THREE.PerspectiveCamera(perspectiveangle, canvas.width / canvas.height, Math.max(camdist-2000,1),camdist+2000);
+			camera.setViewOffset(fw,fh,ox,oy,canvas.width,canvas.height)
+			camera.position.set(finalcampos.x,finalcampos.y,finalcampos.z);
 		}
 		else{
-			var addin=(maxtop+maxbottom)*(lrlen/tblen-1)/2
-			tbcampos=combinefrustumvectors(fvtop.clone().multiplyScalar(maxtop+addin),fvbottom.clone().multiplyScalar(maxbottom+addin))
+			camdist=Math.max(camdist,frustumprojectionhelper(invcamdir,fvleft.clone().multiplyScalar(maxleft)))
+			camdist=Math.max(camdist,frustumprojectionhelper(invcamdir,fvright.clone().multiplyScalar(maxright)))
+			camdist=Math.max(camdist,frustumprojectionhelper(invcamdir,fvtop.clone().multiplyScalar(maxtop)))
+			camdist=Math.max(camdist,frustumprojectionhelper(invcamdir,fvbottom.clone().multiplyScalar(maxbottom)))
 			
-			tblen=tbcampos.dot(invcamdir)
-			addin+=(maxtop+maxbottom+addin*2)*(lrlen/tblen-1)/2
-			tbcampos=combinefrustumvectors(fvtop.clone().multiplyScalar(maxtop+addin),fvbottom.clone().multiplyScalar(maxbottom+addin))
+			var finalcampos=invcamdir.clone().multiplyScalar(camdist)
 			
+			camera = new THREE.PerspectiveCamera(perspectiveangle, canvas.width / canvas.height, Math.max(camdist-2000,1),camdist+2000);
+			camera.setViewOffset(fw,fh,ox,oy,canvas.width,canvas.height)
+			camera.position.set(finalcampos.x,finalcampos.y,finalcampos.z);
 		}
-		
-		console.log(lrcampos.dot(invcamdir),tbcampos.dot(invcamdir))
-		var camdiff=tbcampos.clone().sub(lrcampos)
-		var lradjust=camup.clone().multiplyScalar(camdiff.dot(camup))
-		var finalcampos=lrcampos.clone().add(lradjust)
-		
-
-		var centeroffset=camdir.clone().multiplyScalar(finalcampos.dot(invcamdir))
-		var camcenter=finalcampos.clone().add(centeroffset)
-		
-		camera = new THREE.PerspectiveCamera(perspective/2, canvas.width / canvas.height, Math.max(lrlen-2000,1),lrlen+2000);
-		camera.position.set(finalcampos.x,finalcampos.y,finalcampos.z);
 		
 		
 		/*
@@ -183,8 +223,8 @@ function generateCamera(){
 		
 		controls = new THREE.OrbitControls(camera, renderer.domElement);
 		//controls = new THREE.OrbitControls(camera,document.getElementById("addressbarhack"))
-		controls.minDistance = 20000/perspective;
-		controls.maxDistance = 300000/perspective;
+		controls.minDistance = camdist/5;
+		controls.maxDistance = camdist*3;
 		controls.enableKeys = false;
 		controls.center.set(camcenter.x,camcenter.y,camcenter.z)
 		controls.enablePan=false
@@ -206,11 +246,11 @@ function generateCamera(){
 			maxtop=Math.max(maxtop,newtop)
 			maxbottom=Math.min(maxbottom,newtop)
 		}
-		var scalex=(window.innerWidth-cutleft-cutright)/(maxleft-maxright)
-		var scaley=(window.innerHeight-cuttop-cutbottom)/(maxtop-maxbottom)
-		var scale=Math.min(scalex,scaley)
-		var xpadding=(maxleft-maxright)*(1-scale/scalex)
-		var ypadding=(maxtop-maxbottom)*(1-scale/scaley)
+		var scalex=(maxleft-maxright)/(window.innerWidth-cutleft-cutright)
+		var scaley=(maxtop-maxbottom)/(window.innerHeight-cuttop-cutbottom)
+		var scale=Math.max(scalex,scaley)
+		var xpadding=(window.innerWidth-cutleft-cutright)*(1-scalex/scale)
+		var ypadding=(window.innerHeight-cuttop-cutbottom)*(1-scaley/scale)
 		cutleft+=xpadding/2
 		cutright+=xpadding/2
 		cuttop+=ypadding/2
@@ -222,8 +262,10 @@ function generateCamera(){
 		*/
 		//console.log(maxleft,maxright,maxtop,maxbottom)
 		//console.log(pointlist)
-		camera = new THREE.OrthographicCamera(-maxleft-cutleft/scale,-maxright+cutright/scale,maxtop+cuttop/scale,maxbottom-cutbottom/scale, 2500, 5000 );
-		camera.position.set(-400, 2500, 2500);
+		console.log(cutleft,cutright,cuttop,cutbottom)
+		camera = new THREE.OrthographicCamera(-maxleft-cutleft*scale,-maxright+cutright*scale,maxtop+cuttop*scale,maxbottom-cutbottom*scale, 2000, 5000 );
+		var campos=invcamdir.multiplyScalar(3500)
+		camera.position.set(campos.x,campos.y,campos.z);
 		
 		controls = new THREE.OrbitControls(camera, renderer.domElement);
 		//controls = new THREE.OrbitControls(camera,document.getElementById("addressbarhack"))
@@ -477,7 +519,7 @@ function showrmenu() {
 	$('#notation-toggle-text').html('&lt;&lt;<br>n<br>o<br>t<br>a<br>t<br>i<br>o<br>n');
 	$('#notation-toggle-text').css("left","202px")
 	$('#rmenu').removeClass('hidden');
-	if(fixedcamera){
+	if(fixedcamera || true){
 		generateCamera()
 	}
 }
@@ -486,7 +528,7 @@ function hidermenu() {
 	$('#rmenu').addClass('hidden');
 	$('#notation-toggle-text').html('&gt;&gt;<br>n<br>o<br>t<br>a<br>t<br>i<br>o<br>n');
 	$('#notation-toggle-text').css("left","-5px")
-	if(fixedcamera){
+	if(fixedcamera || true){
 		generateCamera()
 	}
 }
@@ -728,7 +770,7 @@ function sliderPieceSize(newSize) {
 	localStorage.setItem('piece_size', newSize);
 	document.getElementById('piece-size-display').innerHTML=newSize;
 	piece_size = parseInt(newSize);
-	if(fixedcamera){
+	if(fixedcamera || true){
 		generateCamera()
 	}
 }
@@ -925,7 +967,7 @@ function sliderChatSize(newSize) {
 	chathandler.showchat();
 	chathandler.adjustChatWidth(+newSize);
 	localStorage.setItem('chat_size', newSize);
-	if(fixedcamera){
+	if(fixedcamera || true){
 		generateCamera()
 	}
 }
