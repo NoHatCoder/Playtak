@@ -387,7 +387,6 @@ input[type=range]::-webkit-slider-runnable-track {
 
 #player-me-time, #player-opp-time {
 	font-size: x-large;
-	color: black;
 }
 
 a .fa:not(#undo):not(#draw) {
@@ -424,3 +423,6 @@ a .fa:not(#undo):not(#draw) {
 	}
 }
 
+.hurrytime{
+	color:#d00;
+}
