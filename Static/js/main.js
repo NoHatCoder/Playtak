@@ -1,3 +1,4 @@
+//token change
 function alert(type, msg) {
 	$('#alert-text').text(msg);
 	var $alert = $('#alert');
@@ -33,7 +34,6 @@ var clickthrough=true
 var pixelratio=1
 var rendererdone=false
 
-// antialiasing must be disabled per default, so slower devices are not impaired.
 var antialiasing_mode = true;
 
 var botlist = {
@@ -123,12 +123,12 @@ function generateCamera(){
 	//console.log(camleft)
 	//console.log(camup)
 	if(perspective>0){
-		var fw=window.innerWidth+Math.abs(cutleft-cutright)
-		var fh=window.innerHeight+Math.abs(cuttop-cutbottom)
-		var ox=Math.max(0,cutright-cutleft)
-		var oy=Math.max(0,cutbottom-cuttop)
-		var xv=window.innerWidth-cutleft-cutright
-		var yv=window.innerHeight-cuttop-cutbottom
+		var fw=pixelratio*(window.innerWidth+Math.abs(cutleft-cutright))
+		var fh=pixelratio*(window.innerHeight+Math.abs(cuttop-cutbottom))
+		var ox=pixelratio*(Math.max(0,cutright-cutleft))
+		var oy=pixelratio*(Math.max(0,cutbottom-cuttop))
+		var xv=pixelratio*(window.innerWidth-cutleft-cutright)
+		var yv=pixelratio*(window.innerHeight-cuttop-cutbottom)
 		var perspectiveheight=fh*perspective/(yv+xv)/90
 		var perspectivewidth=perspectiveheight*fw/fh
 		var perspectiveangle=Math.atan(perspectiveheight)*360/Math.PI
@@ -197,7 +197,7 @@ function generateCamera(){
 			camcenter=finalcampos.clone().add(centeroffset)
 			
 			//camera = new THREE.PerspectiveCamera(perspective/2, canvas.width / canvas.height, Math.max(lrlen-2000,1),lrlen+2000);
-			camera = new THREE.PerspectiveCamera(perspectiveangle, canvas.width / canvas.height, Math.max(camdist-2000,1),camdist+2000);
+			camera = new THREE.PerspectiveCamera(perspectiveangle, canvas.width / canvas.height, Math.max(camdist-800,10),camdist+800);
 			camera.setViewOffset(fw,fh,ox,oy,canvas.width,canvas.height)
 			camera.position.set(finalcampos.x,finalcampos.y,finalcampos.z);
 		}
@@ -209,7 +209,7 @@ function generateCamera(){
 			
 			var finalcampos=invcamdir.clone().multiplyScalar(camdist)
 			
-			camera = new THREE.PerspectiveCamera(perspectiveangle, canvas.width / canvas.height, Math.max(camdist-2000,1),camdist+2000);
+			camera = new THREE.PerspectiveCamera(perspectiveangle, canvas.width / canvas.height, Math.max(camdist/5-800,10),camdist*3+800);
 			camera.setViewOffset(fw,fh,ox,oy,canvas.width,canvas.height)
 			camera.position.set(finalcampos.x,finalcampos.y,finalcampos.z);
 		}
@@ -583,16 +583,20 @@ function loadptn(text) {
 function volume_change() {
 	var movesound = document.getElementById("move-sound");
 	var chimesound = document.getElementById("chime-sound");
+	var hurrysound = document.getElementById("hurry-sound");
 
 	if($('#volume-img').hasClass('fa-volume-off')) {
 		movesound.muted = false;
 		chimesound.muted = false;
-
+		hurrysound.muted = false
+		movesound.pause()
+		movesound.currentTime=0
 		movesound.play();
 		localStorage.setItem('sound', 'true');
 	} else {
 		movesound.muted = true;
 		chimesound.muted = true;
+		hurrysound.muted = true
 
 		localStorage.setItem('sound', 'false');
 	}
@@ -603,22 +607,56 @@ function isBreakpoint( alias ) {
 	return $('.device-' + alias).is(':hidden');
 }
 
+var haveplayedhurry=false
 function startTime(fromFn) {
 	if(typeof fromFn === 'undefined' && !server.timervar)
 		return;
 	var now = new Date();
-	var t = now.getHours()*60*60 + now.getMinutes()*60+now.getSeconds();
+	var t = now.getTime()/1000//now.getHours()*60*60 + now.getMinutes()*60+now.getSeconds();
 	var elapsed = t-lastTimeUpdate;
+	var t1
+	var nextupdate
+	var ismymove=board.checkifmymove()
+	var t1f=lastWt
+	var t2f=lastBt
 
 	if(board.movecount%2 === 0) {
-		t1 = lastWt - elapsed;
-		$('.player1-time:first').html(parseInt(t1/60)+':'+getZero(t1%60));
+		t1f=Math.max(lastWt - elapsed,0)
+		t1 = Math.ceil(t1f);
+		nextupdate=1000*(1-t1+t1f)
+		$('.player1-time:first').html(Math.floor(t1/60)+':'+getZero(t1%60));
+		$('.player2-time:first').html(Math.floor(lastBt/60)+':'+getZero(lastBt%60));
 	} else {
-		t2 = lastBt - elapsed;
-		$('.player2-time:first').html(parseInt(t2/60)+':'+getZero(t2%60));
+		t2f=Math.max(lastBt - elapsed,0)
+		t1 = Math.ceil(t2f);
+		nextupdate=1000*(1-t1+t2f)
+		$('.player2-time:first').html(Math.floor(t1/60)+':'+getZero(t1%60));
+		$('.player1-time:first').html(Math.floor(lastWt/60)+':'+getZero(lastWt%60));
 	}
-
-	server.timervar = setTimeout(startTime, 500);
+	if(t1f<=10){
+		$('.player1-time:first').addClass("hurrytime")
+	}
+	else{
+		$('.player1-time:first').removeClass("hurrytime")
+	}
+	if(t2f<=10){
+		$('.player2-time:first').addClass("hurrytime")
+	}
+	else{
+		$('.player2-time:first').removeClass("hurrytime")
+	}
+	if(t1==10 && ismymove && !haveplayedhurry){
+		haveplayedhurry=true
+		var hurrysound = document.getElementById("hurry-sound");
+		hurrysound.pause()
+		hurrysound.currentTime=0
+		hurrysound.play()
+	}
+	if(!ismymove){
+		haveplayedhurry=false
+	}
+	clearTimeout(server.timervar)
+	server.timervar = setTimeout(startTime, nextupdate);
 }
 
 function stopTime() {
@@ -651,6 +689,9 @@ function loadSettings() {
 	// load white piece style.
 	if (localStorage.getItem('piece_style_white2')!==null) {
 		var styleName = localStorage.getItem('piece_style_white2');
+		if(white_piece_styles.indexOf(styleName)==-1){
+			styleName=white_piece_styles[0]
+		}
 		materials.white_piece_style_name = styleName;
 		materials.white_cap_style_name = styleName;
 		document.getElementById('piece-style-white-' + styleName).checked = true;
@@ -659,6 +700,9 @@ function loadSettings() {
 	// load black piece style.
 	if (localStorage.getItem('piece_style_black2')!==null) {
 		var styleName = localStorage.getItem('piece_style_black2');
+		if(black_piece_styles.indexOf(styleName)==-1){
+			styleName=black_piece_styles[0]
+		}
 		materials.black_piece_style_name = styleName;
 		materials.black_cap_style_name = styleName;
 		document.getElementById('piece-style-black-' + styleName).checked = true;
@@ -667,6 +711,9 @@ function loadSettings() {
 	// load black board style.
 	if (localStorage.getItem('board_style_black2')!==null) {
 		var styleName = localStorage.getItem('board_style_black2');
+		if(black_square_styles.indexOf(styleName)==-1){
+			styleName=black_square_styles[0]
+		}
 		materials.black_sqr_style_name = styleName;
 		document.getElementById('board-style-black-' + styleName).checked = true;
 	}
@@ -674,6 +721,9 @@ function loadSettings() {
 	// load white board style.
 	if (localStorage.getItem('board_style_white2')!==null) {
 		var styleName = localStorage.getItem('board_style_white2');
+		if(white_square_styles.indexOf(styleName)==-1){
+			styleName=white_square_styles[0]
+		}
 		materials.white_sqr_style_name = styleName;
 		document.getElementById('board-style-white-' + styleName).checked = true;
 	}

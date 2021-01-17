@@ -265,8 +265,8 @@ var pieceFactory = {
 };
 
 function capgeometry(){
-	capstone_radius=piece_size*0.5
-	capstone_height=piece_size*1.4
+	capstone_radius=piece_size*0.4
+	capstone_height=Math.min(piece_size*1.1,70)
 	var geometry = new THREE.CylinderGeometry(capstone_radius, capstone_radius, capstone_height, 30);
 	var a,b
 	//console.log(geometry)
@@ -519,6 +519,8 @@ var board = {
 		  $('.moveno'+this.movecount+':first').addClass('curmove');
 		}
 		this.movecount++;
+		document.getElementById("move-sound").pause()
+		document.getElementById("move-sound").currentTime=0
 		document.getElementById("move-sound").play();
 
 		$('#player-me').toggleClass('selectplayer');
