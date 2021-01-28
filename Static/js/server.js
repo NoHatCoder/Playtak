@@ -6,10 +6,96 @@ var server = {
 	timervar: null,
 	lastTimeUpdate: null,
 	anotherlogin: false,
+	loggedin:false,
+	
+	connect:function(){
+		if(this.connection && this.connection.readyState>1){
+			this.connection = null
+		}
+		if(!this.connection){
+			var proto = 'wss://'
+			var url = window.location.host + '/ws'
+			if(window.location.host.indexOf("localhost")>-1 || window.location.host.indexOf("127.0.0.1")>-1 || window.location.host.indexOf("192.168.")==0){
+				url = "www.playtak.com/ws/"
+				//proto = 'ws://'
+				//url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
+			}
+			this.connection = new WebSocket(proto+url, "binary");
+			this.connection.onerror = function (e) {
+				output("Connection error: " + e);
+			};
+			this.connection.onmessage = function (e) {
+				var blob = e.data;
+				var reader = new FileReader();
+				reader.onload = function (event) {
+					var res_text = new TextDecoder("utf-8").decode(reader.result);
+					server.msg(res_text);
+					/*
+					var res = res_text.split("\n");
+					var i;
+					for (i = 0; i < res.length - 1; i++) {
+						server.msg(res[i]);
+					}
+					*/ 
+				};
+				reader.readAsArrayBuffer(blob);
+			};
+			this.connection.onclose = function (e) {
+				server.loggedin=false
+				document.getElementById('login-button').textContent = 'Sign up / Login';
+				$('#onlineplayers').addClass('hidden');
+				document.getElementById("onlineplayersbadge").innerHTML = "0";
+				document.getElementById("seekcount").innerHTML = "0";
+				document.getElementById("seekcountbot").innerHTML = "0";
+				document.getElementById("gamecount").innerHTML = "0";
+				document.getElementById("scratchsize").disabled = false;
+				board.scratch = true;
+				board.observing = false;
+				board.gameno = 0;
+				document.title = "Tak";
+				$('#seeklist').children().each(function() {
+					this.remove();
+				});
+				$('#seeklistbot').children().each(function() {
+					this.remove();
+				});
+				$('#gamelist').children().each(function() {
+					this.remove();
+				});
+				stopTime();
 
+				if(localStorage.getItem('keeploggedin')==='true' &&
+													!server.anotherlogin) {
+					alert("info", "Connection lost. Trying to reconnect...");
+					server.startLoginTimer();
+				} else {
+					alert("info", "You're disconnected from server");
+				}
+			};
+		}
+	},
+	logout:function(){
+		localStorage.removeItem('keeploggedin');
+		localStorage.removeItem('usr');
+		localStorage.removeItem('token');
+		if(this.connection){
+			this.connection.close();
+			alert("info", "Disconnnecting from server....");
+			this.connection=null
+		}
+	},
+	loginbutton:function(){
+		if(server.loggedin){
+			this.logout()
+		}
+		else{
+			$('#login').modal('show');
+		}
+	},
+	/*
 	init: function () {
 		if (this.connection && this.connection.readyState === 2)//closing connection
-			return;
+			this.connection = null;
 		if (this.connection && this.connection.readyState === 3)//closed
 			this.connection = null;
 		if (this.connection) { //user clicked logout
@@ -19,6 +105,7 @@ var server = {
 			localStorage.removeItem('keeploggedin');
 			localStorage.removeItem('usr');
 			localStorage.removeItem('token');
+			this.connection=null
 			return;
 		}
 		
@@ -26,6 +113,8 @@ var server = {
 		var url = window.location.host + '/ws'
 		if(window.location.host.indexOf("localhost")>-1 || window.location.host.indexOf("127.0.0.1")>-1){
 			url = "www.playtak.com/ws/"
+			//proto = 'ws://'
+			//url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
 		}
 		this.connection = new WebSocket(proto+url, "binary");
 		board.server = this;
@@ -82,6 +171,7 @@ var server = {
 			}
 		};
 	},
+	*/
 
 	loginTimer: null,
 
@@ -99,56 +189,92 @@ var server = {
 	},
 
 	loginTimerFn: function() {
-		server.init();
+		server.connect();
 		server.loginTimer = setTimeout(server.loginTimerFn, 5000);
 	},
 
 	login: function () {
-		var name = $('#login-username').val();
-		var pass = $('#login-pwd').val();
+		this.connect()
+		if(this.connection.readyState==0){
+			this.connection.onopen=function(){server.login()}
+		}
+		else if(this.connection.readyState==1){
+			var name = $('#login-username').val();
+			var pass = $('#login-pwd').val();
 
-		this.send("Login " + name + " " + pass);
+			this.send("Login " + name + " " + pass);
+		}
 	},
 	guestlogin: function() {
-		this.send("Login Guest");
+		this.connect()
+		if(this.connection.readyState==0){
+			this.connection.onopen=function(){server.guestlogin()}
+		}
+		else if(this.connection.readyState==1){
+			this.send("Login Guest");
+		}
 	},
 	register: function () {
-		var name = $('#register-username').val();
-		var email = $('#register-email').val();
-		var retyped_email = $('#retype-register-email').val();
-
-		if (email !== retyped_email) {
-			alert("danger", "Email addresses don't match");
-			return;
+		this.connect()
+		if(this.connection.readyState==0){
+			this.connection.onopen=function(){server.register()}
 		}
+		else if(this.connection.readyState==1){
+			var name = $('#register-username').val();
+			var email = $('#register-email').val();
+			var retyped_email = $('#retype-register-email').val();
 
-		this.send("Register " + name + " " + email);
+			if (email !== retyped_email) {
+				alert("danger", "Email addresses don't match");
+				return;
+			}
+
+			this.send("Register " + name + " " + email);
+		}
 	},
 	changepassword: function() {
-		var curpass = $('#cur-pwd').val();
-		var newpass = $('#new-pwd').val();
-		var retypenewpass = $('#retype-new-pwd').val();
+		this.connect()
+		if(this.connection.readyState==0){
+			this.connection.onopen=function(){server.changepassword()}
+		}
+		else if(this.connection.readyState==1){
+			var curpass = $('#cur-pwd').val();
+			var newpass = $('#new-pwd').val();
+			var retypenewpass = $('#retype-new-pwd').val();
 
-		if(newpass !== retypenewpass) {
-			alert("danger", "Passwords don't match");
-		} else {
-			this.send("ChangePassword "+curpass+" "+newpass);
+			if(newpass !== retypenewpass) {
+				alert("danger", "Passwords don't match");
+			} else {
+				this.send("ChangePassword "+curpass+" "+newpass);
+			}
 		}
 	},
 	sendresettoken: function() {
-		var name = $('#resettoken-username').val();
-		var email = $('#resettoken-email').val();
-		this.send('SendResetToken '+name+' '+email);
+		this.connect()
+		if(this.connection.readyState==0){
+			this.connection.onopen=function(){server.sendresettoken()}
+		}
+		else if(this.connection.readyState==1){
+			var name = $('#resettoken-username').val();
+			var email = $('#resettoken-email').val();
+			this.send('SendResetToken '+name+' '+email);
+		}
 	},
 	resetpwd: function() {
-		var name = $('#resetpwd-username').val();
-		var token = $('#resetpwd-token').val();
-		var npwd = $('#reset-new-pwd').val();
-		var rnpwd = $('#reset-retype-new-pwd').val();
-		if(npwd !== rnpwd) {
-			alert("danger", "Passwords don't match");
-		} else {
-			this.send('ResetPassword '+name+' '+token+' '+npwd);
+		this.connect()
+		if(this.connection.readyState==0){
+			this.connection.onopen=function(){server.resetpwd()}
+		}
+		else if(this.connection.readyState==1){
+			var name = $('#resetpwd-username').val();
+			var token = $('#resetpwd-token').val();
+			var npwd = $('#reset-new-pwd').val();
+			var rnpwd = $('#reset-retype-new-pwd').val();
+			if(npwd !== rnpwd) {
+				alert("danger", "Passwords don't match");
+			} else {
+				this.send('ResetPassword '+name+' '+token+' '+npwd);
+			}
 		}
 	},
 	keepalive: function() {
@@ -156,7 +282,7 @@ var server = {
 			server.send("PING");
 	},
 	msg: function (e) {
-		 console.log(e);
+		console.log(e);
 		output(e);
 		e = e.trim();
 		if (e.startsWith("Game Start")) {
@@ -308,143 +434,134 @@ var server = {
 			var gameno = Number(e.split("Game#")[1].split(" ")[0]);
 			//Game#1 ...
 			if(gameno === board.gameno) {
-			//Game#1 P A4 (C|W)
-			if (spl[1] === "P") {
-				board.serverPmove(spl[2].charAt(0), Number(spl[2].charAt(1)), spl[3]);
-			}
-			//Game#1 M A2 A5 2 1
-			else if (spl[1] === "M") {
-				var nums = [];
-				for (i = 4; i < spl.length; i++)
-					nums.push(Number(spl[i]));
-				board.serverMmove(spl[2].charAt(0), Number(spl[2].charAt(1)),
-						spl[3].charAt(0), Number(spl[3].charAt(1)),
-						nums);
-			}
-			//Game#1 Time 170 200
-			else if (spl[1] === "Time") {
-				var wt = Math.max(+spl[2]||0,0);
-				var bt = Math.max(+spl[3]||0,0);
-				lastWt = wt;
-				lastBt = bt;
-
-				var now = new Date();
-				lastTimeUpdate = now.getTime()/1000//now.getHours()*60*60 + now.getMinutes()*60+now.getSeconds();
-
-
-				//$('.player1-time:first').html(Math.floor(wt/60)+':'+getZero(wt%60));
-				//$('.player2-time:first').html(Math.floor(bt/60)+':'+getZero(bt%60));
-
-
-				board.timer_started = true;
-				startTime(true);
-			}
-			//Game#1 RequestUndo
-			else if (spl[1] === "RequestUndo") {
-				alert("info", "Your opponent requests to undo the last move");
-				$('#undo').toggleClass('opp-requested-undo request-undo');
-			}
-			//Game#1 RemoveUndo
-			else if (spl[1] === "RemoveUndo") {
-				alert("info", "Your opponent removes undo request");
-				$('#undo').toggleClass('opp-requested-undo request-undo');
-			}
-			//Game#1 Undo
-			else if (spl[1] === "Undo") {
-				board.undo();
-				alert("info", "Game has been UNDOed by 1 move");
-				$('#undo').removeClass('i-requested-undo').removeClass('opp-requested-undo').addClass('request-undo');
-			}
-			//Game#1 OfferDraw
-			else if (spl[1] === "OfferDraw") {
-				$('#draw').toggleClass('opp-offered-draw offer-draw');
-				alert("info", "Draw is offered by your opponent");
-			}
-			//Game#1 RemoveDraw
-			else if (spl[1] === "RemoveDraw") {
-				$('#draw').removeClass('i-offered-draw').removeClass('opp-offered-draw').addClass('offer-draw');
-				alert("info", "Draw offer is taken back by your opponent");
-			}
-			//Game#1 Over result
-			else if (spl[1] === "Over") {
-				document.title = "Tak";
-				//board.scratch = true;
-				board.result = spl[2];
-				//board.notate(spl[2]);
-
-				var msg = "Game over <span class='bold'>" + spl[2] + "</span><br>";
-				var res;
-				var type;
-
-				if(spl[2] === "R-0" || spl[2] === "0-R")
-					type = "making a road";
-				else if (spl[2] === "F-0" || spl[2] === "0-F")
-					type = "having more flats";
-				else if (spl[2] === "1-0" || spl[2] === "0-1")
-					type = "resignation or time";
-
-				if(spl[2] === "R-0" || spl[2] === "F-0" || spl[2] === "1-0") {
-					if(board.observing === true) {
-					msg += "White wins by "+type;
-					}
-					else if(board.mycolor === "white") {
-					msg += "You win by "+type;
-					} else {
-					msg += "Your opponent wins by "+type;
-					}
-				} else if (spl[2] === "1/2-1/2") {
-					msg += "The game is a draw!";
-				} else if (spl[2] === "0-0") {
-					msg += "The game is aborted!";
-				} else {//black wins
-					if(board.observing === true) {
-					msg += "Black wins by "+type;
-					}
-					else if(board.mycolor === "white") {
-					msg += "Your opponent wins by "+type;
-					} else {
-					msg += "You win by "+type;
-					}
+				//Game#1 P A4 (C|W)
+				if (spl[1] === "P") {
+					board.serverPmove(spl[2].charAt(0), Number(spl[2].charAt(1)), spl[3]);
 				}
-
-				document.getElementById("scratchsize").disabled = false;
-				stopTime();
-
-				$('#gameoveralert-text').html(msg);
-				$('#gameoveralert').modal('show');
-				board.gameover()
-			}
-			//Game#1 Abandoned
-			else if (spl[1] === "Abandoned.") {
-				//Game#1 Abandoned. name quit
-				document.title = "Tak";
-				//board.scratch = true;
-
-				if(board.mycolor === "white") {
-					//board.notate("1-0");
-					board.result = "1-0";
-				} else {
-					//board.notate("0-1");
-					board.result = "0-1";
+				//Game#1 M A2 A5 2 1
+				else if (spl[1] === "M") {
+					var nums = [];
+					for (i = 4; i < spl.length; i++)
+						nums.push(Number(spl[i]));
+					board.serverMmove(spl[2].charAt(0), Number(spl[2].charAt(1)),
+							spl[3].charAt(0), Number(spl[3].charAt(1)),
+							nums);
 				}
+				//Game#1 Time 170 200
+				else if (spl[1] === "Time") {
+					var wt = Math.max(+spl[2]||0,0);
+					var bt = Math.max(+spl[3]||0,0);
+					lastWt = wt;
+					lastBt = bt;
 
-				var msg = "Game abandoned by " + spl[2] + ".";
-				if(!board.observing)
-					msg += " You win!";
+					var now = new Date();
+					lastTimeUpdate = now.getTime()/1000
 
-				document.getElementById("scratchsize").disabled = false;
-				stopTime();
+					board.timer_started = true;
+					startTime(true);
+				}
+				//Game#1 RequestUndo
+				else if (spl[1] === "RequestUndo") {
+					alert("info", "Your opponent requests to undo the last move");
+					$('#undo').toggleClass('opp-requested-undo request-undo');
+				}
+				//Game#1 RemoveUndo
+				else if (spl[1] === "RemoveUndo") {
+					alert("info", "Your opponent removes undo request");
+					$('#undo').toggleClass('opp-requested-undo request-undo');
+				}
+				//Game#1 Undo
+				else if (spl[1] === "Undo") {
+					board.undo();
+					alert("info", "Game has been UNDOed by 1 move");
+					$('#undo').removeClass('i-requested-undo').removeClass('opp-requested-undo').addClass('request-undo');
+				}
+				//Game#1 OfferDraw
+				else if (spl[1] === "OfferDraw") {
+					$('#draw').toggleClass('opp-offered-draw offer-draw');
+					alert("info", "Draw is offered by your opponent");
+				}
+				//Game#1 RemoveDraw
+				else if (spl[1] === "RemoveDraw") {
+					$('#draw').removeClass('i-offered-draw').removeClass('opp-offered-draw').addClass('offer-draw');
+					alert("info", "Draw offer is taken back by your opponent");
+				}
+				//Game#1 Over result
+				else if (spl[1] === "Over") {
+					document.title = "Tak";
+					board.result = spl[2];
 
-				$('#gameoveralert-text').html(msg);
-				$('#gameoveralert').modal('show');
-				board.gameover()
-			}
+					var msg = "Game over <span class='bold'>" + spl[2] + "</span><br>";
+					var res;
+					var type;
+
+					if(spl[2] === "R-0" || spl[2] === "0-R")
+						type = "making a road";
+					else if (spl[2] === "F-0" || spl[2] === "0-F")
+						type = "having more flats";
+					else if (spl[2] === "1-0" || spl[2] === "0-1")
+						type = "resignation or time";
+
+					if(spl[2] === "R-0" || spl[2] === "F-0" || spl[2] === "1-0") {
+						if(board.observing === true) {
+						msg += "White wins by "+type;
+						}
+						else if(board.mycolor === "white") {
+						msg += "You win by "+type;
+						} else {
+						msg += "Your opponent wins by "+type;
+						}
+					} else if (spl[2] === "1/2-1/2") {
+						msg += "The game is a draw!";
+					} else if (spl[2] === "0-0") {
+						msg += "The game is aborted!";
+					} else {//black wins
+						if(board.observing === true) {
+						msg += "Black wins by "+type;
+						}
+						else if(board.mycolor === "white") {
+						msg += "Your opponent wins by "+type;
+						} else {
+						msg += "You win by "+type;
+						}
+					}
+
+					document.getElementById("scratchsize").disabled = false;
+					stopTime();
+
+					$('#gameoveralert-text').html(msg);
+					$('#gameoveralert').modal('show');
+					board.gameover()
+				}
+				//Game#1 Abandoned
+				else if (spl[1] === "Abandoned.") {
+					//Game#1 Abandoned. name quit
+					document.title = "Tak";
+
+					if(board.mycolor === "white") {
+						board.result = "1-0";
+					} else {
+						board.result = "0-1";
+					}
+
+					var msg = "Game abandoned by " + spl[2] + ".";
+					if(!board.observing)
+						msg += " You win!";
+
+					document.getElementById("scratchsize").disabled = false;
+					stopTime();
+
+					$('#gameoveralert-text').html(msg);
+					$('#gameoveralert').modal('show');
+					board.gameover()
+				}
 			}
 		}
 		else if (e.startsWith("Login or Register")) {
+			server.stopLoginTimer();
 			server.send("Client " + "TakWeb-16.05.26");
-			//this.timeoutvar = window.setInterval(this.keepalive, 30000);
-
+			clearInterval(this.timeoutvar)
+			this.timeoutvar = setInterval(this.keepalive, 30000);
 			if(localStorage.getItem('keeploggedin')==='true' && this.tries<3) {
 				var uname = localStorage.getItem('usr');
 				var token = localStorage.getItem('token');
@@ -495,15 +612,14 @@ var server = {
 		}
 		//Welcome kaka!
 		else if (e.startsWith("Welcome ")) {
-			server.stopLoginTimer();
 
 			this.tries = 0;
 			$('#login').modal('hide');
 			document.getElementById('login-button').textContent = 'Logout';
-			this.timeoutvar = window.setInterval(this.keepalive, 30000);
 			this.myname = e.split("Welcome ")[1].split("!")[0];
 			alert("success", "You're logged in "+this.myname+"!");
 			document.title = "Tak";
+			server.loggedin=true
 
 			var rem = $('#keeploggedin').is(':checked');
 			if( rem === true && !this.myname.startsWith("Guest")) {

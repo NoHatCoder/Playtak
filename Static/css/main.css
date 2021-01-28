@@ -6,10 +6,12 @@ body {
 
 .canvaswrap {
 	display: block;
-	position: fixed;
+	position: absolute;
 	width: 100%;
+	
 	top:0;
 	left:0;
+	
 }
 
 #gamecanvas{
@@ -214,6 +216,7 @@ input[type=range]::-webkit-slider-runnable-track {
 	position:absolute;
 	display:flex;
 	flex-direction:column;
+	max-height:1200px;
 }
 
 #notationbar {
@@ -306,19 +309,6 @@ input[type=range]::-webkit-slider-runnable-track {
 .white-player-color {
 	color: #b3b3b3;
 }
-/*
-#player-opp, .player1-name {
-	display: inline-block;
-	color: #a3a3a3;
-	padding: 2px;
-}
-
-#player-me, .player2-name {
-	display: inline-block;
-	color: black;
-	padding: 2px;
-}
-*/
 #player-me, #player-opp, .player1-name, .player2-name {
 	display: inline-block;
 	color: black;
@@ -425,4 +415,25 @@ a .fa:not(#undo):not(#draw) {
 
 .hurrytime{
 	color:#d00;
+}
+
+.col-sm-6-custom{
+	position:relative;
+	padding-right:15px;
+	padding-left:15px;
+	float:left;
+	width:100%;
+}
+@media (min-width: 768px){
+	.col-sm-6-custom{
+		
+	}
+	.halfrow{
+		display:inline-block;
+		width:269px;
+		height:280px;
+	}
+	.leftmost{
+		margin-right:18px;
+	}
 }

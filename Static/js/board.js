@@ -23,10 +23,10 @@ var materials = {
 	pieces_texture_path: 'images/pieces/',
 	white_sqr_style_name: 'sand-velvet-diamonds',
 	black_sqr_style_name: 'sand-velvet-diamonds',
-	white_piece_style_name: 'coral',
-	black_piece_style_name: 'pietersite',
-	white_cap_style_name: 'coral',
-	black_cap_style_name: 'pietersite',
+	white_piece_style_name: "white_coral",
+	black_piece_style_name: "black_pietersite",
+	white_cap_style_name: "white_coral",
+	black_cap_style_name: "black_pietersite",
 	white_piece: new THREE.MeshBasicMaterial({color: 0xd4b375}),
 	black_piece: new THREE.MeshBasicMaterial({color: 0x573312}),
 	white_cap: new THREE.MeshBasicMaterial({color: 0xd4b375}),
@@ -41,43 +41,81 @@ var materials = {
 		return this.board_texture_path + 'white_' + this.white_sqr_style_name + '.png';
 	},
 	getBlackSquareTextureName: function(styleName) {
-		 return this.board_texture_path + 'black_' + this.black_sqr_style_name + '.png';
+		return this.board_texture_path + 'black_' + this.black_sqr_style_name + '.png';
 	},
 	getWhitePieceTextureName: function() {
-		return this.pieces_texture_path + 'white_' + this.white_piece_style_name + '_pieces.png';
+		if(piece_styles[this.white_piece_style_name]==0){
+			return this.pieces_texture_path + this.white_piece_style_name + '_pieces.png';
+		}
+		else if(piece_styles[this.white_piece_style_name]==2){
+			return localStorage[this.white_piece_style_name]
+		}
+		else{
+			return this.pieces_texture_path + this.white_piece_style_name + '.png';
+		}
 	},
 	getBlackPieceTextureName: function() {
-		 return this.pieces_texture_path + 'black_' + this.black_piece_style_name + '_pieces.png';
+		if(piece_styles[this.black_piece_style_name]==0){
+			return this.pieces_texture_path + this.black_piece_style_name + '_pieces.png';
+		}
+		else if(piece_styles[this.black_piece_style_name]==2){
+			return localStorage[this.black_piece_style_name]
+		}
+		else{
+			return this.pieces_texture_path + this.black_piece_style_name + '.png';
+		}
 	},
 	getWhiteCapTextureName: function() {
-		return this.pieces_texture_path + 'white_' + this.white_cap_style_name + '_caps.png';
+		if(piece_styles[this.white_piece_style_name]==0){
+			return this.pieces_texture_path + this.white_piece_style_name + '_caps.png';
+		}
+		else if(piece_styles[this.white_piece_style_name]==2){
+			return localStorage[this.white_piece_style_name]
+		}
+		else{
+			return this.pieces_texture_path + this.white_piece_style_name + '.png';
+		}
 	},
 	getBlackCapTextureName: function() {
-		 return this.pieces_texture_path + 'black_' + this.black_cap_style_name + '_caps.png';
+		if(piece_styles[this.black_piece_style_name]==0){
+			return this.pieces_texture_path + this.black_piece_style_name + '_caps.png';
+		}
+		else if(piece_styles[this.black_piece_style_name]==2){
+			return localStorage[this.black_piece_style_name]
+		}
+		else{
+			return this.pieces_texture_path + this.black_piece_style_name + '.png';
+		}
 	},
 	// updateBoardMaterials after the user changes the board styles
 	updateBoardMaterials: function() {
 		var loader = new THREE.TextureLoader();
 		this.boardLoaded = 0;
 
-		this.white_sqr = new THREE.MeshBasicMaterial(
-			{map: loader.load(this.getWhiteSquareTextureName(), this.boardLoadedFn)});
-		this.black_sqr = new THREE.MeshBasicMaterial(
-			{map: loader.load(this.getBlackSquareTextureName(), this.boardLoadedFn)});
+		this.white_sqr = new THREE.MeshBasicMaterial({map: loader.load(this.getWhiteSquareTextureName(), this.boardLoadedFn)});
+		this.black_sqr = new THREE.MeshBasicMaterial({map: loader.load(this.getBlackSquareTextureName(), this.boardLoadedFn)});
+		var an=Math.min(maxaniso,anisolevel)
+		if(an>1){
+			this.white_sqr.map.anisotropy=an
+			this.black_sqr.map.anisotropy=an
+		}
 	},
 	// updatePieceMaterials after the user changes the piece styles
 	updatePieceMaterials: function() {
 		var loader = new THREE.TextureLoader();
 		this.piecesLoaded = 0;
 
-		this.white_piece = new THREE.MeshBasicMaterial(
-		{map: loader.load(this.getWhitePieceTextureName(), this.piecesLoadedFn)});
-		this.black_piece = new THREE.MeshBasicMaterial(
-			{map: loader.load(this.getBlackPieceTextureName(), this.piecesLoadedFn)});
-		this.white_cap = new THREE.MeshBasicMaterial(
-			{map: loader.load(this.getWhiteCapTextureName(), this.piecesLoadedFn)});
-		this.black_cap = new THREE.MeshBasicMaterial(
-			{map: loader.load(this.getBlackCapTextureName(), this.piecesLoadedFn)});
+		this.white_piece = new THREE.MeshBasicMaterial({map: loader.load(this.getWhitePieceTextureName(), this.piecesLoadedFn)});
+		this.black_piece = new THREE.MeshBasicMaterial({map: loader.load(this.getBlackPieceTextureName(), this.piecesLoadedFn)});
+		this.white_cap = new THREE.MeshBasicMaterial({map: loader.load(this.getWhiteCapTextureName(), this.piecesLoadedFn)});
+		this.black_cap = new THREE.MeshBasicMaterial({map: loader.load(this.getBlackCapTextureName(), this.piecesLoadedFn)});
+		var an=Math.min(maxaniso,anisolevel)
+		if(an>1){
+			this.white_piece.map.anisotropy=an
+			this.black_piece.map.anisotropy=an
+			this.white_cap.map.anisotropy=an
+			this.black_cap.map.anisotropy=an
+		}
 	},
 
 	piecesLoaded: 0,
@@ -209,8 +247,7 @@ var pieceFactory = {
 	makePiece: function(playerNum,pieceNum,scene) {
 		var materialMine = (playerNum === WHITE_PLAYER ? materials.white_piece : materials.black_piece);
 		var materialOpp = (playerNum === WHITE_PLAYER ? materials.black_piece : materials.white_piece);
-		var geometry = new THREE.BoxGeometry(piece_size, piece_height, piece_size);
-		geometry.center();
+		var geometry=piecegeometry(playerNum === WHITE_PLAYER?"white":"black")
 
 		var stackno = Math.floor(pieceNum / 10);
 		var stackheight = pieceNum % 10;
@@ -235,9 +272,7 @@ var pieceFactory = {
 		return piece;
 	},
 	makeCap: function(playerNum,capNum,scene) {
-		var geometry = capgeometry()
-		//var geometry = new THREE.CylinderGeometry(capstone_radius, capstone_radius, capstone_height, 30);
-		geometry.center();
+		var geometry = capgeometry(playerNum === WHITE_PLAYER?"white":"black")
 
 		// the capstones go at the other end of the row
 		var piece;
@@ -264,16 +299,66 @@ var pieceFactory = {
 	}
 };
 
-function capgeometry(){
+function piecegeometry(color){
+	var geometry = new THREE.BoxGeometry(piece_size, piece_height, piece_size);
+	var geometrytype
+	if(color=="white"){
+		geometrytype=piece_styles[materials.white_piece_style_name]
+	}
+	else{
+		geometrytype=piece_styles[materials.black_piece_style_name]
+	}
+	if(geometrytype!=0){
+		var a,b
+		for(a=0;a<12;a++){
+			for(b=0;b<3;b++){
+				geometry.faceVertexUvs[0][a][b].x=geometry.faceVertexUvs[0][a][b].x==0?9/16:15/16
+				if(a>3 && a<8){
+					geometry.faceVertexUvs[0][a][b].y=geometry.faceVertexUvs[0][a][b].y==0?1/32:13/32
+				}
+				else{
+					geometry.faceVertexUvs[0][a][b].y=geometry.faceVertexUvs[0][a][b].y==0?29/64:35/64
+				}
+			}
+		}
+	}
+	return geometry
+}
+
+function capgeometry(color){
 	capstone_radius=piece_size*0.4
 	capstone_height=Math.min(piece_size*1.1,70)
 	var geometry = new THREE.CylinderGeometry(capstone_radius, capstone_radius, capstone_height, 30);
 	var a,b
-	//console.log(geometry)
-	for(a=60;a<120;a++){
-		for(b=0;b<3;b++){
-			geometry.faceVertexUvs[0][a][b].x=(geometry.faceVertexUvs[0][a][b].x-0.5)*0.25+0.5
-			geometry.faceVertexUvs[0][a][b].y=(geometry.faceVertexUvs[0][a][b].y-0.5)*0.5+0.5
+	var geometrytype
+	if(color=="white"){
+		geometrytype=piece_styles[materials.white_piece_style_name]
+	}
+	else{
+		geometrytype=piece_styles[materials.black_piece_style_name]
+	}
+	if(geometrytype==0){
+		for(a=60;a<120;a++){
+			for(b=0;b<3;b++){
+				geometry.faceVertexUvs[0][a][b].x=(geometry.faceVertexUvs[0][a][b].x-0.5)*0.25+0.5
+				geometry.faceVertexUvs[0][a][b].y=(geometry.faceVertexUvs[0][a][b].y-0.5)*0.5+0.5
+			}
+		}
+	}
+	else{
+		for(a=0;a<60;a++){
+			for(b=0;b<3;b++){
+				var newx=0.5*geometry.faceVertexUvs[0][a][b].y
+				var newy=1-geometry.faceVertexUvs[0][a][b].x
+				geometry.faceVertexUvs[0][a][b].x=newx
+				geometry.faceVertexUvs[0][a][b].y=newy
+			}
+		}
+		for(a=60;a<120;a++){
+			for(b=0;b<3;b++){
+				geometry.faceVertexUvs[0][a][b].x=(geometry.faceVertexUvs[0][a][b].x-0.5)*0.375+0.75
+				geometry.faceVertexUvs[0][a][b].y=(geometry.faceVertexUvs[0][a][b].y-0.5)*0.375+0.78125
+			}
 		}
 	}
 	return geometry
@@ -307,7 +392,6 @@ var board = {
 	selected: null,
 	selectedStack: null,
 	ismymove: false,
-	server: null,
 	gameno: 0,
 	boardside: "white",
 	result: "",
@@ -445,9 +529,10 @@ var board = {
 	updatepieces: function () {
 		var stacks=Math.ceil(this.tottiles/10+this.totcaps)
 		stack_dist=Math.min((border_size*2+sq_size*this.size-stacks*piece_size)/Math.max(stacks-1,1),piece_size)
-		var geometry = new THREE.BoxGeometry(piece_size, piece_height, piece_size);
-		//var capGeometry = new THREE.CylinderGeometry(capstone_radius, capstone_radius, capstone_height, 30);
-		var capGeometry = capgeometry()
+		var geometryW=piecegeometry("white")
+		var geometryB=piecegeometry("black")
+		var capGeometryW = capgeometry("white")
+		var capGeometryB = capgeometry("black")
 		materials.updatePieceMaterials();
 		var old_size = this.piece_objects[0].geometry.parameters.width;
 
@@ -457,7 +542,12 @@ var board = {
 			if (piece.iscapstone) {
 				var grow=capstone_height-piece.geometry.parameters.height
 				piece.position.y+=grow/2
-				piece.geometry = capGeometry;
+				if(piece.iswhitepiece){
+					piece.geometry = capGeometryW;
+				}
+				else{
+					piece.geometry = capGeometryB;
+				}
 				piece.updateMatrix();
 			} else {
 				// if standing, reset and reapply orientation.
@@ -470,7 +560,12 @@ var board = {
 				}
 
 				// reapply geometry.
-				piece.geometry = geometry;
+				if(piece.iswhitepiece){
+					piece.geometry = geometryW;
+				}
+				else{
+					piece.geometry = geometryB;
+				}
 				piece.updateMatrix();
 			}
 			if(!piece.onsquare){
@@ -703,7 +798,6 @@ var board = {
 					}
 					if(goodmove){
 						var obj = this.selectedStack.pop();
-						//this.unselectStackElem(obj);
 						this.pushPieceOntoSquare(pick[1], obj);
 						this.move_stack_over(pick[1], this.selectedStack);
 						this.move.squares.push(pick[1]);
@@ -772,137 +866,6 @@ var board = {
 			  
 			}
 		}
-		/*
-		// if the board position is valid and we've got a piece in our hand then place it
-		if (this.highlighted && this.selected) {
-			st = this.get_stack(this.highlighted);
-			hlt = this.highlighted;
-			this.unhighlight_sq();
-			sel = this.selected;
-			this.unselect();
-
-			//place on board
-			if (st.length === 0) {
-				this.pushPieceOntoSquare(hlt, sel);
-
-				var stone = 'Piece';
-				if (sel.iscapstone)
-					stone = 'Cap';
-				else if (sel.isstanding)
-					stone = 'Wall';
-
-				console.log("Place " + this.movecount,
-						sel.iswhitepiece ? 'White' : 'Black', stone,
-						this.squarename(hlt.file, hlt.rank));
-
-				var sqname = this.squarename(hlt.file, hlt.rank);
-				var msg = "P " + sqname;
-				if (stone !== 'Piece')
-					msg += " " + stone.charAt(0);
-				this.sendmove(msg);
-				this.notatePmove(sqname, stone.charAt(0));
-
-				var pcs;
-				if (this.mycolor === "white") {
-					this.whitepiecesleft--;
-					pcs = this.whitepiecesleft;
-				} else {
-					this.blackpiecesleft--;
-					pcs = this.blackpiecesleft;
-				}
-				if (this.scratch) {
-					var over = this.checkroadwin();
-					if(!over) {
-						over = this.checksquaresover();
-						if (!over && pcs <= 0) {
-							this.findwhowon();
-							this.gameover();
-						}
-					}
-				}
-				this.incmovecnt();
-			}
-			return;
-		}
-
-		// if a piece is already in our hand
-		if (this.selected) {
-			raycaster.setFromCamera(mouse, camera);
-			var intersects = raycaster.intersectObjects(scene.children);
-			if (intersects.length > 0) {
-				var obj = intersects[0].object;
-				//if already selected is same as clicked obj, rotate it
-				if (this.selected === obj && Math.floor(this.movecount / 2) !== 0) {
-					this.rotate(obj);
-					return;
-				}
-			}
-			this.unselect(obj);
-			return;
-		}
-
-		// if we've got a stack in our hand
-		if (this.selectedStack) {
-			if (this.highlighted && this.selectedStack.length > 0) {
-				var obj = this.selectedStack.pop();
-				//this.unselectStackElem(obj);
-				this.pushPieceOntoSquare(this.highlighted, obj);
-				this.move_stack_over(this.highlighted, this.selectedStack);
-				this.move.squares.push(this.highlighted);
-
-				if (this.move.squares.length > 1 && this.move.dir === 'U')
-					this.setmovedir();
-
-				if (this.selectedStack.length === 0) {
-					this.move.end = this.highlighted;
-					this.selectedStack = null;
-					this.unhighlight_sq();
-					this.generateMove();
-				}
-			} else {
-				this.move.end = this.move.squares[this.move.squares.length - 1];
-				this.unselectStack();
-				this.generateMove();
-			}
-			return;
-		}
-
-		// if we are here, then we don't have something in our hand
-		this.unhighlight_sq();
-
-		raycaster.setFromCamera(mouse, camera);
-		var intersects = raycaster.intersectObjects(scene.children);
-		//select piece
-		if (intersects.length > 0) {
-			var obj = intersects[0].object;
-
-			if (!obj.isboard && !obj.onsquare && !this.isPlayEnded) {
-				// these must match to pick up this obj
-				if (obj.iswhitepiece !== this.is_white_piece_to_move())
-					return;
-				//no capstone move on 1st moves
-				if (Math.floor(this.movecount / 2) === 0 && obj.iscapstone)
-					return;
-
-				this.select(obj);
-			}
-			//select stack ... no stack selection on 1st moves
-			else if (!this.selectedStack && Math.floor(this.movecount / 2) !== 0 && !this.isPlayEnded) {
-				var sq = obj;
-				if (!obj.isboard) {
-					if (!obj.onsquare)
-						return;
-					sq = obj.onsquare;
-				}
-				var stk = this.get_stack(sq);
-				if (this.is_top_mine(sq) && stk.length > 0) {
-					this.selectStack(stk);
-					this.move.start = sq;
-					this.move.squares.push(sq);
-				}
-			}
-		}
-		*/
 	},
 	mousemove: function () {
 		var pick=this.mousepick()
@@ -941,48 +904,9 @@ var board = {
 		else{
 			this.unhighlight_sq();
 		}
-			
-			
-		/*
-		raycaster.setFromCamera(mouse, camera);
-		if (!this.selected && !this.selectedStack)
-			return;
-
-		var intersects = raycaster.intersectObjects(scene.children);
-
-		if (intersects.length > 0) {
-			var obj = intersects[0].object;
-			if (!obj.isboard && !obj.onsquare)
-				return;
-			if (!obj.isboard)
-				obj = obj.onsquare;
-
-			if (this.selectedStack) {
-				var tp = this.top_of_stack(obj);
-				if (tp && tp.iscapstone)
-					return;
-				if (tp && tp.isstanding &&
-						!this.selectedStack[this.selectedStack.length - 1].iscapstone)
-					return;
-
-				var prev = this.move.squares[this.move.squares.length - 1];
-
-				var rel = this.sqrel(prev, obj);
-
-				if (this.move.dir === 'U' && rel !== 'OUTSIDE')
-					this.highlight_sq(obj);
-				else if (this.move.dir === rel || rel === 'O')
-					this.highlight_sq(obj);
-			} else if (this.get_stack(obj).length === 0) {
-				this.highlight_sq(obj);
-			}
-		} else {
-			this.unhighlight_sq();
-		}
-		*/
 	},
 	sendmove: function (e) {
-		if (!this.server || this.scratch)
+		if (this.scratch)
 			return;
 		server.send("Game#" + this.gameno + " " + e);
 	},
@@ -1158,15 +1082,6 @@ var board = {
 		}
 		var whitewin = false;
 		var blackwin = false;
-		//			console.log("--------");
-		//			for(var i=0;i<this.size;i++){
-		//				var st="";
-		//				for(var j=0;j<this.size;j++){
-		//					st+="("+this.sq[i][j].graph+") ";
-		//				}
-		//				console.log(st);
-		//			}
-		//			console.log("=======");
 		for (var tr = 0; tr < this.size; tr++) {
 			var tsq = this.sq[tr][0];
 			var no = tsq.graph;
@@ -1718,7 +1633,6 @@ var board = {
 	},
 	unhighlight_sq: function () {
 		if (this.highlighted) {
-			//this.highlighted.position.y -= 10;
 			this.highlighted = null;
 			scene.remove(highlighter);
 		}

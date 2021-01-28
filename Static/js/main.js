@@ -1,4 +1,3 @@
-//token change
 function alert(type, msg) {
 	$('#alert-text').text(msg);
 	var $alert = $('#alert');
@@ -35,6 +34,8 @@ var pixelratio=1
 var rendererdone=false
 
 var antialiasing_mode = true;
+var maxaniso=1
+var anisolevel=16
 
 var botlist = {
 	"Tiltak_Bot": [0, "Very&nbsp;Hard"],
@@ -80,15 +81,6 @@ function generateCamera(){
 	var cutright=($('#chat').hasClass('hidden')?0:6+(+localStorage.getItem('chat_size')||180))+10
 	var cutbottom=0+10
 	
-	
-
-	/*
-	var cuttop=0
-	var cutleft=0
-	var cutright=0
-	var cutbottom=0
-	*/
-	
 	var pointlist=[]
 	var xsizea=board.size*sq_size/2+border_size+stackOffsetFromBorder+piece_size
 	var xsizeb=(board.size-1)*sq_size/2+piece_size/2
@@ -120,8 +112,6 @@ function generateCamera(){
 	camup.crossVectors(camdir,camleft).normalize()
 	var camright=camleft.clone().negate()
 	var camdown=camup.clone().negate()
-	//console.log(camleft)
-	//console.log(camup)
 	if(perspective>0){
 		var fw=pixelratio*(window.innerWidth+Math.abs(cutleft-cutright))
 		var fh=pixelratio*(window.innerHeight+Math.abs(cuttop-cutbottom))
@@ -154,8 +144,6 @@ function generateCamera(){
 			var newdist=fvbottom.dot(pointlist[a])
 			maxbottom=Math.max(maxbottom,newdist)
 		}
-		console.log(maxleft,maxright,maxtop,maxbottom)
-		console.log(fvtop,fvbottom,fvleft,fvright)
 		
 		var camdist=0
 		var camcenter=new THREE.Vector3(0,0,0)
@@ -166,7 +154,6 @@ function generateCamera(){
 			var lrlen=lrcampos.dot(invcamdir)
 			var tblen=tbcampos.dot(invcamdir)
 			
-			console.log(lrcampos.dot(invcamdir),tbcampos.dot(invcamdir))
 			if(lrlen<tblen){
 				var addin=(maxleft+maxright)*(tblen/lrlen-1)/2
 				lrcampos=combinefrustumvectors(fvleft.clone().multiplyScalar(maxleft+addin),fvright.clone().multiplyScalar(maxright+addin))
@@ -187,16 +174,13 @@ function generateCamera(){
 			}
 			
 			camdist=lrcampos.dot(invcamdir)
-			console.log(lrcampos.dot(invcamdir),tbcampos.dot(invcamdir))
 			var camdiff=tbcampos.clone().sub(lrcampos)
 			var lradjust=camup.clone().multiplyScalar(camdiff.dot(camup))
 			var finalcampos=lrcampos.clone().add(lradjust)
-			
 
 			var centeroffset=camdir.clone().multiplyScalar(finalcampos.dot(invcamdir))
 			camcenter=finalcampos.clone().add(centeroffset)
 			
-			//camera = new THREE.PerspectiveCamera(perspective/2, canvas.width / canvas.height, Math.max(lrlen-2000,1),lrlen+2000);
 			camera = new THREE.PerspectiveCamera(perspectiveangle, canvas.width / canvas.height, Math.max(camdist-800,10),camdist+800);
 			camera.setViewOffset(fw,fh,ox,oy,canvas.width,canvas.height)
 			camera.position.set(finalcampos.x,finalcampos.y,finalcampos.z);
@@ -214,15 +198,7 @@ function generateCamera(){
 			camera.position.set(finalcampos.x,finalcampos.y,finalcampos.z);
 		}
 		
-		
-		/*
-		var bonusdistance=((1100+perspective*perspective/200)/1000)*0.65*(1.5+0.2*(Math.max(5,board.size)-5))/(Math.min(window.innerWidth/2/window.innerHeight,1))
-		camera = new THREE.PerspectiveCamera(perspective/2, canvas.width / canvas.height, 5000/perspective, 500000/perspective);
-		camera.position.set(-bonusdistance*8000/perspective, bonusdistance*50000/perspective+150-perspective, bonusdistance*50000/perspective);
-		*/
-		
 		controls = new THREE.OrbitControls(camera, renderer.domElement);
-		//controls = new THREE.OrbitControls(camera,document.getElementById("addressbarhack"))
 		controls.minDistance = camdist/5;
 		controls.maxDistance = camdist*3;
 		controls.enableKeys = false;
@@ -255,24 +231,16 @@ function generateCamera(){
 		cutright+=xpadding/2
 		cuttop+=ypadding/2
 		cutbottom+=ypadding/2
-		//var zoomout=(300+40*(Math.max(5,board.size)-5))*1.1
-		/*
-		var effectiveheight=Math.min(window.innerWidth/2,window.innerHeight)
-		camera = new THREE.OrthographicCamera( -zoomout*window.innerWidth/effectiveheight, zoomout*window.innerWidth/effectiveheight, zoomout*window.innerHeight/effectiveheight, -zoomout*window.innerHeight/effectiveheight, 1, 8000 );
-		*/
-		//console.log(maxleft,maxright,maxtop,maxbottom)
-		//console.log(pointlist)
+
 		console.log(cutleft,cutright,cuttop,cutbottom)
 		camera = new THREE.OrthographicCamera(-maxleft-cutleft*scale,-maxright+cutright*scale,maxtop+cuttop*scale,maxbottom-cutbottom*scale, 2000, 5000 );
 		var campos=invcamdir.multiplyScalar(3500)
 		camera.position.set(campos.x,campos.y,campos.z);
 		
 		controls = new THREE.OrbitControls(camera, renderer.domElement);
-		//controls = new THREE.OrbitControls(camera,document.getElementById("addressbarhack"))
 		controls.minZoom = 0.5;
 		controls.maxZoom = 3;
 		controls.enableKeys = false;
-		//controls.center.set(0,150,0)
 		controls.center.set(0,0,0)
 		controls.enablePan=false
 		
@@ -283,73 +251,40 @@ function generateCamera(){
 	if(fixedcamera){
 		controls.enableRotate=false
 		controls.enableZoom=false
+		board.boardside="white"
 	}
-	board.boardside="white"
 	if ((board.mycolor=="black") != (board.boardside=="black")){
 		board.reverseboard();
 	}
 }
 
 function init() {
-	//setTimeout("window.scrollTo(0,0)",3000)
-	//setTimeout("window.scrollTo(0,1000)",5000)
-	//document.getElementById("scratchsize").innerHTML=window.innerHeight+":"+window.outerHeight+":"+window.locationbar.visible+":"+window.menubar.visible+":"+window.statusbar.visible+":"+window.toolbar.visible
-	/*
-	window.location="#"+window.innerWidth+":"+window.innerHeight+":"+window.devicePixelRatio
-	*/
 	make_style_selector();
-	// load the user settings.
 	var ua = navigator.userAgent.toLowerCase();
 	if (ua.indexOf("android") > -1 || ua.indexOf("iphone") > -1 || ua.indexOf("ipod") > -1 || ua.indexOf("ipad") > -1){
-		//controls.zoomSpeed = 0.5;
 		ismobile=true
 	}
 	loadSettings();
 
 	canvas = document.getElementById("gamecanvas");
-	//canvas.width = pixelwidth;
-	//canvas.height = pixelheight;
 
-/*
-	//camera = new THREE.PerspectiveCamera(70, canvas.width / canvas.height, 1, 2000);
-	camera = new THREE.PerspectiveCamera(10, canvas.width / canvas.height, 1, 2000);
-	//camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, 1, 2000 );
-	camera.position.set(0, canvas.width / 2, canvas.height / 2);
-	//camera.updateProjectionMatrix();
-*/
 	scene = new THREE.Scene();
 
 	renderer = new THREE.WebGLRenderer({canvas: canvas,antialias: antialiasing_mode});
-	//renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize( window.innerWidth, window.innerHeight );
-	pixelratio=window.devicePixelRatio||1
+	pixelratio=(window.devicePixelRatio||1)*scalelevel
 	renderer.setPixelRatio(pixelratio)
-	//renderer.setSize( 800, 640);
 	renderer.setClearColor(0xdddddd, 1);
-
-	//document.body.appendChild(renderer.domElement);
-	
-	//canvas.style.width=window.innerWidth+"px"
-	//canvas.style.height=window.innerHeight+"px"
+	maxaniso=Math.min(renderer.getMaxAnisotropy()||1,16)
 
 	window.addEventListener('resize', onWindowResize, false);
 	window.addEventListener('keyup', onKeyUp, false);
-/*
-	controls = new THREE.OrbitControls(camera, renderer.domElement);
-	controls.minDistance = 200;
-	controls.maxDistance = 1500;
-	controls.enableKeys = false;
-	
-	if(ismobile){
-		controls.zoomSpeed = 0.5;
-	}
-*/
+
 	board.create(5, "white", true);
 	board.initEmpty();
 	rendererdone=true
 	generateCamera()
 	var geometry = new THREE.TorusGeometry(sq_size / 2 + 5, 3, 16, 100);
-	//geometry.vertices.shift();
 	highlighter = new THREE.Mesh(geometry, materials.highlighter);
 	highlighter.rotateX(Math.PI / 2);
 	
@@ -359,81 +294,69 @@ function init() {
 	canvas.addEventListener('mouseup', onDocumentMouseUp, false);
 	canvas.addEventListener('mousemove', onDocumentMouseMove, false);
 	canvas.addEventListener('contextmenu', function(e){e.preventDefault()}, false);
-	/*
-	addressbarhack.addEventListener('mousedown', onDocumentMouseDown, {passive:true});
-	addressbarhack.addEventListener('mouseup', onDocumentMouseUp, {passive:true});
-	addressbarhack.addEventListener('mousemove', onDocumentMouseMove, {passive:true});
-	*/
-
-	
-	/*
-	var a
-	for(a=0;a<pointlist.length;a++){
-		mat=new THREE.MeshBasicMaterial({color: 0xff0000})
-		var geometry2 = new THREE.BoxGeometry(10,10,10);
-		geometry2.center();
-		var square2 = new THREE.Mesh(geometry2, mat);
-		square2.position.set(pointlist[a].x,pointlist[a].y,pointlist[a].z);
-		scene.add(square2);
-	}
-	*/
 	
 	materials.updateBoardMaterials();
 	materials.updatePieceMaterials();
 }
 
 function onWindowResize() {
-	//document.getElementById("scratchsize").innerHTML="r:"+window.innerHeight+":"+window.outerHeight+":"+window.locationbar.visible+":"+window.menubar.visible+":"+window.statusbar.visible+":"+window.toolbar.visible
-	/*
-	document.getElementById("scratchsize").innerHTML="r:"+window.innerWidth+":"+window.innerHeight+":"+window.devicePixelRatio
-	window.location="#r:"+window.innerWidth+":"+window.innerHeight+":"+window.devicePixelRatio
-	pixelwidth=Math.round((window.devicePixelRatio||1)*window.innerWidth)
-	pixelheight=Math.round((window.devicePixelRatio||1)*window.innerHeight)
-	*/
-	//canvas.width = pixelwidth;
-	//canvas.height = pixelheight;
-	renderer.setSize(window.innerWidth, window.innerHeight);
-	pixelratio=window.devicePixelRatio||1
-	renderer.setPixelRatio(pixelratio)
-	//canvas.style.width=window.innerWidth+"px"
-	//canvas.style.height=window.innerHeight+"px"
+	if(rendererdone){
+		renderer.setSize(window.innerWidth, window.innerHeight);
+		pixelratio=(window.devicePixelRatio||1)*scalelevel
+		renderer.setPixelRatio(pixelratio)
 
-	generateCamera()
-	/*
-	camera.aspect = canvas.width / canvas.height;
-	camera.updateProjectionMatrix();
-	*/
+		generateCamera()
 
-	$('#chat').offset({ top: $('nav').height() + 5 });
-	$('#chat-toggle-button').offset({ top: $('nav').height() + 7 });
-	$('#chat').height(window.innerHeight - $('nav').height() - 118);
-	
-	/*
-	if(isBreakpoint('xs') || isBreakpoint('sm')) {
-		chathandler.hidechat();
-		hidermenu();
-	} else {
-		chathandler.showchat();
-		showrmenu();
+		$('#chat').offset({ top: $('nav').height() + 5 });
+		$('#chat-toggle-button').offset({ top: $('nav').height() + 7 });
+		$('#chat').height(window.innerHeight - $('nav').height() - 118);
 	}
-	*/
 }
 
 var dontanimate=false;
+var scenehash=0
+var lastanimate=0
 function animate() {
-	setTimeout(function () {
-		if(!dontanimate){
-			requestAnimationFrame(animate);
+	if(!dontanimate){
+		controls.update();
+		var newscenehash=floathashscene()
+		var now=Date.now()
+		if(scenehash!=newscenehash || lastanimate+1000<=now){
+			scenehash=newscenehash
+			lastanimate=now
+			renderer.render(scene, camera);
 		}
-	}, 1000 / 30);
+	}
+	requestAnimationFrame(animate)
+}
 
-	controls.update();
-	renderer.render(scene, camera);
+function floathashscene(){
+	var hash=0
+	var multiplier=1
+	updatepoint(camera.position)
+	updatepoint(controls.center)
+	update(camera.zoom)
+	var a
+	for(a=0;a<board.piece_objects.length;a++){
+		updatepoint(board.piece_objects[a].position)
+	}
+	if(board.highlighted){
+		updatepoint(highlighter.position)
+	}
+	function updatepoint(p){
+		update(p.x)
+		update(p.y)
+		update(p.z)
+	}
+	function update(n){
+		hash+=n*multiplier
+		multiplier*=1.0010472219
+	}
+	return hash
 }
 
 
 function onDocumentMouseMove(e) {
-	//e.preventDefault();
 	var x = e.clientX - canvas.offsetLeft;
 	var y = e.clientY - canvas.offsetTop;
 	mouse.x = (pixelratio * x / canvas.width) * 2 - 1;
@@ -443,8 +366,6 @@ function onDocumentMouseMove(e) {
 }
 
 function onDocumentMouseDown(e) {
-	//e.preventDefault();
-
 	var x = e.clientX - canvas.offsetLeft;
 	var y = e.clientY - canvas.offsetTop;
 	mouse.x = (pixelratio * x / canvas.width) * 2 - 1;
@@ -472,8 +393,6 @@ function onKeyUp(e) {
 	switch(e.keyCode) {
 		case 27://ESC
 			board.showmove(board.moveshown,true);
-			//stepback();
-			//stepforward();
 			break;
 
 		case 38://UP
@@ -612,7 +531,7 @@ function startTime(fromFn) {
 	if(typeof fromFn === 'undefined' && !server.timervar)
 		return;
 	var now = new Date();
-	var t = now.getTime()/1000//now.getHours()*60*60 + now.getMinutes()*60+now.getSeconds();
+	var t = now.getTime()/1000
 	var elapsed = t-lastTimeUpdate;
 	var t1
 	var nextupdate
@@ -687,10 +606,10 @@ function loadSettings() {
 	}
 
 	// load white piece style.
-	if (localStorage.getItem('piece_style_white2')!==null) {
-		var styleName = localStorage.getItem('piece_style_white2');
-		if(white_piece_styles.indexOf(styleName)==-1){
-			styleName=white_piece_styles[0]
+	if (localStorage.getItem('piece_style_white3')!==null) {
+		var styleName = localStorage.getItem('piece_style_white3');
+		if(!piece_styles.hasOwnProperty(styleName)){
+			styleName=Object.keys(piece_styles)[0]
 		}
 		materials.white_piece_style_name = styleName;
 		materials.white_cap_style_name = styleName;
@@ -698,10 +617,10 @@ function loadSettings() {
 	}
 
 	// load black piece style.
-	if (localStorage.getItem('piece_style_black2')!==null) {
-		var styleName = localStorage.getItem('piece_style_black2');
-		if(black_piece_styles.indexOf(styleName)==-1){
-			styleName=black_piece_styles[0]
+	if (localStorage.getItem('piece_style_black3')!==null) {
+		var styleName = localStorage.getItem('piece_style_black3');
+		if(!piece_styles.hasOwnProperty(styleName)){
+			styleName=Object.keys(piece_styles)[Object.keys(piece_styles).length-1]
 		}
 		materials.black_piece_style_name = styleName;
 		materials.black_cap_style_name = styleName;
@@ -733,6 +652,9 @@ function loadSettings() {
 		document.getElementById('antialiasing-checkbox').checked = false;
 		antialiasing_mode = false;
 	}
+	
+	sliderAniso(+localStorage['aniso']>=0?+localStorage['aniso']:3)
+	sliderScale(+localStorage['scale']>=0?+localStorage['scale']:2)
 	
 	if(localStorage.getItem('fixedcamera')==='false') {
 		fixedcamera=false
@@ -768,7 +690,7 @@ function loadSettings() {
 			perspective=0
 		}
 		else{
-			perspective=140
+			perspective=90
 		}
 	}
 	perspective=+perspective
@@ -788,13 +710,6 @@ function loadSettings() {
 	if(localStorage.getItem('auto_rotate')==='false') {
 		document.getElementById('auto-rotate-checkbox').checked = false;
 	}
-
-	/*//load chat width.. doesnt work properly
-	if(localStorage.getItem('chat-width')!==null) {
-		chat_width = Number(localStorage.getItem('chat-width'));
-		console.log('val====='+chat_width);
-		adjustChatWidth();
-	}*/
 }
 
 /*
@@ -840,7 +755,7 @@ function radioPieceStyleWhite(styleName) {
 	document.getElementById('piece-style-white-' + styleName).checked = true;
 	materials.white_piece_style_name = styleName;
 	materials.white_cap_style_name = styleName;
-	localStorage.setItem('piece_style_white2', styleName);
+	localStorage.setItem('piece_style_white3', styleName);
 	board.updatepieces();
 }
 
@@ -852,8 +767,23 @@ function radioPieceStyleBlack(styleName) {
 	document.getElementById('piece-style-black-' + styleName).checked = true;
 	materials.black_piece_style_name = styleName;
 	materials.black_cap_style_name = styleName;
-	localStorage.setItem('piece_style_black2', styleName);
+	localStorage.setItem('piece_style_black3', styleName);
 	board.updatepieces();
+}
+
+document.getElementById("piecetexture").onchange=gotnewtexturefile
+function gotnewtexturefile(){
+	var reader = new FileReader()
+	if(this.files.length){
+		reader.addEventListener("load",fileloaded,false)
+		reader.readAsDataURL(this.files[0])
+	}
+	function fileloaded(){
+		localStorage.nextpiecetexture=localStorage.nextpiecetexture||0
+		localStorage["piecetexture"+localStorage.nextpiecetexture]=reader.result
+		localStorage.nextpiecetexture=1-(+localStorage.nextpiecetexture)
+		make_style_selector()
+	}
 }
 
 /*
@@ -909,7 +839,6 @@ function checkboxClick() {
 		localStorage.setItem('clickthrough', 'false');
 		clickthrough=false
 	}
-	//generateCamera()
 }
 
 
@@ -1017,9 +946,24 @@ function sliderChatSize(newSize) {
 	chathandler.showchat();
 	chathandler.adjustChatWidth(+newSize);
 	localStorage.setItem('chat_size', newSize);
-	if(fixedcamera || true){
-		generateCamera()
-	}
+	generateCamera()
+}
+
+function sliderAniso(anisoin) {
+	anisolevel=[1,4,8,16][anisoin]
+	localStorage['aniso']=anisoin
+	$('#aniso-display').html(["Off","4x","8x","16x"][anisoin]);
+	$('#aniso-slider').val(anisoin);
+	materials.updateBoardMaterials();
+	materials.updatePieceMaterials();
+}
+
+function sliderScale(scalein) {
+	scalelevel=[0.5,Math.SQRT1_2,1,Math.SQRT2,2][scalein]
+	localStorage['scale']=scalein
+	$('#scale-display').html(["0.5","0.7","1.0","1.4","2.0"][scalein]);
+	$('#scale-slider').val(scalein);
+	onWindowResize()
 }
 
 function undoButton() {
@@ -1067,8 +1011,12 @@ $(document).ready(function() {
 		$('#loadptntext').val(text.replace(/\n/g, ' '));
 		document.title = "Tak Review";
 		load();
-	} else if(localStorage.getItem('keeploggedin')==='true') {
-		server.init();
 	}
-	//tour(false);
+	else if(localStorage.getItem('keeploggedin')==='true') {
+		server.connect()
+	}
+	else{
+		server.connect()
+		$('#login').modal('show');
+	}
 })

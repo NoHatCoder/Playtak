@@ -781,7 +781,9 @@ public class Game {
 
 			msg = "Game#"+no+" Abandoned. "+abandoningPlayer.getName()+" quit";
 		}
-
+		
+		white.removeGame();
+		black.removeGame();
 		if(!(abandoned && gameState==gameS.BLACK))
 			white.send(msg);
 		if(!(abandoned && gameState==gameS.WHITE))
