@@ -27,8 +27,19 @@ if(sourcehash==previousdata[1]){
 var now=Date.now()
 var recentlimit=now-1000*60*60*6
 
-var games=bsqlite3("/server/games.db",{fileMustExist:true})
-var players=bsqlite3("/server/players.db",{fileMustExist:true})
+var games
+var players
+var ratinglistpath
+if(process.platform=="win32"){
+	games=bsqlite3("games.db",{fileMustExist:true})
+	players=bsqlite3("players.db",{fileMustExist:true})
+	ratinglistpath="ratinglist.json.gz"
+}
+else{
+	games=bsqlite3("/server/games.db",{fileMustExist:true})
+	players=bsqlite3("/server/players.db",{fileMustExist:true})
+	ratinglistpath="/static/ratinglist.json.gz"
+}
 
 var sameaccounts={
 	"alphabot":"alphatak_bot"
@@ -126,7 +137,7 @@ var g
 
 if(incremental){
 	p=players.prepare("select id,name,ratingbase,unrated,isbot,rating,boost,ratedgames,maxrating,ratingage,fatigue from players;").all()
-	g=games.prepare("select id,date,player_white,player_black,result,unrated,size,length(notation) as notationlength from games where date>1461430800000 and id>?;").all(lastusedgame)
+	//g=games.prepare("select id,date,player_white,player_black,result,unrated,size,length(notation) as notationlength from games where date>1461430800000 and id>?;").all(lastusedgame)
 	
 	for(a=0;a<p.length;a++){
 		pn["!"+p[a].name]=p[a]
@@ -138,7 +149,7 @@ if(incremental){
 else{
 	p=players.prepare("select id,name,ratingbase,unrated,isbot from players;").all()
 
-	g=games.prepare("select id,date,player_white,player_black,result,unrated,size,length(notation) as notationlength from games where date>1461430800000;").all()
+	//g=games.prepare("select id,date,player_white,player_black,result,unrated,size,length(notation) as notationlength from games where date>1461430800000;").all()
 
 	for(a=0;a<p.length;a++){
 		pn["!"+p[a].name]=p[a]
@@ -153,7 +164,7 @@ else{
 	}
 }
 
-g.sort(function(a,b){return a.id-b.id})
+//g.sort(function(a,b){return a.id-b.id})
 
 //console.log(g[0])
 
@@ -170,7 +181,7 @@ function getplayer(name){
 
 var updategame=games.prepare("update games set rating_white=?, rating_black=?, rating_change_white=?, rating_change_black=? where id=?;")
 var updating=true
-var lastgameid=lastusedgame
+//var lastgameid=lastusedgame
 
 function handlegames(){
 	for(a=0;a<g.length;a++){
@@ -198,7 +209,8 @@ function handlegames(){
 				updating=false
 			}
 			else if(quickresult!==undefined){
-				lastgameid=gm.id
+				//lastgameid=gm.id
+				lastusedgame=gm.id
 				var sw=Math.pow(10,rtw/400)
 				var sb=Math.pow(10,rtb/400)
 				var expected=sw/(sw+sb)
@@ -212,10 +224,24 @@ function handlegames(){
 				artb2=adjustedrating(plb,gm.date)
 			}
 		}
+		else{
+			lastusedgame=gm.id
+		}
 		updategame.run(Math.floor(artw),Math.floor(artb),Math.round((artw2-artw)*10),Math.round((artb2-artb)*10),gm.id)
 	}
 }
-games.transaction(handlegames)()
+var count
+do{
+	g=games.prepare("select id,date,player_white,player_black,result,unrated,size,length(notation) as notationlength from games where date>1461430800000 and id>? order by id asc limit 50000;").all(lastusedgame)
+	games.transaction(handlegames)()
+	count=g.length
+	g=null
+	if(global.gc){
+		global.gc()
+	}
+
+	Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 500)
+}while(count && updating)
 
 var updateplayer=players.prepare("update players set rating=?, boost=?, ratedgames=?, maxrating=?, ratingage=?, fatigue=? where id=?;")
 
@@ -238,7 +264,8 @@ function handleplayers(){
 }
 players.transaction(handleplayers)()
 
-fs.writeFileSync("previous.txt",lastgameid+" "+sourcehash)
+//fs.writeFileSync("previous.txt",lastgameid+" "+sourcehash)
+fs.writeFileSync("previous.txt",lastusedgame+" "+sourcehash)
 
 var playerlist=[]
 for(a=0;a<p.length;a++){
@@ -253,7 +280,7 @@ for(a=0;a<playerlist.length;a++){
 }
 var jsonratinglist=JSON.stringify(playerlist)
 var gzratinglist=zlib.gzipSync(jsonratinglist,{level:9})
-fs.writeFileSync("/static/ratinglist.json.gz",gzratinglist)
+fs.writeFileSync(ratinglistpath,gzratinglist)
 
 function adjustplayer(pl,op,amount,fairness,fatiguefactor,date){
 	var bonus=Math.min(Math.max(0,fatiguefactor*amount*Math.max(pl.boost,1)*bonusfactor/bonusrating),pl.boost)
@@ -269,6 +296,7 @@ function adjustplayer(pl,op,amount,fairness,fatiguefactor,date){
 	pl.ratingage=Math.log2(participation/20)*ratingretention+date
 	pl.ratedgames++
 	pl.maxrating=Math.max(pl.maxrating,pl.rating)
+	pl.changed=true
 }
 
 function updatefatigue(pl,opid,gamefactor){
