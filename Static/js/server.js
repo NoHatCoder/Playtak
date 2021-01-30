@@ -726,8 +726,7 @@ var server = {
 			}
 			img = '<img src="' + img + '"/>';
 
-			const ratingSpan = this.getRatingSpan(myRating, playerRating);
-			const playerNameSpan = `<span class='playername'>${playerName}(${ratingSpan})</span>`;
+			const playerNameSpan = `<span class='playername'>${playerName}</span>`;
 
 			sz = "<span class='badge'>" + sz + "</span>";
 			var botlevel = "";
@@ -773,6 +772,7 @@ var server = {
 			}
 			$('<td/>').append(img).appendTo(row);
 			$('<td/>').append(botlevel + playerNameSpan).appendTo(row);
+			$('<td class="rating"/>').append(this.getRatingSpan(myRating, playerRating)).appendTo(row);
 			$('<td/>').append(sz).appendTo(row);
 			$('<td/>').append(m + ':' + s).appendTo(row);
 			$('<td/>').append('+' + inc + 's').appendTo(row);
@@ -951,14 +951,23 @@ var server = {
 		if (playerRating.displayRating == undefined) {
 			ratingSpan.addClass("unrated");
 		}
-		if (Math.abs(playerRating.displayRating - myRating.displayRating) < 100) {
-			ratingSpan.addClass('even');
-		}
-		else if (playerRating.displayRating < myRating.displayRating) {
-			ratingSpan.addClass('weaker');
-		}
-		else if (playerRating.displayRating > myRating.displayRating) {
-			ratingSpan.addClass('stronger');
+		if (playerRating.displayRating && myRating.displayRating) {
+			const difference = playerRating.displayRating - myRating.displayRating;
+			
+			const roundTo0 = (v) => v > 0 ? Math.floor(v) : Math.ceil(v)
+			// Relative level in [-3, ... +3]. -3 is much weaker, +3 much stronger
+			const relativeLevel = Math.max(-3, Math.min(roundTo0(difference/150), 3));
+			const relativeLevelClass = `level${Math.abs(relativeLevel)}`;
+
+			if (relativeLevel === 0) {
+				ratingSpan.addClass('even');
+			}
+			else if (relativeLevel < 0) {
+				ratingSpan.addClass('weaker').addClass(relativeLevelClass);
+			}
+			else if (relativeLevel > 0) {
+				ratingSpan.addClass('stronger').addClass(relativeLevelClass);
+			}
 		}
 		return ratingSpan[0].outerHTML;
 	}

@@ -438,40 +438,46 @@ a .fa:not(#undo):not(#draw) {
 	}
 }
 
+td.rating {
+	text-align: right;
+}
+
+.rating:before{
+	vertical-align: middle;
+}
 .unrated.rating:before {
 	content: "?";
 	color: #aaa;
-	vertical-align: middle;
 }
+.unrated.rating:after{ content: "This player is has no rating"; }
+
 .stronger.rating:before {
-	content: "🠕";
 	color: red;
-	vertical-align: middle;
 }
+.stronger.rating.level1:before { content: "🠕"; }
+.stronger.rating.level2:before { content: "🠕🠕"; }
+.stronger.rating.level3:before { content: "🠕🠕🠕"; }
+.stronger.rating.level1:after { content: "This player is rated higher than you"; }
+.stronger.rating.level2:after { content: "This player is rated a lot higher than you"; }
+.stronger.rating.level3:after { content: "This player is rated significantly higher than you"; }
+
 .weaker.rating:before {
-	content: "🠗";
 	color: green;
-	vertical-align: middle;
 }
+.weaker.rating.level1:before { content: "🠗"; }
+.weaker.rating.level2:before { content: "🠗🠗"; }
+.weaker.rating.level3:before { content: "🠗🠗🠗"; }
+.weaker.rating.level1:after { content: "This player is rated lower than you"; }
+.weaker.rating.level2:after { content: "This player is rated a lot lower than you"; }
+.weaker.rating.level3:after { content: "This player is rated significantly lower than you"; }
+
 .even.rating:before {
 	content: "≈";
 	color: #aaa;
-	vertical-align: middle;
 }
+.even.rating:after{ content: "This player is rated roughly even with you"; }
 
-.unrated.rating:after{
-	content: "This player is has no rating"
-}
-.stronger.rating:after{
-	content: "This player is rated higher than you and likely very challenging to play"
-}
-.weaker.rating:after{
-	content: "This player is rated lower than you"
-}
-.even.rating:after{
-	content: "This player is rated roughly even with you"
-}
-
+/* Popup when hovering the rating. Text is set via content depending on stronger/weaker/even and level*/
 .rating:after{
 	padding: 2px;
 	display:none;
