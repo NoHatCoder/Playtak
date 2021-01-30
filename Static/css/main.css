@@ -437,3 +437,55 @@ a .fa:not(#undo):not(#draw) {
 		margin-right:18px;
 	}
 }
+
+.unrated.rating:before {
+	content: "?";
+	color: #aaa;
+	vertical-align: middle;
+}
+.stronger.rating:before {
+	content: "🠕";
+	color: red;
+	vertical-align: middle;
+}
+.weaker.rating:before {
+	content: "🠗";
+	color: green;
+	vertical-align: middle;
+}
+.even.rating:before {
+	content: "≈";
+	color: #aaa;
+	vertical-align: middle;
+}
+
+.unrated.rating:after{
+	content: "This player is has no rating"
+}
+.stronger.rating:after{
+	content: "This player is rated higher than you and likely very challenging to play"
+}
+.weaker.rating:after{
+	content: "This player is rated lower than you"
+}
+.even.rating:after{
+	content: "This player is rated roughly even with you"
+}
+
+.rating:after{
+	padding: 2px;
+	display:none;
+	position: absolute;
+	text-align: center;
+	background-color: #fef4c5;
+	border: 1px solid #d4b943;
+	width: 250px;
+	-moz-border-radius: 2px;
+	-webkit-border-radius: 2px;
+	-ms-border-radius: 2px;
+	border-radius: 2px;
+	z-index: 3;;
+}
+.rating:hover:after{
+	display: block;
+}

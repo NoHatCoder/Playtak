@@ -7,6 +7,8 @@ var server = {
 	lastTimeUpdate: null,
 	anotherlogin: false,
 	loggedin: false,
+	/** @type {[[string, number, number, number, boolean]] | undefined} */
+	rating: undefined,
 
 	connect: function () {
 		if (this.connection && this.connection.readyState > 1) {
@@ -72,6 +74,16 @@ var server = {
 					alert("info", "You're disconnected from server");
 				}
 			};
+		}
+
+		if (!this.rating) {
+			window.fetch("/ratinglist.json")
+				.then((response) => {
+					response.json()
+						.then((json) => this.rating = json)
+						.catch((err) => console.error("Failed to parse JSON from ratings", err));
+				})
+				.catch((err) => console.error("Failed to get ratings", err));
 		}
 	},
 	logout: function () {
@@ -392,20 +404,27 @@ var server = {
 
 			var inc = spl[8].split(",")[0];
 
-			var p1 = spl[3];
-			var p2 = spl[5].split(",")[0];
+			const p1 = spl[3];
+			const p2 = spl[5].split(",")[0];
 			var sz = spl[6].split(",")[0];
 
-			p1 = "<span class='playername'>" + p1 + "</span>";
-			p2 = "<span class='playername'>" + p2 + "</span>";
+			const p1rating = this.getPlayerRatingRow(p1);
+			const p2rating = this.getPlayerRatingRow(p2);
+			const myRating = this.getPlayerRatingRow(this.myname);
+
+			const p1ratingSpan = this.getRatingSpan(myRating, p1rating);
+			const p2ratingSpan = this.getRatingSpan(myRating, p2rating);
+
+			const p1span = `<span class='playername'>${p1}(${p1ratingSpan})</span>`;
+			const p2span = `<span class='playername'>${p2}(${p2ratingSpan})</span>`;
 			sz = "<span class='badge'>" + sz + "</span>";
 
 			var row = $('<tr/>').addClass('row').addClass('game' + no)
 				.click(function () { server.observegame(spl[2].split("Game#")[1]); })
 				.appendTo($('#gamelist'));
-			$('<td/>').append(p1).appendTo(row);
+			$('<td/>').append(p1span).appendTo(row);
 			$('<td/>').append('vs').appendTo(row);
-			$('<td/>').append(p2).appendTo(row);
+			$('<td/>').append(p2span).appendTo(row);
 			$('<td/>').append(sz).appendTo(row);
 			$('<td/>').append(m + ':' + s).appendTo(row);
 			$('<td/>').append('+' + inc + 's').appendTo(row);
@@ -694,7 +713,10 @@ var server = {
 
 			var inc = spl[6];
 
-			var p = spl[3];
+			const playerName = spl[3];
+			const playerRating = this.getPlayerRatingRow(playerName);
+			const myRating = this.getPlayerRatingRow(this.myname);
+
 			var sz = spl[4] + 'x' + spl[4];
 
 			img = "images/circle_any.svg"
@@ -704,7 +726,9 @@ var server = {
 			}
 			img = '<img src="' + img + '"/>';
 
-			var pspan = "<span class='playername'>" + p + "</span>";
+			const ratingSpan = this.getRatingSpan(myRating, playerRating);
+			const playerNameSpan = `<span class='playername'>${playerName}(${ratingSpan})</span>`;
+
 			sz = "<span class='badge'>" + sz + "</span>";
 			var botlevel = "";
 
@@ -713,12 +737,13 @@ var server = {
 
 			var row = $('<tr/>').addClass('row').addClass('seek' + no)
 				.click(function () { server.acceptseek(spl[2]) })
-			if (p.toLowerCase().indexOf('bot') !== -1) {
+
+			if (playerName.toLowerCase().indexOf('bot') !== -1) {
 				var listed = $('#seeklistbot').children();
 				var previous = null;
 				var hardness = 'Unknown';
 				var level = 100;
-				var botsettings = botlist[p];
+				var botsettings = botlist[playerName];
 
 				if (botsettings) {
 					for (var i = 0; i < listed.length; i++) {
@@ -747,7 +772,7 @@ var server = {
 				op.innerHTML = Number(op.innerHTML) + 1;
 			}
 			$('<td/>').append(img).appendTo(row);
-			$('<td/>').append(botlevel + pspan).appendTo(row);
+			$('<td/>').append(botlevel + playerNameSpan).appendTo(row);
 			$('<td/>').append(sz).appendTo(row);
 			$('<td/>').append(m + ':' + s).appendTo(row);
 			$('<td/>').append('+' + inc + 's').appendTo(row);
@@ -898,5 +923,43 @@ var server = {
 			return;
 		this.unobserve();
 		this.send("Observe " + no);
+	},
+	/**
+	 * @param {string} playerName 
+	 */
+	getPlayerRatingRow: function (playerName) {
+		if (!this.rating) return {};
+		const ratingRowIndex = this.rating.findIndex(row => row[0].split(" ").includes(playerName));
+		if (ratingRowIndex === -1) return {};
+		const ratingRow = this.rating[ratingRowIndex];
+		return {
+			rank: ratingRowIndex,
+			names: ratingRow[0].split(" "),
+			displayRating: ratingRow[1],
+			rating: ratingRow[2],
+			games: ratingRow[3],
+			isBot: ratingRow[4],
+		};
+	},
+	/**
+	 * @param {{displayRating?: number}} myRating 
+	 * @param {{displayRating?: number}} playerRating 
+	 * @returns {string} span with rating and corresponding classes
+	 */
+	getRatingSpan: function (myRating, playerRating) {
+		const ratingSpan = $(`<span class='rating'>${playerRating.displayRating ?? ''}</span>`);
+		if (playerRating.displayRating == undefined) {
+			ratingSpan.addClass("unrated");
+		}
+		if (Math.abs(playerRating.displayRating - myRating.displayRating) < 100) {
+			ratingSpan.addClass('even');
+		}
+		else if (playerRating.displayRating < myRating.displayRating) {
+			ratingSpan.addClass('weaker');
+		}
+		else if (playerRating.displayRating > myRating.displayRating) {
+			ratingSpan.addClass('stronger');
+		}
+		return ratingSpan[0].outerHTML;
 	}
 };
