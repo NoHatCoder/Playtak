@@ -412,19 +412,16 @@ var server = {
 			const p2rating = this.getPlayerRatingRow(p2);
 			const myRating = this.getPlayerRatingRow(this.myname);
 
-			const p1ratingSpan = this.getRatingSpan(myRating, p1rating);
-			const p2ratingSpan = this.getRatingSpan(myRating, p2rating);
-
-			const p1span = `<span class='playername'>${p1}(${p1ratingSpan})</span>`;
-			const p2span = `<span class='playername'>${p2}(${p2ratingSpan})</span>`;
 			sz = "<span class='badge'>" + sz + "</span>";
 
 			var row = $('<tr/>').addClass('row').addClass('game' + no)
 				.click(function () { server.observegame(spl[2].split("Game#")[1]); })
 				.appendTo($('#gamelist'));
-			$('<td/>').append(p1span).appendTo(row);
-			$('<td/>').append('vs').appendTo(row);
-			$('<td/>').append(p2span).appendTo(row);
+			$('<td class="right"/>').append(this.getRatingSpan(myRating, p1rating)).appendTo(row);
+			$('<td class="playername right"/>').append(p1).appendTo(row);
+			$('<td class="center"/>').append('vs').appendTo(row);
+			$('<td class="playername left"/>').append(p2).appendTo(row);
+			$('<td class="left"/>').append(this.getRatingSpan(myRating, p2rating)).appendTo(row);
 			$('<td/>').append(sz).appendTo(row);
 			$('<td/>').append(m + ':' + s).appendTo(row);
 			$('<td/>').append('+' + inc + 's').appendTo(row);
@@ -772,7 +769,7 @@ var server = {
 			}
 			$('<td/>').append(img).appendTo(row);
 			$('<td/>').append(botlevel + playerNameSpan).appendTo(row);
-			$('<td class="rating"/>').append(this.getRatingSpan(myRating, playerRating)).appendTo(row);
+			$('<td class="right"/>').append(this.getRatingSpan(myRating, playerRating)).appendTo(row);
 			$('<td/>').append(sz).appendTo(row);
 			$('<td/>').append(m + ':' + s).appendTo(row);
 			$('<td/>').append('+' + inc + 's').appendTo(row);
@@ -953,10 +950,11 @@ var server = {
 		}
 		if (playerRating.displayRating && myRating.displayRating) {
 			const difference = playerRating.displayRating - myRating.displayRating;
-			
+
 			const roundTo0 = (v) => v > 0 ? Math.floor(v) : Math.ceil(v)
+			const ratingLevelStep = 150; // delta between levels
 			// Relative level in [-3, ... +3]. -3 is much weaker, +3 much stronger
-			const relativeLevel = Math.max(-3, Math.min(roundTo0(difference/150), 3));
+			const relativeLevel = Math.max(-3, Math.min(roundTo0(difference / ratingLevelStep), 3));
 			const relativeLevelClass = `level${Math.abs(relativeLevel)}`;
 
 			if (relativeLevel === 0) {

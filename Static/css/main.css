@@ -438,10 +438,6 @@ a .fa:not(#undo):not(#draw) {
 	}
 }
 
-td.rating {
-	text-align: right;
-}
-
 .rating:before{
 	vertical-align: middle;
 }
