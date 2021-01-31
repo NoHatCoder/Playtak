@@ -273,7 +273,7 @@ def getgamesdbsize()
 		$dbstringupdate=currenttime
 		mtime=File.mtime("size.txt")
 		if mtime
-			mtimeutc=gametime=Time.at(mtime.to_i,in:"UTC")
+			mtimeutc=gametime=Time.at(mtime.to_i).utc
 			$dbtimestring=mtimeutc.strftime("%b %d %Y")
 		end
 		sizefile=templatefile=File.open("size.txt")
@@ -297,6 +297,15 @@ def minuteseconds(time)
 	end
 	outstr<<seconds.to_s
 	return outstr
+end
+
+def ratingchangeformat(change)
+	sign="+"
+	if change<0
+		sign="-"
+		change=-change
+	end
+	return sign+(change/10).floor.to_s+"."+(change%10).to_s
 end
 
 templatefile=File.open("games.html")
@@ -400,7 +409,8 @@ server.mount_proc '/' do |req, res|
 							searchvalues2={}
 							searchvalues2['size']=game.size.to_s+"x"+game.size.to_s
 							searchvalues2['id']=game.id.to_s
-							gametime=Time.at(game.date/1000,in:"UTC")
+							#gametime=Time.at(game.date/1000,in:"UTC")
+							gametime=Time.at(game.date/1000).utc
 							searchvalues2['date']=gametime.strftime("%Y-%m-%d %H:%M:%S")
 							if(game.timertime>0)
 								searchvalues2['timecontrol']=minuteseconds(game.timertime)+" +"+minuteseconds(game.timerinc)
@@ -412,6 +422,21 @@ server.mount_proc '/' do |req, res|
 							else
 								searchvalues2['playerw']=game.player_white
 								searchvalues2['playerb']=game.player_black
+							end
+							if game.size<5 || game.unrated==1 || game.rating_white==0 || game.rating_black==0
+								if game.rating_white>=1000
+									searchvalues2['playerwrt']=game.rating_white.to_s
+								end
+								if game.rating_black>=1000
+									searchvalues2['playerbrt']=game.rating_black.to_s
+								end
+							else
+								if game.rating_white>=1000
+									searchvalues2['playerwrt']=game.rating_white.to_s+" "+ratingchangeformat(game.rating_change_white)
+								end
+								if game.rating_black>=1000
+									searchvalues2['playerbrt']=game.rating_black.to_s+" "+ratingchangeformat(game.rating_change_black)
+								end
 							end
 							literal2=true
 							for part2 in rowtemplate

@@ -121,6 +121,7 @@ var materials = {
 	piecesLoaded: 0,
 	//callback on loading piece textures
 	piecesLoadedFn: function() {
+		settingscounter=(settingscounter+1)&15
 	  materials.piecesLoaded++;
 
 	  if(materials.piecesLoaded === 4) {
@@ -142,6 +143,7 @@ var materials = {
 	boardLoaded: 0,
 	//callback on loading board textures
 	boardLoadedFn: function() {
+		settingscounter=(settingscounter+1)&15
 	  materials.boardLoaded++;
 
 	  if(materials.boardLoaded === 2) {

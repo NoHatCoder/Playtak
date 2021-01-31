@@ -37,6 +37,8 @@ var antialiasing_mode = true;
 var maxaniso=1
 var anisolevel=16
 
+var settingscounter=0
+
 var botlist = {
 	"Tiltak_Bot": [0, "Very&nbsp;Hard"],
 	"TakticianBot": [2, "Very&nbsp;Hard"],
@@ -340,6 +342,11 @@ function floathashscene(){
 	for(a=0;a<board.piece_objects.length;a++){
 		updatepoint(board.piece_objects[a].position)
 	}
+	update(window.innerWidth)
+	update(window.innerHeight)
+	update(anisolevel)
+	update(pixelratio)
+	update(settingscounter)
 	if(board.highlighted){
 		updatepoint(highlighter.position)
 	}
@@ -757,6 +764,7 @@ function radioPieceStyleWhite(styleName) {
 	materials.white_cap_style_name = styleName;
 	localStorage.setItem('piece_style_white3', styleName);
 	board.updatepieces();
+	settingscounter=(settingscounter+1)&15
 }
 
 /*
@@ -769,6 +777,7 @@ function radioPieceStyleBlack(styleName) {
 	materials.black_cap_style_name = styleName;
 	localStorage.setItem('piece_style_black3', styleName);
 	board.updatepieces();
+	settingscounter=(settingscounter+1)&15
 }
 
 document.getElementById("piecetexture").onchange=gotnewtexturefile
@@ -795,6 +804,7 @@ function radioBoardStyleBlack(styleName) {
 	materials.black_sqr_style_name = styleName;
 	localStorage.setItem('board_style_black2', styleName);
 	board.updateboard();
+	settingscounter=(settingscounter+1)&15
 }
 
 /*
@@ -806,6 +816,7 @@ function radioBoardStyleWhite(styleName) {
 	materials.white_sqr_style_name = styleName;
 	localStorage.setItem('board_style_white2', styleName);
 	board.updateboard();
+	settingscounter=(settingscounter+1)&15
 }
 
 /*

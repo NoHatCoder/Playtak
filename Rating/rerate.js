@@ -188,10 +188,10 @@ function handlegames(){
 		var gm=g[a]
 		var plw=getplayer(gm.player_white)
 		var plb=getplayer(gm.player_black)
-		var rtw=initialrating
-		var rtb=initialrating
-		var artw=initialrating
-		var artb=initialrating
+		var rtw=0
+		var rtb=0
+		var artw=0
+		var artb=0
 		if(plw){
 			rtw=plw.rating
 			artw=adjustedrating(plw,gm.date)
@@ -224,7 +224,7 @@ function handlegames(){
 				artb2=adjustedrating(plb,gm.date)
 			}
 		}
-		else{
+		else if(updating){
 			lastusedgame=gm.id
 		}
 		updategame.run(Math.floor(artw),Math.floor(artb),Math.round((artw2-artw)*10),Math.round((artb2-artb)*10),gm.id)
