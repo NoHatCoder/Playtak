@@ -25,6 +25,7 @@ module.exports = {
     'brace-style': ['off'],
   },
   globals: {
+    server: 'readonly',
     output: 'readonly',
     $: 'readonly',
     board: 'readonly',
@@ -36,5 +37,7 @@ module.exports = {
     lastWt: 'writeable',
     lastBt: 'writeable',
     lastTimeUpdate: 'writeable',
+    generateCamera: 'readonly',
+    fixedcamera: 'readonly',
   },
 };
