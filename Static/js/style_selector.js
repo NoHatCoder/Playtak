@@ -2,8 +2,7 @@ let pieceStyles;
 const whiteSquareStyles = ['sand-velvet', 'sand-velvet-diamonds', 'sand-velvet-diamonds2', 'ornate', 'white-velvet', 'simple'];
 const blackSquareStyles = ['sand-velvet', 'sand-velvet-diamonds', 'sand-velvet-diamonds2', 'ornate', 'blue-velvet', 'simple'];
 
-function makeBoardSelector(color)
-{
+function makeBoardSelector(color) {
 	const form = $(`#${color}_squares_form`);
 
 	let call;
@@ -39,8 +38,7 @@ function makeBoardSelector(color)
 	}
 }
 
-function makePieceSelector(color)
-{
+function makePieceSelector(color) {
 	const form = $(`#${color}_pieces_form`);
 
 	let call;
@@ -86,8 +84,7 @@ function makePieceSelector(color)
 	});
 }
 
-function makeStyleSelector()
-{
+function makeStyleSelector() {
 	pieceStyles = {
 		white_coral: 0,
 		white_simple: 0,

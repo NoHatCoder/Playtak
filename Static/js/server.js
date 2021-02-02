@@ -457,9 +457,13 @@ const server = {
 					for (let i = 4; i < spl.length; i += 1) {
 						nums.push(Number(spl[i]));
 					}
-					board.serverMmove(spl[2].charAt(0), Number(spl[2].charAt(1)),
-						spl[3].charAt(0), Number(spl[3].charAt(1)),
-						nums);
+					board.serverMmove(
+						spl[2].charAt(0),
+						Number(spl[2].charAt(1)),
+						spl[3].charAt(0),
+						Number(spl[3].charAt(1)),
+						nums
+					);
 				}
 				// Game#1 Time 170 200
 				else if (spl[1] === 'Time') {

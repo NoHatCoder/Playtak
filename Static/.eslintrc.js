@@ -17,6 +17,8 @@ module.exports = {
 		quotes: ['error', 'single', { allowTemplateLiterals: true }],
 		'max-len': ['error', 180, { ignoreTrailingComments: true }],
 		'linebreak-style': ['error', 'windows'],
+		'function-paren-newline': ['error', 'multiline-arguments'],
+		'comma-dangle': ['error', 'only-multiline', { functions: 'never' }],
 		'func-names': ['off'],
 		'object-shorthand': ['off'],
 		'nonblock-statement-body-position': ['off'],

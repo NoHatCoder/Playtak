@@ -161,8 +161,11 @@ const boardFactory = {
 		const geometry = new THREE.BoxGeometry(sqSize, sqHeight, sqSize);
 		geometry.center();
 		const square = new THREE.Mesh(geometry, ((file + rankInverse) % 2 ? materials.white_sqr : materials.black_sqr));
-		square.position.set(board.sq_position.startx + file * sqSize, 0,
-			board.sq_position.startz + rankInverse * sqSize);
+		square.position.set(
+			board.sq_position.startx + file * sqSize,
+			0,
+			board.sq_position.startz + rankInverse * sqSize
+		);
 		square.file = file;
 		square.rank = board.size - 1 - rankInverse;
 		square.isboard = true;
@@ -204,39 +207,55 @@ const boardFactory = {
 				let letter;
 
 				// Top letters
-				const letterGeometry = new THREE.TextGeometry(String.fromCharCode('A'.charCodeAt(0) + i),
+				const letterGeometry = new THREE.TextGeometry(
+					String.fromCharCode('A'.charCodeAt(0) + i),
 					{
 						size: letterSize, height: 1, font: font, weight: 'normal',
-					});
+					}
+				);
 				letter = new THREE.Mesh(letterGeometry, materials.letter);
 				letter.rotateX(Math.PI / 2);
 				letter.rotateY(Math.PI);
-				letter.position.set(board.sq_position.startx + letterSize / 2 + i * sqSize, sqHeight / 2,
-					board.corner_position.z + borderSize / 2 - letterSize / 2);
+				letter.position.set(
+					board.sq_position.startx + letterSize / 2 + i * sqSize,
+					sqHeight / 2,
+					board.corner_position.z + borderSize / 2 - letterSize / 2
+				);
 				scene.add(letter);
 				// Bottom letters
 				letter = new THREE.Mesh(letterGeometry, materials.letter);
 				letter.rotateX(-Math.PI / 2);
-				letter.position.set(board.sq_position.startx - letterSize / 2 + i * sqSize, sqHeight / 2,
-					board.corner_position.endz - borderSize / 2 + letterSize / 2);
+				letter.position.set(
+					board.sq_position.startx - letterSize / 2 + i * sqSize,
+					sqHeight / 2,
+					board.corner_position.endz - borderSize / 2 + letterSize / 2
+				);
 				scene.add(letter);
 
 				// Left side numbers
-				const numberGeometry = new THREE.TextGeometry(String.fromCharCode('1'.charCodeAt(0) + i),
+				const numberGeometry = new THREE.TextGeometry(
+					String.fromCharCode('1'.charCodeAt(0) + i),
 					{
 						size: letterSize, height: 1, font: font, weight: 'normal',
-					});
+					}
+				);
 				letter = new THREE.Mesh(numberGeometry, materials.letter);
 				letter.rotateX(-Math.PI / 2);
-				letter.position.set(board.corner_position.x + letterSize, sqHeight / 2,
-					board.sq_position.endz + letterSize / 2 - i * sqSize);
+				letter.position.set(
+					board.corner_position.x + letterSize,
+					sqHeight / 2,
+					board.sq_position.endz + letterSize / 2 - i * sqSize
+				);
 				scene.add(letter);
 				// Right side numbers
 				letter = new THREE.Mesh(numberGeometry, materials.letter);
 				letter.rotateX(-Math.PI / 2);
 				letter.rotateZ(Math.PI);
-				letter.position.set(board.corner_position.endx - letterSize, sqHeight / 2,
-					board.sq_position.endz - letterSize / 2 - i * sqSize);
+				letter.position.set(
+					board.corner_position.endx - letterSize,
+					sqHeight / 2,
+					board.sq_position.endz - letterSize / 2 - i * sqSize
+				);
 				scene.add(letter);
 			}
 		});
@@ -253,13 +272,17 @@ const pieceFactory = {
 		const piece = new THREE.Mesh(geometry, materialMine);
 		piece.iswhitepiece = (playerNum === WHITE_PLAYER);
 		if (playerNum === WHITE_PLAYER) {
-			piece.position.set(board.corner_position.endx + stackOffsetFromBorder + pieceSize / 2,
+			piece.position.set(
+				board.corner_position.endx + stackOffsetFromBorder + pieceSize / 2,
 				stackheight * pieceHeight + pieceHeight / 2 - sqHeight / 2,
-				board.corner_position.endz - pieceSize / 2 - stackno * (stackDist + pieceSize));
+				board.corner_position.endz - pieceSize / 2 - stackno * (stackDist + pieceSize)
+			);
 		} else {
-			piece.position.set(board.corner_position.x - stackOffsetFromBorder - pieceSize / 2,
+			piece.position.set(
+				board.corner_position.x - stackOffsetFromBorder - pieceSize / 2,
 				stackheight * pieceHeight + pieceHeight / 2 - sqHeight / 2,
-				board.corner_position.z + pieceSize / 2 + stackno * (stackDist + pieceSize));
+				board.corner_position.z + pieceSize / 2 + stackno * (stackDist + pieceSize)
+			);
 		}
 
 		piece.isstanding = false;
@@ -277,15 +300,19 @@ const pieceFactory = {
 		let piece;
 		if (playerNum === WHITE_PLAYER) {
 			piece = new THREE.Mesh(geometry, materials.white_cap);
-			piece.position.set(board.corner_position.endx + capstoneRadius + stackOffsetFromBorder,
+			piece.position.set(
+				board.corner_position.endx + capstoneRadius + stackOffsetFromBorder,
 				capstoneHeight / 2 - sqHeight / 2,
-				board.corner_position.z + capstoneRadius + capNum * (stackDist + capstoneRadius * 2));
+				board.corner_position.z + capstoneRadius + capNum * (stackDist + capstoneRadius * 2)
+			);
 			piece.iswhitepiece = true;
 		} else {
 			piece = new THREE.Mesh(geometry, materials.black_cap);
-			piece.position.set(board.corner_position.x - capstoneRadius - stackOffsetFromBorder,
+			piece.position.set(
+				board.corner_position.x - capstoneRadius - stackOffsetFromBorder,
 				capstoneHeight / 2 - sqHeight / 2,
-				board.corner_position.endz - capstoneRadius - capNum * (stackDist + capstoneRadius * 2));
+				board.corner_position.endz - capstoneRadius - capNum * (stackDist + capstoneRadius * 2)
+			);
 			piece.iswhitepiece = false;
 		}
 		piece.isstanding = true;
@@ -581,26 +608,34 @@ const board = {
 			if (!piece.onsquare) {
 				if (piece.iscapstone) {
 					if (piece.iswhitepiece) {
-						piece.position.set(board.corner_position.endx + capstoneRadius + stackOffsetFromBorder,
+						piece.position.set(
+							board.corner_position.endx + capstoneRadius + stackOffsetFromBorder,
 							capstoneHeight / 2 - sqHeight / 2,
-							board.corner_position.z + capstoneRadius + piece.pieceNum * (stackDist + capstoneRadius * 2));
+							board.corner_position.z + capstoneRadius + piece.pieceNum * (stackDist + capstoneRadius * 2)
+						);
 					} else {
-						piece.position.set(board.corner_position.x - capstoneRadius - stackOffsetFromBorder,
+						piece.position.set(
+							board.corner_position.x - capstoneRadius - stackOffsetFromBorder,
 							capstoneHeight / 2 - sqHeight / 2,
-							board.corner_position.endz - capstoneRadius - piece.pieceNum * (stackDist + capstoneRadius * 2));
+							board.corner_position.endz - capstoneRadius - piece.pieceNum * (stackDist + capstoneRadius * 2)
+						);
 					}
 				}
 				else {
 					const stackno = Math.floor(piece.pieceNum / 10);
 					const stackheight = piece.pieceNum % 10;
 					if (piece.iswhitepiece) {
-						piece.position.set(board.corner_position.endx + stackOffsetFromBorder + pieceSize / 2,
+						piece.position.set(
+							board.corner_position.endx + stackOffsetFromBorder + pieceSize / 2,
 							stackheight * pieceHeight + pieceHeight / 2 - sqHeight / 2,
-							board.corner_position.endz - pieceSize / 2 - stackno * (stackDist + pieceSize));
+							board.corner_position.endz - pieceSize / 2 - stackno * (stackDist + pieceSize)
+						);
 					} else {
-						piece.position.set(board.corner_position.x - stackOffsetFromBorder - pieceSize / 2,
+						piece.position.set(
+							board.corner_position.x - stackOffsetFromBorder - pieceSize / 2,
 							stackheight * pieceHeight + pieceHeight / 2 - sqHeight / 2,
-							board.corner_position.z + pieceSize / 2 + stackno * (stackDist + pieceSize));
+							board.corner_position.z + pieceSize / 2 + stackno * (stackDist + pieceSize)
+						);
 					}
 				}
 			}
@@ -769,9 +804,12 @@ const board = {
 						stone = 'Wall';
 					}
 
-					console.log(`Place ${this.movecount}`,
-						sel.iswhitepiece ? 'White' : 'Black', stone,
-						this.squarename(hlt.file, hlt.rank));
+					console.log(
+						`Place ${this.movecount}`,
+						sel.iswhitepiece ? 'White' : 'Black',
+						stone,
+						this.squarename(hlt.file, hlt.rank)
+					);
 
 					const sqname = this.squarename(hlt.file, hlt.rank);
 					let msg = `P ${sqname}`;
@@ -1003,8 +1041,13 @@ const board = {
 				this.pushPieceOntoSquare(sq, tstk.pop());
 			}
 		}
-		this.notateMmove(f1.charCodeAt(0) - 'A'.charCodeAt(0), Number(r1) - 1,
-			f2.charCodeAt(0) - 'A'.charCodeAt(0), Number(r2) - 1, nums);
+		this.notateMmove(
+			f1.charCodeAt(0) - 'A'.charCodeAt(0),
+			Number(r1) - 1,
+			f2.charCodeAt(0) - 'A'.charCodeAt(0),
+			Number(r2) - 1,
+			nums
+		);
 		this.incmovecnt();
 
 		if (oldpos !== -1) {
@@ -1352,8 +1395,13 @@ const board = {
 				nos += `${lst[i]} `;
 			}
 			this.sendmove(`M ${st} ${end} ${nos.trim()}`);
-			this.notateMmove(this.move.start.file, this.move.start.rank,
-				this.move.end.file, this.move.end.rank, nos);
+			this.notateMmove(
+				this.move.start.file,
+				this.move.start.rank,
+				this.move.end.file,
+				this.move.end.rank,
+				nos
+			);
 			if (this.scratch) {
 				this.checkroadwin();
 				this.checksquaresover();
@@ -1852,8 +1900,10 @@ const board = {
 				}
 
 				for (let i = 0; i < drops.length; i++) {
-					const sq = this.get_board_obj(s1.file + (i + 1) * df,
-						s1.rank + (i + 1) * dr);
+					const sq = this.get_board_obj(
+						s1.file + (i + 1) * df,
+						s1.rank + (i + 1) * dr
+					);
 
 					for (let j = 0; j < parseInt(drops[i], 10); j++) {
 						this.pushPieceOntoSquare(sq, tstk.pop());
