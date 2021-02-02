@@ -1,47 +1,47 @@
 /* eslint-disable no-use-before-define */
 
 function parsePTN(rawText) {
-  const text = rawText.replace(/\r/g, '')
-    .replace(/\{[^}]+\}/gm, '');
+	const text = rawText.replace(/\r/g, '')
+		.replace(/\{[^}]+\}/gm, '');
 
-  const header = parsePTNHeader(text);
+	const header = parsePTNHeader(text);
 
-  const body = text.replace(/\[(\S+)\s+"([^"]+)"\]/g, '').trim();
-  const moves = parsePTNMoves(body);
-  if (header && moves) {
-    return {
-      tags: header,
-      moves: moves,
-    };
-  }
-  return null;
+	const body = text.replace(/\[(\S+)\s+"([^"]+)"\]/g, '').trim();
+	const moves = parsePTNMoves(body);
+	if (header && moves) {
+		return {
+			tags: header,
+			moves: moves,
+		};
+	}
+	return null;
 }
 
 function parsePTNHeader(header) {
-  const tags = {};
-  let match;
-  const re = /\[(\S+)\s+"([^"]+)"\]/gm;
-  // eslint-disable-next-line no-cond-assign
-  while ((match = re.exec(header)) !== null) {
-    tags[match[1]] = match[2];
-  }
-  return tags;
+	const tags = {};
+	let match;
+	const re = /\[(\S+)\s+"([^"]+)"\]/gm;
+	// eslint-disable-next-line no-cond-assign
+	while ((match = re.exec(header)) !== null) {
+		tags[match[1]] = match[2];
+	}
+	return tags;
 }
 
 function parsePTNMoves(body) {
-  const bits = body.split(/\s+/);
-  const moves = [];
-  for (let i = 0; i < bits.length; i += 1) {
-    const tok = bits[i];
-    if (!tok.match(/\d+\./))
-      moves.push(tok);
-  }
-  return moves;
+	const bits = body.split(/\s+/);
+	const moves = [];
+	for (let i = 0; i < bits.length; i += 1) {
+		const tok = bits[i];
+		if (!tok.match(/\d+\./))
+			moves.push(tok);
+	}
+	return moves;
 }
 
 if (typeof (require) === 'function') {
-  const ptn1 = (
-    '[Site "PlayTak.com"]\n'
+	const ptn1 = (
+		'[Site "PlayTak.com"]\n'
       + '[Event "Online Play"]\n'
       + '[Date "2016.10.22"]\n'
       + '[Time "22:06:19"]\n'
@@ -91,5 +91,5 @@ if (typeof (require) === 'function') {
       + '38. 5e1<5 Se3\n'
       + '39. b5');
 
-  console.log(parsePTN(ptn1));
+	console.log(parsePTN(ptn1));
 }
