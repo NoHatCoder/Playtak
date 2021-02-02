@@ -11,8 +11,8 @@ const chathandler = {
 		$('#room-div-global').append('<a href="#" onclick="showPrivacyPolicy();"> Privacy Policy</a><br>');
 	},
 	/**
-   * Callback from server
-   */
+	 * Callback from server
+	 */
 	received: function (type, roomName, rawName, rawTxt) {
 		console.log('received', type, roomName, rawName, rawTxt);
 
@@ -29,8 +29,9 @@ const chathandler = {
 			}
 		}
 		let room = `${type}-${roomName}`;
-		if (type === 'global')
+		if (type === 'global') {
 			room = 'global';
+		}
 
 		const $cs = $(`#room-div-${room}`);
 
@@ -49,7 +50,7 @@ const chathandler = {
 			this.lastChatTime = timenow;
 		}
 		$cs.append(`<span class="${clsname}">${name}:</span>`);
-		const options = {/* ... */};
+		const options = {/* ... */ };
 
 		const occ = (txt.match(new RegExp(server.myname, 'g')) || []).length;
 		txt = txt.linkify(options);
@@ -65,13 +66,14 @@ const chathandler = {
 		$cs.scrollTop($cs[0].scrollHeight);
 	},
 	/**
-   * Callback from server to print a msg without styling.
-   * The caller will do stying on their end
-   */
+	 * Callback from server to print a msg without styling.
+	 * The caller will do stying on their end
+	 */
 	raw: function (type, roomName, msg) {
 		let room = `${type}-${roomName}`;
-		if (type === 'global')
+		if (type === 'global') {
 			room = 'global';
+		}
 
 		const $cs = $(`#room-div-${room}`);
 		$cs.append(` ${msg}<br>`);
@@ -79,28 +81,33 @@ const chathandler = {
 		$cs.scrollTop($cs[0].scrollHeight);
 	},
 	/**
-   * Callback from UI
-   */
+	 * Callback from UI
+	 */
 	send: function () {
 		const msg = $('#chat-me').val();
-		if (msg.startsWith('.'))
+		if (msg.startsWith('.')) {
 			server.send(msg.slice(1));
-		else if (this.cur_room.startsWith('global'))
+		}
+		else if (this.cur_room.startsWith('global')) {
 			server.chat('global', '', msg);
-		else if (this.cur_room.startsWith('room-'))
+		}
+		else if (this.cur_room.startsWith('room-')) {
 			server.chat('room', this.cur_room.split('room-')[1], msg);
-		else // Assuming priv
+		}
+		else { // Assuming priv
 			server.chat('priv', this.cur_room.split('priv-')[1], msg);
+		}
 
 		$('#chat-me').val('');
 	},
 	/*
-     * Callback from UI
-     */
+		 * Callback from UI
+		 */
 	selectRoom: function (type, name) {
 		this.cur_room = (`${type}-${name}`);
-		if (type === 'global')
+		if (type === 'global') {
 			this.cur_room = 'global';
+		}
 
 		const title = $(`.room-name-${this.cur_room} a span`).html();
 		$('#cur_room').html(title);
@@ -112,8 +119,8 @@ const chathandler = {
 		chathandler.selectRoom(type, name);
 	},
 	/*
-     * Callback from UI
-     */
+		 * Callback from UI
+		 */
 	removeRoom: function (type, name) {
 		const room = `${type}-${name}`;
 		console.log(`remove ${room}`);
@@ -123,15 +130,16 @@ const chathandler = {
 			this.selectRoom('global', 'global');
 		}
 
-		if (type === 'room')
+		if (type === 'room') {
 			server.leaveroom(name);
+		}
 
 		$(`.room-name-${room}`).remove();
 		$(`#room-div-${room}`).remove();
 	},
 	/*
-     * Callback from UI
-     */
+		 * Callback from UI
+		 */
 	createRoom: function (type, name, title) {
 		const room = `${type}-${name}`;
 
@@ -154,8 +162,8 @@ const chathandler = {
 	},
 
 	/*
-     * Callback from UI
-     */
+		 * Callback from UI
+		 */
 	createGameRoom: function (game, p1, p2) {
 		const p1span = $('<span/>').html(p1).addClass('playername');
 		const p2span = $('<span/>').html(p2).addClass('playername');
@@ -176,9 +184,9 @@ const chathandler = {
 		return $(`.room-name-${type}-${name}`).length;
 	},
 	/*
-     * Notify checkbox change for checkbox:
-     * Hide chat time
-     */
+		 * Notify checkbox change for checkbox:
+		 * Hide chat time
+		 */
 	hideChatTime: function () {
 		if (document.getElementById('hide-chat-time').checked) {
 			localStorage.setItem('hide-chat-time', 'true');
@@ -237,8 +245,9 @@ $(() => {
 					const name = opt.$trigger[0].innerText.split(':')[0];
 
 					// Don't create if already exists
-					if (!chathandler.roomExists('priv', name))
+					if (!chathandler.roomExists('priv', name)) {
 						chathandler.createPrivateRoom(name);
+					}
 
 					chathandler.setRoom('priv', name);
 				},

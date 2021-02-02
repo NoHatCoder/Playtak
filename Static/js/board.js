@@ -1,7 +1,6 @@
 const WHITE_PLAYER = 1;
 const BLACK_PLAYER = 2;
 let stackDist = 15;
-// todo check if they're globals
 // eslint-disable-next-line prefer-const
 let pieceSize = 60;
 const pieceHeight = 15;
@@ -128,8 +127,7 @@ const materials = {
 			materials.piecesLoaded = 0;
 			// reapply texture.
 			for (let i = 0; i < board.piece_objects.length; i++) {
-				if (board.piece_objects[i].iscapstone)
-				{
+				if (board.piece_objects[i].iscapstone) {
 					board.piece_objects[i].material = (board.piece_objects[i].iswhitepiece)
 						? materials.white_cap : materials.black_cap;
 				} else {
@@ -150,7 +148,7 @@ const materials = {
 			materials.boardLoaded = 0;
 			for (let i = 0; i < board.size * board.size; i++) {
 				if (board.board_objects[i].isboard === true) {
-					board.board_objects[i].material =					((i + Math.floor(i / board.size) * ((board.size - 1) % 2)) % 2)
+					board.board_objects[i].material = ((i + Math.floor(i / board.size) * ((board.size - 1) % 2)) % 2)
 						? materials.white_sqr : materials.black_sqr;
 				}
 			}
@@ -473,8 +471,9 @@ const board = {
 		document.getElementById('player-opp').className = 'selectplayer';
 		document.getElementById('player-me').className = '';
 
-		if ((this.mycolor === 'black') !== (this.boardside === 'black'))
+		if ((this.mycolor === 'black') !== (this.boardside === 'black')) {
 			this.reverseboard();
+		}
 	},
 	initCounters: function (startMove) {
 		this.movestart = startMove;
@@ -634,10 +633,12 @@ const board = {
 
 		// In a scratch game I'm playing both colors
 		if (this.scratch) {
-			if (this.mycolor === 'white')
+			if (this.mycolor === 'white') {
 				this.mycolor = 'black';
-			else
+			}
+			else {
 				this.mycolor = 'white';
+			}
 		}
 
 		this.ismymove = this.checkifmymove();
@@ -659,13 +660,16 @@ const board = {
 				for (let s = 0; s < stk.length; s++) {
 					const pc = stk[s];
 					let c = 'p';
-					if (pc.iscapstone)
+					if (pc.iscapstone) {
 						c = 'c';
-					else if (pc.isstanding)
+					}
+					else if (pc.isstanding) {
 						c = 'w';
+					}
 
-					if (pc.iswhitepiece)
+					if (pc.iswhitepiece) {
 						c = c.charAt(0).toUpperCase();
+					}
 
 					bpSq.push(c);
 				}
@@ -701,15 +705,18 @@ const board = {
 					// what if there is not a piece available? Maybe that
 					// is not possible, because when we first created the board
 					// we know that there were enough pieces.
-					if (iswall)
+					if (iswall) {
 						this.standup(pieceMesh);
+					}
 
 					this.pushPieceOntoSquare(sq, pieceMesh);
 
-					if (iswhite)
+					if (iswhite) {
 						this.whitepiecesleft -= 1;
-					else
+					}
+					else {
 						this.blackpiecesleft -= 1;
+					}
 				}
 			}
 		}
@@ -755,10 +762,12 @@ const board = {
 					this.pushPieceOntoSquare(hlt, sel);
 
 					let stone = 'Piece';
-					if (sel.iscapstone)
+					if (sel.iscapstone) {
 						stone = 'Cap';
-					else if (sel.isstanding)
+					}
+					else if (sel.isstanding) {
 						stone = 'Wall';
+					}
 
 					console.log(`Place ${this.movecount}`,
 						sel.iswhitepiece ? 'White' : 'Black', stone,
@@ -766,8 +775,9 @@ const board = {
 
 					const sqname = this.squarename(hlt.file, hlt.rank);
 					let msg = `P ${sqname}`;
-					if (stone !== 'Piece')
+					if (stone !== 'Piece') {
 						msg += ` ${stone.charAt(0)}`;
+					}
 					this.sendmove(msg);
 					this.notatePmove(sqname, stone.charAt(0));
 
@@ -813,8 +823,9 @@ const board = {
 						this.move_stack_over(pick[1], this.selectedStack);
 						this.move.squares.push(pick[1]);
 
-						if (this.move.squares.length > 1 && this.move.dir === 'U')
+						if (this.move.squares.length > 1 && this.move.dir === 'U') {
 							this.setmovedir();
+						}
 
 						if (this.selectedStack.length === 0) {
 							this.move.end = pick[1];
@@ -907,8 +918,9 @@ const board = {
 		}
 	},
 	sendmove: function (e) {
-		if (this.scratch)
+		if (this.scratch) {
 			return;
+		}
 		server.send(`Game#${this.gameno} ${e}`);
 	},
 	getfromstack: function (cap, iswhite) {
@@ -917,8 +929,8 @@ const board = {
 			const obj = this.piece_objects[i];
 			// not on a square, and matches color, and matches type
 			if (!obj.onsquare
-					&& (obj.iswhitepiece === iswhite)
-					&& (cap === obj.iscapstone)) {
+				&& (obj.iswhitepiece === iswhite)
+				&& (cap === obj.iscapstone)) {
 				return obj;
 			}
 		}
@@ -950,8 +962,9 @@ const board = {
 		this.notatePmove(file + rank, caporwall);
 		this.incmovecnt();
 
-		if (oldpos !== -1)
+		if (oldpos !== -1) {
 			board.showmove(oldpos);
+		}
 
 		dontanimate = false;
 	},
@@ -967,14 +980,17 @@ const board = {
 		const s1 = this.get_board_obj(f1.charCodeAt(0) - 'A'.charCodeAt(0), r1 - 1);
 		let fi = 0; let
 			ri = 0;
-		if (f1 === f2)
+		if (f1 === f2) {
 			ri = r2 > r1 ? 1 : -1;
-		if (r1 === r2)
+		}
+		if (r1 === r2) {
 			fi = f2 > f1 ? 1 : -1;
+		}
 
 		let tot = 0;
-		for (let i = 0; i < nums.length; i++)
+		for (let i = 0; i < nums.length; i++) {
 			tot += nums[i];
+		}
 
 		const tstk = [];
 		const stk = this.get_stack(s1);
@@ -991,8 +1007,9 @@ const board = {
 			f2.charCodeAt(0) - 'A'.charCodeAt(0), Number(r2) - 1, nums);
 		this.incmovecnt();
 
-		if (oldpos !== -1)
+		if (oldpos !== -1) {
 			board.showmove(oldpos);
+		}
 
 		dontanimate = false;
 	},
@@ -1015,35 +1032,44 @@ const board = {
 		for (let i = 0; i < this.size; i++) {
 			for (let j = 0; j < this.size; j++) {
 				const stk = this.sq[i][j];
-				if (stk.length === 0)
+				if (stk.length === 0) {
 					continue;
+				}
 				const top = stk[stk.length - 1];
-				if (top.isstanding && !top.iscapstone)
+				if (top.isstanding && !top.iscapstone) {
 					continue;
-				if (top.iswhitepiece)
+				}
+				if (top.iswhitepiece) {
 					whitec += 1;
-				else
+				}
+				else {
 					blackc += 1;
+				}
 			}
 		}
-		if (whitec === blackc)
+		if (whitec === blackc) {
 			this.result = '1/2-1/2';
-		else if (whitec > blackc)
+		}
+		else if (whitec > blackc) {
 			this.result = 'F-0';
-		else
+		}
+		else {
 			this.result = '0-F';
+		}
 	},
 	checkroadwin: function () {
 		for (let i = 0; i < this.size; i++) {
 			for (let j = 0; j < this.size; j++) {
 				const curSt = this.sq[i][j];
 				curSt.graph = -1;
-				if (curSt.length === 0)
+				if (curSt.length === 0) {
 					continue;
+				}
 
 				const ctop = curSt[curSt.length - 1];
-				if (ctop.isstanding && !ctop.iscapstone)
+				if (ctop.isstanding && !ctop.iscapstone) {
 					continue;
+				}
 
 				curSt.graph = (i + j * this.size).toString();
 
@@ -1088,39 +1114,48 @@ const board = {
 		for (let tr = 0; tr < this.size; tr++) {
 			const tsq = this.sq[tr][0];
 			const no = tsq.graph;
-			if (no === -1)
+			if (no === -1) {
 				continue;
+			}
 			for (let br = 0; br < this.size; br++) {
 				const brno = this.sq[br][this.size - 1].graph;
 				if (no === brno) {
-					if (tsq[tsq.length - 1].iswhitepiece)
+					if (tsq[tsq.length - 1].iswhitepiece) {
 						whitewin = true;
-					else
+					}
+					else {
 						blackwin = true;
+					}
 				}
 			}
 		}
 		for (let tr = 0; tr < this.size; tr++) {
 			const tsq = this.sq[0][tr];
 			const no = tsq.graph;
-			if (no === -1)
+			if (no === -1) {
 				continue;
+			}
 			for (let br = 0; br < this.size; br++) {
 				const brno = this.sq[this.size - 1][br].graph;
 				if (no === brno) {
-					if (tsq[tsq.length - 1].iswhitepiece)
+					if (tsq[tsq.length - 1].iswhitepiece) {
 						whitewin = true;
-					else
+					}
+					else {
 						blackwin = true;
+					}
 				}
 			}
 		}
-		if (whitewin && blackwin)
+		if (whitewin && blackwin) {
 			this.result = (this.movecount % 2 === 0) ? 'R-0' : '0-R';
-		else if (whitewin)
+		}
+		else if (whitewin) {
 			this.result = 'R-0';
-		else if (blackwin)
+		}
+		else if (blackwin) {
 			this.result = '0-R';
+		}
 
 		if (whitewin || blackwin) {
 			this.gameover();
@@ -1129,18 +1164,20 @@ const board = {
 		return false;
 	},
 	checksquaresover: function () {
-		for (let i = 0; i < this.size; i++)
-			for (let j = 0; j < this.size; j++)
-				if (this.sq[i][j].length === 0)
+		for (let i = 0; i < this.size; i++) {
+			for (let j = 0; j < this.size; j++) {
+				if (this.sq[i][j].length === 0) {
 					return false;
+				}
+			}
+		}
 
 		this.findwhowon();
 		this.gameover('All spaces covered.');
 		return true;
 	},
 	reverseboard: function () {
-		if (localStorage.getItem('auto_rotate') !== 'false')
-		{
+		if (localStorage.getItem('auto_rotate') !== 'false') {
 			this.boardside = (this.boardside === 'white') ? 'black' : 'white';
 			camera.position.z = -camera.position.z;
 			camera.position.x = -camera.position.x;
@@ -1151,18 +1188,23 @@ const board = {
 	setmovedir: function () {
 		const s1 = this.move.start;
 		const s2 = this.move.squares[this.move.squares.length - 1];
-		if (s1.file === s2.file && s1.rank === s2.rank)
+		if (s1.file === s2.file && s1.rank === s2.rank) {
 			return;
+		}
 
 		if (s1.file === s2.file) {
-			if (s2.rank > s1.rank)
+			if (s2.rank > s1.rank) {
 				this.move.dir = 'N';
-			else
+			}
+			else {
 				this.move.dir = 'S';
-		} else if (s2.file > s1.file)
+			}
+		} else if (s2.file > s1.file) {
 			this.move.dir = 'E';
-		else
+		}
+		else {
 			this.move.dir = 'W';
+		}
 	},
 	notate: function (txt) {
 		const res = false;
@@ -1244,19 +1286,23 @@ const board = {
 	},
 	notatePmove: function (sqname, pos) {
 		let position = '';
-		if (pos === 'W')
+		if (pos === 'W') {
 			position = 'S';
-		else if (pos === 'C')
+		}
+		else if (pos === 'C') {
 			position = 'C';
+		}
 		this.notate(position + sqname.toLowerCase());
 	},
 	// all params are nums
 	notateMmove: function (stf, str, endf, endr, nos) {
 		let dir = '';
-		if (stf === endf)
+		if (stf === endf) {
 			dir = (endr < str) ? '-' : '+';
-		else
+		}
+		else {
 			dir = (endf < stf) ? '<' : '>';
+		}
 		let tot = 0;
 		let lst = '';
 		for (let i = 0; i < nos.length; i++) {
@@ -1268,12 +1314,14 @@ const board = {
 			if (this.get_stack(s1).length === 0) {
 				tot = '';
 				lst = '';
-			} else if (tot === Number(lst))
+			} else if (tot === Number(lst)) {
 				lst = '';
-		} else if (tot === Number(lst))
+			}
+		} else if (tot === Number(lst)) {
 			lst = '';
+		}
 		const move = `${tot + this.squarename(stf, str).toLowerCase()
-				+ dir}${lst}`;
+			+ dir}${lst}`;
 		this.notate(move);
 	},
 	generateMove: function () {
@@ -1284,11 +1332,13 @@ const board = {
 
 		for (let i = 0, c = 0; i < this.move.squares.length; i++) {
 			const obj = this.move.squares[i];
-			if (obj === this.move.start)
+			if (obj === this.move.start) {
 				continue;
+			}
 
-			if (obj === prev)
+			if (obj === prev) {
 				lst[c - 1] = lst[c - 1] + 1;
+			}
 			else {
 				prev = obj;
 				lst[c] = 1;
@@ -1316,51 +1366,60 @@ const board = {
 	},
 
 	pushPieceOntoSquare: function (sq, piece) {
-		/* eslint-disable no-param-reassign */
 		const st = this.get_stack(sq);
 		const top = this.top_of_stack(sq);
-		if (top && top.isstanding && !top.iscapstone && piece.iscapstone)
+		if (top && top.isstanding && !top.iscapstone && piece.iscapstone) {
 			this.rotate(top);
+		}
 
 		piece.position.x = sq.position.x;
 
 		if (piece.isstanding) {
-			if (piece.iscapstone)
+			if (piece.iscapstone) {
 				piece.position.y = sqHeight / 2 + capstoneHeight / 2 + pieceHeight * st.length;
-			else
+			}
+			else {
 				piece.position.y = sqHeight / 2 + pieceSize / 2 + pieceHeight * st.length;
-		} else
+			}
+		} else {
 			piece.position.y = sqHeight + st.length * pieceHeight;
+		}
 
 		piece.position.z = sq.position.z;
 		piece.onsquare = sq;
 		st.push(piece);
-		/* eslint-enable no-param-reassign */
 	},
 	rotate: function (piece) {
-		if (piece.iscapstone)
+		if (piece.iscapstone) {
 			return;
-		if (piece.isstanding)
+		}
+		if (piece.isstanding) {
 			this.flatten(piece);
-		else
+		}
+		else {
 			this.standup(piece);
+		}
 	},
 	flatten: function (piece) {
-		if (!piece.isstanding)
+		if (!piece.isstanding) {
 			return;
+		}
 		piece.position.y -= pieceSize / 2 - pieceHeight / 2;
-		if (diagonalWalls)
+		if (diagonalWalls) {
 			piece.rotateZ(Math.PI / 4);
+		}
 		piece.rotateX(Math.PI / 2);
 		piece.isstanding = false;
 	},
 	standup: function (piece) {
-		if (piece.isstanding)
+		if (piece.isstanding) {
 			return;
+		}
 		piece.position.y += pieceSize / 2 - pieceHeight / 2;
 		piece.rotateX(-Math.PI / 2);
-		if (diagonalWalls)
+		if (diagonalWalls) {
 			piece.rotateZ(-Math.PI / 4);
+		}
 		piece.isstanding = true;
 	},
 	rightclick: function () {
@@ -1376,15 +1435,18 @@ const board = {
 			if (intersects.length > 0) {
 				const obj = intersects[0].object;
 				let sq = obj;
-				if (!obj.isboard)
+				if (!obj.isboard) {
 					sq = obj.onsquare;
+				}
 				const stk = this.get_stack(sq);
-				if (stk.length === 0)
+				if (stk.length === 0) {
 					return;
+				}
 				for (let i = 0; i < scene.children.length; i++) {
 					const sceneChild = scene.children[i];
-					if (sceneChild.isboard || !sceneChild.onsquare)
+					if (sceneChild.isboard || !sceneChild.onsquare) {
 						continue;
+					}
 					sceneChild.visible = false;
 				}
 				for (let i = 0; i < stk.length; i++) {
@@ -1398,8 +1460,9 @@ const board = {
 		if (this.totalhighlighted !== null) {
 			for (let i = 0; i < scene.children.length; i++) {
 				const obj = scene.children[i];
-				if (obj.isboard || !obj.onsquare)
+				if (obj.isboard || !obj.onsquare) {
 					continue;
+				}
 				obj.visible = true;
 			}
 			this.totalhighlighted = null;
@@ -1464,8 +1527,9 @@ const board = {
 	},
 	undo: function () {
 		// we can't undo before the place we started from
-		if (this.movecount <= this.movestart)
+		if (this.movecount <= this.movestart) {
 			return;
+		}
 
 		// This resetpieces() is to make sure there aren't any pieces
 		// in mid-move, in case the user clicked a piece to place it, but
@@ -1480,10 +1544,12 @@ const board = {
 		$('#player-opp').toggleClass('selectplayer');
 
 		if (this.scratch) {
-			if (this.mycolor === 'white')
+			if (this.mycolor === 'white') {
 				this.mycolor = 'black';
-			else
+			}
+			else {
 				this.mycolor = 'white';
+			}
 		}
 		this.ismymove = this.checkifmymove();
 
@@ -1517,8 +1583,9 @@ const board = {
 			scene.remove(scene.children[i]);
 		}
 		const tbl = document.getElementById('moveslist');
-		while (tbl.rows.length > 0)
+		while (tbl.rows.length > 0) {
 			tbl.deleteRow(0);
+		}
 		$('#draw').removeClass('i-offered-draw').removeClass('opp-offered-draw').addClass('offer-draw');
 		stopTime();
 
@@ -1559,38 +1626,47 @@ const board = {
 		const r1 = sq1.rank;
 		const f2 = sq2.file;
 		const r2 = sq2.rank;
-		if (f1 === f2 && r1 === r2)
+		if (f1 === f2 && r1 === r2) {
 			return 'O';
+		}
 
 		if (f1 === f2) {
-			if (r2 === r1 + 1)
+			if (r2 === r1 + 1) {
 				return 'N';
-			if (r1 === r2 + 1)
+			}
+			if (r1 === r2 + 1) {
 				return 'S';
+			}
 		} else if (r1 === r2) {
-			if (f2 === f1 + 1)
+			if (f2 === f1 + 1) {
 				return 'E';
-			if (f1 === f2 + 1)
+			}
+			if (f1 === f2 + 1) {
 				return 'W';
+			}
 		}
 		return 'OUTSIDE';
 	},
 	checkifmymove: function () {
-		if (this.scratch)
+		if (this.scratch) {
 			return true;
-		if (this.observing)
+		}
+		if (this.observing) {
 			return false;
+		}
 		const tomove = (this.movecount % 2 === 0) ? 'white' : 'black';
 		// console.log('tomove = ', tomove, this.mycolor, tomove===this.mycolor);
 		return tomove === this.mycolor;
 	},
 	is_white_piece_to_move: function () {
 		// white always goes first, so must pick up a black piece
-		if (this.movecount === 0)
+		if (this.movecount === 0) {
 			return false;
+		}
 		// black always goes second, so must pick up a white piece
-		if (this.movecount === 1)
+		if (this.movecount === 1) {
 			return true;
+		}
 		// after that, if we've made an even number of moves, then it is
 		// white's turn, and she must pick up a white piece
 		const isEven = this.movecount % 2 === 0;
@@ -1649,30 +1725,37 @@ const board = {
 	},
 	top_of_stack: function (sq) {
 		const st = this.get_stack(sq);
-		if (st.length === 0)
+		if (st.length === 0) {
 			return null;
+		}
 		return st[st.length - 1];
 	},
 	is_top_mine: function (sq) {
 		const ts = this.top_of_stack(sq);
-		if (!ts)
+		if (!ts) {
 			return true;
-		if (ts.iswhitepiece && this.mycolor === 'white')
+		}
+		if (ts.iswhitepiece && this.mycolor === 'white') {
 			return true;
-		if (!ts.iswhitepiece && this.mycolor !== 'white')
+		}
+		if (!ts.iswhitepiece && this.mycolor !== 'white') {
 			return true;
+		}
 		return false;
 	},
 	move_stack_over: function (sq, stk) {
-		if (stk.length === 0)
+		if (stk.length === 0) {
 			return;
+		}
 		let top = this.top_of_stack(sq);
-		if (!top)
+		if (!top) {
 			top = sq;
+		}
 
 		const ts = stk[stk.length - 1];
-		if (ts.onsquare === sq)
+		if (ts.onsquare === sq) {
 			return;
+		}
 
 		const diffy = ts.position.y - top.position.y;
 
@@ -1734,16 +1817,19 @@ const board = {
 				let drops = match[5];
 
 				if (drops === '') {
-					if (count === '')
+					if (count === '') {
 						drops = [1];
-					else
+					}
+					else {
 						drops = [count];
+					}
 				} else {
 					drops = drops.split('');
 				}
 				let tot = 0;
-				for (let i = 0; i < drops.length; i++)
+				for (let i = 0; i < drops.length; i++) {
 					tot += parseInt(drops[i], 10);
+				}
 
 				let df = 0; let
 					dr = 0;
@@ -1761,8 +1847,9 @@ const board = {
 				const stk = this.get_stack(s1);
 				const tstk = [];
 
-				for (let i = 0; i < tot; i++)
+				for (let i = 0; i < tot; i++) {
 					tstk.push(stk.pop());
+				}
 
 				for (let i = 0; i < drops.length; i++) {
 					const sq = this.get_board_obj(s1.file + (i + 1) * df,
@@ -1834,10 +1921,12 @@ const board = {
 		this.create(rowCnt, this.determineColor(playerToMove), true, false);
 
 		this.initFromTPS(rowDescriptors);
-		if (this.checkroadwin())
+		if (this.checkroadwin()) {
 			return;
-		if (this.checksquaresover())
+		}
+		if (this.checksquaresover()) {
 			return;
+		}
 
 		let assumedMoveCount = this.moveCountCalc(moveNumber, moveNumber, playerToMove);
 
@@ -1947,8 +2036,9 @@ const board = {
 		// know what it was before
 		this.layoutFromTPS(rowDescriptors);
 
-		if ((this.mycolor === 'black') !== (this.boardside === 'black'))
+		if ((this.mycolor === 'black') !== (this.boardside === 'black')) {
 			this.reverseboard();
+		}
 
 		document.getElementById('player-opp').className = 'selectplayer';
 		document.getElementById('player-me').className = '';

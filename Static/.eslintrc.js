@@ -11,13 +11,14 @@ module.exports = {
 		ecmaVersion: 12,
 	},
 	rules: {
-		indent: ['error', 'tab'],
+		indent: ['error', 'tab', {
+			SwitchCase: 1,
+		}],
 		quotes: ['error', 'single', { allowTemplateLiterals: true }],
 		'max-len': ['error', 180, { ignoreTrailingComments: true }],
 		'linebreak-style': ['error', 'windows'],
 		'func-names': ['off'],
 		'object-shorthand': ['off'],
-		curly: ['off'],
 		'nonblock-statement-body-position': ['off'],
 		'no-unused-vars': ['off'],
 		'no-alert': ['off'],

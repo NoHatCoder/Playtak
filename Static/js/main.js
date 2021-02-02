@@ -391,8 +391,9 @@ function onDocumentMouseDown(e) {
 		board.rightclick();
 	}
 	else if (e.button === 0) {
-		if (board.movecount !== board.moveshown)
+		if (board.movecount !== board.moveshown) {
 			return;
+		}
 		board.leftclick();
 	}
 	board.mousemove();
@@ -407,19 +408,19 @@ function onDocumentMouseUp(e) {
 
 function onKeyUp(e) {
 	switch (e.keyCode) {
-	case 27: // ESC
-		board.showmove(board.moveshown, true);
-		break;
+		case 27: // ESC
+			board.showmove(board.moveshown, true);
+			break;
 
-	case 38: // UP
-		stepback();
-		break;
+		case 38: // UP
+			stepback();
+			break;
 
-	case 40: // DOWN
-		stepforward();
-		break;
+		case 40: // DOWN
+			stepforward();
+			break;
 
-	default:
+		default:
 	}
 }
 
@@ -437,8 +438,9 @@ function buttonclick() {
 }
 
 function scratchbutton(size) {
-	if (board.observing)
+	if (board.observing) {
 		server.send(`Unobserve ${board.gameno}`);
+	}
 	if (board.scratch || board.observing) {
 		board.clear();
 		board.create(size, 'white', true);
@@ -446,10 +448,12 @@ function scratchbutton(size) {
 	}
 }
 function rmenu() {
-	if ($('#rmenu').hasClass('hidden'))
+	if ($('#rmenu').hasClass('hidden')) {
 		showrmenu();
-	else
+	}
+	else {
 		hidermenu();
+	}
 }
 
 function showrmenu() {
@@ -468,10 +472,12 @@ function hidermenu() {
 
 function zoom(out) {
 	console.log('zoom', out, controls);
-	if (out)
+	if (out) {
 		controls.constraint.dollyOut(1.5);
-	else
+	}
+	else {
 		controls.constraint.dollyIn(1.5);
+	}
 }
 
 function load() {
@@ -490,10 +496,12 @@ function load() {
 
 	dontanimate = true;
 
-	if (!tps)
+	if (!tps) {
 		board.loadptn(text);
-	else
+	}
+	else {
 		board.loadtps(text);
+	}
 
 	dontanimate = false;
 
@@ -503,8 +511,9 @@ function load() {
 function loadptn(text) {
 	$('#loadmodal').modal('hide');
 	const files = $('#loadptnfile')[0].files;
-	if (files.length === 0)
+	if (files.length === 0) {
 		return;
+	}
 	const reader = new FileReader();
 	reader.onload = function (txt) {
 		server.unobserve();
@@ -542,8 +551,9 @@ function isBreakpoint(alias) {
 
 let haveplayedhurry = false;
 function startTime(fromFn) {
-	if (typeof fromFn === 'undefined' && !server.timervar)
+	if (typeof fromFn === 'undefined' && !server.timervar) {
 		return;
+	}
 	const now = new Date();
 	const t = now.getTime() / 1000;
 	const elapsed = t - lastTimeUpdate;
@@ -687,8 +697,7 @@ function loadSettings() {
 	document.getElementById('click-checkbox').checked = clickthrough;
 
 	// load whether or not the 'Send' button should be hidden.
-	if (localStorage.getItem('hide-send') === 'true')
-	{
+	if (localStorage.getItem('hide-send') === 'true') {
 		document.getElementById('hide-send-checkbox').checked = true;
 		document.getElementById('send-button').style.display = 'none';
 		$('#chat').height(window.innerHeight - $('nav').height() - 51);
@@ -712,8 +721,7 @@ function loadSettings() {
 	document.getElementById('perspective-slider').value = perspective;
 
 	// load setting for hide chat time
-	if (localStorage.getItem('hide-chat-time') === 'true')
-	{
+	if (localStorage.getItem('hide-chat-time') === 'true') {
 		document.getElementById('hide-chat-time').checked = true;
 		$('.chattime').each(function (index) {
 			$(this).addClass('hidden');
@@ -918,10 +926,12 @@ function getNotation() {
 			const val = $(this).text();
 			res += val;
 
-			if (count % 3 === 0)
+			if (count % 3 === 0) {
 				res += '\r\n';
-			else
+			}
+			else {
 				res += ' ';
+			}
 
 			count += 1;
 		});
@@ -945,10 +955,12 @@ function copyNotationLink() {
 
 	try {
 		const successful = document.execCommand('copy');
-		if (successful)
+		if (successful) {
 			alert('success', 'Copied!');
-		else
+		}
+		else {
 			alert('danger', 'Unable to copy!');
+		}
 	} catch (err) {
 		alert('danger', 'Unable to copy!');
 	}
@@ -981,10 +993,12 @@ function sliderScale(scalein) {
 }
 
 function undoButton() {
-	if (board.scratch)
+	if (board.scratch) {
 		board.undo();
-	else
+	}
+	else {
 		server.undo();
+	}
 }
 
 function showresetpwd() {

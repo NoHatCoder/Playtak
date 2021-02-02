@@ -33,12 +33,12 @@ const server = {
 					const responseText = new TextDecoder('utf-8').decode(reader.result);
 					server.msg(responseText);
 					/*
-          const res = res_text.split("\n");
-          const i;
-          for (i = 0; i < res.length - 1; i++) {
-            server.msg(res[i]);
-          }
-          */
+					const res = res_text.split("\n");
+					const i;
+					for (i = 0; i < res.length - 1; i++) {
+						server.msg(res[i]);
+					}
+					*/
 				};
 				reader.readAsArrayBuffer(blob);
 			};
@@ -103,97 +103,99 @@ const server = {
 		}
 	},
 	/*
-  init: function () {
-    if (this.connection && this.connection.readyState === 2)//closing connection
-      this.connection = null;
-    if (this.connection && this.connection.readyState === 3)//closed
-      this.connection = null;
-    if (this.connection) { //user clicked logout
-      this.connection.close();
-      alert("info", "Disconnnecting from server....");
+	init: function () {
+		if (this.connection && this.connection.readyState === 2)//closing connection
+			this.connection = null;
+		if (this.connection && this.connection.readyState === 3)//closed
+			this.connection = null;
+		if (this.connection) { //user clicked logout
+			this.connection.close();
+			alert("info", "Disconnnecting from server....");
 
-      localStorage.removeItem('keeploggedin');
-      localStorage.removeItem('usr');
-      localStorage.removeItem('token');
-      this.connection=null
-      return;
-    }
+			localStorage.removeItem('keeploggedin');
+			localStorage.removeItem('usr');
+			localStorage.removeItem('token');
+			this.connection=null
+			return;
+		}
 
-    const proto = 'wss://'
-    const url = window.location.host + '/ws'
-    if(window.location.host.indexOf("localhost")>-1 || window.location.host.indexOf("127.0.0.1")>-1){
-      url = "www.playtak.com/ws/"
-      //proto = 'ws://'
-      //url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
-    }
-    this.connection = new WebSocket(proto+url, "binary");
-    board.server = this;
-    this.connection.onerror = function (e) {
-      output("Connection error: " + e);
-    };
-    this.connection.onmessage = function (e) {
-      const blob = e.data;
-      const reader = new FileReader();
-      reader.onload = function (event) {
-        const res_text = new TextDecoder("utf-8").decode(reader.result);
-           //server.msg(res_text);
+		const proto = 'wss://'
+		const url = window.location.host + '/ws'
+		if(window.location.host.indexOf("localhost")>-1 || window.location.host.indexOf("127.0.0.1")>-1){
+			url = "www.playtak.com/ws/"
+			//proto = 'ws://'
+			//url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
+		}
+		this.connection = new WebSocket(proto+url, "binary");
+		board.server = this;
+		this.connection.onerror = function (e) {
+			output("Connection error: " + e);
+		};
+		this.connection.onmessage = function (e) {
+			const blob = e.data;
+			const reader = new FileReader();
+			reader.onload = function (event) {
+				const res_text = new TextDecoder("utf-8").decode(reader.result);
+					 //server.msg(res_text);
 
-        const res = res_text.split("\n");
-        const i;
-        for (i = 0; i < res.length - 1; i++) {
-          server.msg(res[i]);
-        }
+				const res = res_text.split("\n");
+				const i;
+				for (i = 0; i < res.length - 1; i++) {
+					server.msg(res[i]);
+				}
 
-      };
-      reader.readAsArrayBuffer(blob);
-    };
-    this.connection.onopen = function (e) {
-    };
-    this.connection.onclose = function (e) {
-      document.getElementById('login-button').textContent = 'Sign up / Login';
-      $('#onlineplayers').addClass('hidden');
-      document.getElementById("onlineplayersbadge").innerHTML = "0";
-      document.getElementById("seekcount").innerHTML = "0";
-      document.getElementById("seekcountbot").innerHTML = "0";
-      document.getElementById("gamecount").innerHTML = "0";
-      document.getElementById("scratchsize").disabled = false;
-      board.scratch = true;
-      board.observing = false;
-      board.gameno = 0;
-      document.title = "Tak";
-      $('#seeklist').children().each(function() {
-        this.remove();
-      });
-      $('#seeklistbot').children().each(function() {
-        this.remove();
-      });
-      $('#gamelist').children().each(function() {
-        this.remove();
-      });
-      stopTime();
+			};
+			reader.readAsArrayBuffer(blob);
+		};
+		this.connection.onopen = function (e) {
+		};
+		this.connection.onclose = function (e) {
+			document.getElementById('login-button').textContent = 'Sign up / Login';
+			$('#onlineplayers').addClass('hidden');
+			document.getElementById("onlineplayersbadge").innerHTML = "0";
+			document.getElementById("seekcount").innerHTML = "0";
+			document.getElementById("seekcountbot").innerHTML = "0";
+			document.getElementById("gamecount").innerHTML = "0";
+			document.getElementById("scratchsize").disabled = false;
+			board.scratch = true;
+			board.observing = false;
+			board.gameno = 0;
+			document.title = "Tak";
+			$('#seeklist').children().each(function() {
+				this.remove();
+			});
+			$('#seeklistbot').children().each(function() {
+				this.remove();
+			});
+			$('#gamelist').children().each(function() {
+				this.remove();
+			});
+			stopTime();
 
-      if(localStorage.getItem('keeploggedin')==='true' &&
-                        !server.anotherlogin) {
-        alert("info", "Connection lost. Trying to reconnect...");
-        server.startLoginTimer();
-      } else {
-        alert("info", "You're disconnected from server");
-      }
-    };
-  },
-  */
+			if(localStorage.getItem('keeploggedin')==='true' &&
+												!server.anotherlogin) {
+				alert("info", "Connection lost. Trying to reconnect...");
+				server.startLoginTimer();
+			} else {
+				alert("info", "You're disconnected from server");
+			}
+		};
+	},
+	*/
 
 	loginTimer: null,
 
 	startLoginTimer: function () {
-		if (server.loginTimer !== null)
+		if (server.loginTimer !== null) {
 			return;
+		}
 		server.loginTimer = setTimeout(server.loginTimerFn, 5000);
 	},
 
 	stopLoginTimer: function () {
-		if (server.loginTimer === null)
+		if (server.loginTimer === null) {
 			return;
+		}
 		clearTimeout(server.loginTimer);
 		server.loginTimer = null;
 	},
@@ -282,13 +284,14 @@ const server = {
 		}
 	},
 	keepalive: function () {
-		if (server.connection && server.connection.readyState === 1)// open connection
+		if (server.connection && server.connection.readyState === 1) { // open connection
 			server.send('PING');
+		}
 	},
 	/**
-   * Handles messages from the server
-   * @param {string} e Message/command
-   */
+	 * Handles messages from the server
+	 * @param {string} e Message/command
+	 */
 	msg: function (rawMessage) {
 		console.log(rawMessage);
 		output(rawMessage);
@@ -349,12 +352,14 @@ const server = {
 			$('.player2-time:first').html(`${m}:${s}`);
 
 			if (spl[7] === 'white') { // I am white
-				if (!chathandler.roomExists('priv', spl[6]))
+				if (!chathandler.roomExists('priv', spl[6])) {
 					chathandler.createPrivateRoom(spl[6]);
+				}
 				chathandler.setRoom('priv', spl[6]);
 			} else { // I am black
-				if (!chathandler.roomExists('priv', spl[4]))
+				if (!chathandler.roomExists('priv', spl[4])) {
 					chathandler.createPrivateRoom(spl[4]);
+				}
 				chathandler.setRoom('priv', spl[4]);
 			}
 
@@ -383,8 +388,9 @@ const server = {
 			$('.player1-time:first').html(`${m}:${s}`);
 			$('.player2-time:first').html(`${m}:${s}`);
 
-			if (!chathandler.roomExists('room', `Game${board.gameno}`))
+			if (!chathandler.roomExists('room', `Game${board.gameno}`)) {
 				chathandler.createGameRoom(`Game${board.gameno}`, p1, p2);
+			}
 			chathandler.setRoom('room', `Game${board.gameno}`);
 		} else if (e.startsWith('GameList Add Game#')) {
 			// GameList Add Game#1 player1 vs player2, 4x4, 180, 15, 0 half-moves played, player1 to move
@@ -448,8 +454,9 @@ const server = {
 				// Game#1 M A2 A5 2 1
 				else if (spl[1] === 'M') {
 					const nums = [];
-					for (let i = 4; i < spl.length; i += 1)
+					for (let i = 4; i < spl.length; i += 1) {
 						nums.push(Number(spl[i]));
+					}
 					board.serverMmove(spl[2].charAt(0), Number(spl[2].charAt(1)),
 						spl[3].charAt(0), Number(spl[3].charAt(1)),
 						nums);
@@ -502,12 +509,15 @@ const server = {
 					let res;
 					let type;
 
-					if (spl[2] === 'R-0' || spl[2] === '0-R')
+					if (spl[2] === 'R-0' || spl[2] === '0-R') {
 						type = 'making a road';
-					else if (spl[2] === 'F-0' || spl[2] === '0-F')
+					}
+					else if (spl[2] === 'F-0' || spl[2] === '0-F') {
 						type = 'having more flats';
-					else if (spl[2] === '1-0' || spl[2] === '0-1')
+					}
+					else if (spl[2] === '1-0' || spl[2] === '0-1') {
 						type = 'resignation or time';
+					}
 
 					if (spl[2] === 'R-0' || spl[2] === 'F-0' || spl[2] === '1-0') {
 						if (board.observing === true) {
@@ -551,8 +561,9 @@ const server = {
 					}
 
 					let msg = `Game abandoned by ${spl[2]}.`;
-					if (!board.observing)
+					if (!board.observing) {
 						msg += ' You win!';
+					}
 
 					document.getElementById('scratchsize').disabled = false;
 					stopTime();
@@ -640,8 +651,9 @@ const server = {
 		} else if (e.startsWith('Message')) {
 			const msg = e.split('Message ');
 
-			if (e.includes('You\'ve logged in from another window. Disconnecting'))
+			if (e.includes('You\'ve logged in from another window. Disconnecting')) {
 				server.anotherlogin = true;
+			}
 
 			alert('info', `Server says: ${msg[1]}`);
 		} else if (e.startsWith('Error')) {
@@ -736,10 +748,12 @@ const server = {
 					previous = $(listed[listed.length - 1]);
 				}
 
-				if (previous)
+				if (previous) {
 					previous.after(row);
-				else
+				}
+				else {
 					$('#seeklistbot').prepend(row);
+				}
 
 				row.addClass(`botid${level}`);
 				botlevel = `<span class='botlevel'>${hardness}</span>`;
@@ -800,14 +814,18 @@ const server = {
 		}
 	},
 	chat: function (type, name, msg) {
-		if (type === 'global')
+		if (type === 'global') {
 			this.send(`Shout ${msg}`);
-		else if (type === 'room')
+		}
+		else if (type === 'room') {
 			this.send(`ShoutRoom ${name} ${msg}`);
-		else if (type === 'priv')
+		}
+		else if (type === 'priv') {
 			this.send(`Tell ${name} ${msg}`);
-		else
+		}
+		else {
 			console.log('undefined chat type');
+		}
 	},
 	leaveroom: function (room) {
 		this.send(`LeaveRoom ${room}`);
@@ -815,10 +833,12 @@ const server = {
 	send: function (e) {
 		const binaryData = (new TextEncoder()).encode(`${e}\n`);
 
-		if (this.connection && this.connection.readyState === 1)
+		if (this.connection && this.connection.readyState === 1) {
 			this.connection.send(binaryData);
-		else
+		}
+		else {
 			this.error('You are not logged on to the server');
+		}
 	},
 	error: function (e) {
 		alert('danger', e);
@@ -830,10 +850,12 @@ const server = {
 		const inc = $('#incselect').find(':selected').text();
 		const clrtxt = $('#colorselect').find(':selected').text();
 		let clr = '';
-		if (clrtxt === 'White')
+		if (clrtxt === 'White') {
 			clr = ' W';
-		if (clrtxt === 'Black')
+		}
+		if (clrtxt === 'Black') {
 			clr = ' B';
+		}
 
 		this.send(`Seek ${size} ${time * 60} ${inc}${clr}`);
 		$('#creategamemodal').modal('hide');
@@ -843,10 +865,9 @@ const server = {
 		$('#creategamemodal').modal('hide');
 	},
 	draw: function () {
-		if (board.scratch)
+		if (board.scratch || board.observing) {
 			return;
-		if (board.observing)
-			return;
+		}
 
 		if ($('#draw').hasClass('offer-draw')) { // offer
 			$('#draw').toggleClass('i-offered-draw offer-draw');
@@ -860,8 +881,9 @@ const server = {
 		}
 	},
 	undo: function () {
-		if (board.observing)
+		if (board.observing) {
 			return;
+		}
 
 		if ($('#undo').hasClass('request-undo')) { // request undo
 			this.send(`Game#${board.gameno} RequestUndo`);
@@ -877,10 +899,9 @@ const server = {
 		}
 	},
 	resign: function () {
-		if (board.scratch)
+		if (board.scratch || board.observing) {
 			return;
-		if (board.observing)
-			return;
+		}
 
 		this.send(`Game#${board.gameno} Resign`);
 	},
@@ -889,21 +910,24 @@ const server = {
 		$('#joingame-modal').modal('hide');
 	},
 	unobserve: function () {
-		if (board.gameno !== 0)
+		if (board.gameno !== 0) {
 			this.send(`Unobserve ${board.gameno}`);
+		}
 	},
 	observegame: function (no) {
 		$('#watchgame-modal').modal('hide');
-		if (board.observing === false && board.scratch === false) // don't observe game while playing another
+		if (board.observing === false && board.scratch === false) { // don't observe game while playing another
 			return;
-		if (no === board.gameno)
+		}
+		if (no === board.gameno) {
 			return;
+		}
 		this.unobserve();
 		this.send(`Observe ${no}`);
 	},
 	/**
-   * @param {string} playerName
-   */
+	 * @param {string} playerName
+	 */
 	getPlayerRatingRow: function (playerName) {
 		if (!this.rating) return {};
 		const ratingRowIndex = this.rating.findIndex((row) => row[0].split(' ').includes(playerName));
@@ -919,10 +943,10 @@ const server = {
 		};
 	},
 	/**
-   * @param {{displayRating?: number}} myRating
-   * @param {{displayRating?: number}} playerRating
-   * @returns {string} span with rating and corresponding classes
-   */
+	 * @param {{displayRating?: number}} myRating
+	 * @param {{displayRating?: number}} playerRating
+	 * @returns {string} span with rating and corresponding classes
+	 */
 	getRatingSpan: function (myRating, playerRating) {
 		const ratingSpan = $(`<span class='rating'>${playerRating.displayRating ?? ''}</span>`);
 		if (playerRating.displayRating === undefined) {
