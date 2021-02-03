@@ -147,7 +147,6 @@ const chathandler = {
 			.addClass('tab-pane');
 		$('#room_divs').append(roomDiv);
 
-		const roomList = $('#room_list');
 		const a = $('<a/>').click(() => chathandler.selectRoom(type, name))
 			.attr('data-toggle', 'tab')
 			.attr('href', `#room-div-${room}`)
@@ -190,12 +189,12 @@ const chathandler = {
 	hideChatTime: function () {
 		if (document.getElementById('hide-chat-time').checked) {
 			localStorage.setItem('hide-chat-time', 'true');
-			$('.chattime').each(function (index) {
+			$('.chattime').each(function () {
 				$(this).addClass('hidden');
 			});
 		} else {
 			localStorage.setItem('hide-chat-time', 'false');
-			$('.chattime').each(function (index) {
+			$('.chattime').each(function () {
 				$(this).removeClass('hidden');
 			});
 		}
@@ -261,7 +260,7 @@ $(() => {
 		},
 	});
 
-	$('.context-player').on('click', function (e) {
+	$('.context-player').on('click', function () {
 		console.log('clicked', this);
 	});
 });

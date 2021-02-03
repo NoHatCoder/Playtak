@@ -30,7 +30,6 @@ function alert2(type, msg) {
 let camera;
 let scene;
 let renderer;
-let light;
 let canvas;
 let controls = null;
 
@@ -47,7 +46,8 @@ let anisoLevel = 16;
 
 let settingscounter = 0;
 
-const botlist = {
+// eslint-disable-next-line no-unused-vars
+const botlist = { // Used-in-server.js
 	Tiltak_Bot: [0, 'Very&nbsp;Hard'],
 	TakticianBot: [2, 'Very&nbsp;Hard'],
 	TakkerusBot: [5, 'Very&nbsp;Hard'],
@@ -286,6 +286,7 @@ function init() {
 	pixelratio = (window.devicePixelRatio || 1) * scalelevel;
 	renderer.setPixelRatio(pixelratio);
 	renderer.setClearColor(0xdddddd, 1);
+	// eslint-disable-next-line no-unused-vars
 	maxAniso = Math.min(renderer.getMaxAnisotropy() || 1, 16);
 
 	window.addEventListener('resize', onWindowResize, false);
@@ -421,19 +422,14 @@ function onKeyUp(e) {
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function output(e) {
 	if (typeof DEBUG !== 'undefined' && DEBUG) {
 		console.log(`output:${e}`);
 	}
 }
 
-function buttonclick() {
-	const input = document.getElementById('input');
-	const data = input.value;
-	input.value = '';
-	server.send(data);
-}
-
+// eslint-disable-next-line no-unused-vars
 function scratchbutton(size) {
 	if (board.observing) {
 		server.send(`Unobserve ${board.gameno}`);
@@ -444,6 +440,7 @@ function scratchbutton(size) {
 		board.initEmpty();
 	}
 }
+// eslint-disable-next-line no-unused-vars
 function rmenu() {
 	if ($('#rmenu').hasClass('hidden')) {
 		showrmenu();
@@ -465,16 +462,6 @@ function hidermenu() {
 	$('#notation-toggle-text').html('&gt;&gt;<br>n<br>o<br>t<br>a<br>t<br>i<br>o<br>n');
 	$('#notation-toggle-text').css('left', '-5px');
 	generateCamera();
-}
-
-function zoom(out) {
-	console.log('zoom', out, controls);
-	if (out) {
-		controls.constraint.dollyOut(1.5);
-	}
-	else {
-		controls.constraint.dollyIn(1.5);
-	}
 }
 
 function load() {
@@ -503,20 +490,6 @@ function load() {
 	dontanimate = false;
 
 	$('#loadptntext').val('');
-}
-
-function loadptn(text) {
-	$('#loadmodal').modal('hide');
-	const files = $('#loadptnfile')[0].files;
-	if (files.length === 0) {
-		return;
-	}
-	const reader = new FileReader();
-	reader.onload = function (txt) {
-		server.unobserve();
-		board.loadptn(reader.result);
-	};
-	reader.readAsText(files[0]);
 }
 
 function volumeChange() {
@@ -596,9 +569,11 @@ function startTime(fromFn) {
 		haveplayedhurry = false;
 	}
 	clearTimeout(server.timervar);
+	// eslint-disable-next-line no-unused-vars
 	server.timervar = setTimeout(startTime, nextupdate);
 }
 
+// eslint-disable-next-line no-unused-vars
 function stopTime() {
 	clearTimeout(server.timervar);
 	server.timervar = null;
@@ -720,7 +695,7 @@ function loadSettings() {
 	// load setting for hide chat time
 	if (localStorage.getItem('hide-chat-time') === 'true') {
 		document.getElementById('hide-chat-time').checked = true;
-		$('.chattime').each(function (index) {
+		$('.chattime').each(function () {
 			$(this).addClass('hidden');
 		});
 	}
@@ -731,10 +706,11 @@ function loadSettings() {
 	}
 }
 
-/*
+/**
  * Notify checkbox change for checkbox:
  * Diagonal walls
  */
+// eslint-disable-next-line no-unused-vars
 function checkboxDiagonalWalls() {
 	if (document.getElementById('wall-orientation').checked) {
 		localStorage.setItem('diagonal_walls', 'true');
@@ -746,10 +722,11 @@ function checkboxDiagonalWalls() {
 	board.updatepieces();
 }
 
-/*
+/**
  * Notify slider movement:
  *   Piece size
  */
+// eslint-disable-next-line no-unused-vars
 function sliderPieceSize(newSize) {
 	localStorage.setItem('piece_size', newSize);
 	document.getElementById('piece-size-display').innerHTML = newSize;
@@ -757,6 +734,7 @@ function sliderPieceSize(newSize) {
 	generateCamera();
 }
 
+// eslint-disable-next-line no-unused-vars
 function perspectiveChange(newPerspective) {
 	localStorage.setItem('perspective', newPerspective);
 	document.getElementById('perspective-display').innerHTML = newPerspective;
@@ -764,10 +742,11 @@ function perspectiveChange(newPerspective) {
 	generateCamera();
 }
 
-/*
+/**
  * Notify radio button check:
  *	 Piece style - white
  */
+// eslint-disable-next-line no-unused-vars
 function radioPieceStyleWhite(styleName) {
 	document.getElementById(`piece-style-white-${styleName}`).checked = true;
 	materials.white_piece_style_name = styleName;
@@ -777,10 +756,11 @@ function radioPieceStyleWhite(styleName) {
 	settingscounter = (settingscounter + 1) & 15;
 }
 
-/*
+/**
  * Notify radio button check:
  *	 Piece style - black
  */
+// eslint-disable-next-line no-unused-vars
 function radioPieceStyleBlack(styleName) {
 	document.getElementById(`piece-style-black-${styleName}`).checked = true;
 	materials.black_piece_style_name = styleName;
@@ -805,10 +785,11 @@ function gotnewtexturefile() {
 	}
 }
 
-/*
+/**
  * Notify radio button check:
  *	 Board style - black
  */
+// eslint-disable-next-line no-unused-vars
 function radioBoardStyleBlack(styleName) {
 	document.getElementById(`board-style-black-${styleName}`).checked = true;
 	materials.black_sqr_style_name = styleName;
@@ -817,10 +798,11 @@ function radioBoardStyleBlack(styleName) {
 	settingscounter = (settingscounter + 1) & 15;
 }
 
-/*
+/**
  * Notify radio button check:
  *	 Board style - white
  */
+// eslint-disable-next-line no-unused-vars
 function radioBoardStyleWhite(styleName) {
 	document.getElementById(`board-style-white-${styleName}`).checked = true;
 	materials.white_sqr_style_name = styleName;
@@ -829,10 +811,11 @@ function radioBoardStyleWhite(styleName) {
 	settingscounter = (settingscounter + 1) & 15;
 }
 
-/*
+/**
  * Notify checkbox change for checkbox:
  *	 Antialiasing
  */
+// eslint-disable-next-line no-unused-vars
 function checkboxAntialiasing() {
 	if (document.getElementById('antialiasing-checkbox').checked) {
 		localStorage.setItem('antialiasing_mode', 'true');
@@ -841,6 +824,7 @@ function checkboxAntialiasing() {
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function checkboxFixCamera() {
 	if (document.getElementById('fix-camera-checkbox').checked) {
 		localStorage.setItem('fixedcamera', 'true');
@@ -852,6 +836,7 @@ function checkboxFixCamera() {
 	generateCamera();
 }
 
+// eslint-disable-next-line no-unused-vars
 function checkboxClick() {
 	if (document.getElementById('click-checkbox').checked) {
 		localStorage.setItem('clickthrough', 'true');
@@ -862,10 +847,11 @@ function checkboxClick() {
 	}
 }
 
-/*
+/**
  * Notify checkbox change for checkbox:
  *	 Hide 'Send' button
  */
+// eslint-disable-next-line no-unused-vars
 function checkboxHideSend() {
 	if (document.getElementById('hide-send-checkbox').checked) {
 		localStorage.setItem('hide-send', 'true');
@@ -878,10 +864,11 @@ function checkboxHideSend() {
 	}
 }
 
-/*
+/**
  * Notify checkbox change for checkbox:
  *	 Rotate board when player 2
  */
+// eslint-disable-next-line no-unused-vars
 function checkboxAutoRotate() {
 	if (document.getElementById('auto-rotate-checkbox').checked) {
 		localStorage.setItem('auto_rotate', 'true');
@@ -890,6 +877,7 @@ function checkboxAutoRotate() {
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function showPrivacyPolicy() {
 	$('#help-modal').modal('hide');
 	$('#privacy-modal').modal('show');
@@ -937,10 +925,12 @@ function getNotation() {
 	return res;
 }
 
+// eslint-disable-next-line no-unused-vars
 function downloadNotation() {
 	$('#download_notation').attr('href', `data:text/plain;charset=utf-8,${encodeURIComponent(getNotation())}`);
 }
 
+// eslint-disable-next-line no-unused-vars
 function copyNotationLink() {
 	const link = `http://www.playtak.com/?load=${encodeURIComponent(getNotation())}`;
 
@@ -989,6 +979,7 @@ function sliderScale(scalein) {
 	onWindowResize();
 }
 
+// eslint-disable-next-line no-unused-vars
 function undoButton() {
 	if (board.scratch) {
 		board.undo();
@@ -998,11 +989,13 @@ function undoButton() {
 	}
 }
 
+// eslint-disable-next-line no-unused-vars
 function showresetpwd() {
 	$('#login').modal('hide');
 	$('#resetpwd-modal').modal('show');
 }
 
+// eslint-disable-next-line no-unused-vars
 function fastrewind() {
 	board.showmove(board.movestart);
 }
@@ -1015,6 +1008,7 @@ function stepforward() {
 	board.showmove(board.moveshown + 1);
 }
 
+// eslint-disable-next-line no-unused-vars
 function fastforward() {
 	board.showmove(board.movecount);
 }

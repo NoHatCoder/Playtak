@@ -84,6 +84,7 @@ function makePieceSelector(color) {
 	});
 }
 
+// eslint-disable-next-line no-unused-vars
 function makeStyleSelector() {
 	pieceStyles = {
 		white_coral: 0,

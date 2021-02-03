@@ -18,7 +18,6 @@ let diagonalWalls = false;
 const raycaster = new THREE.Raycaster();
 let highlighter;
 const mouse = new THREE.Vector2();
-const offset = new THREE.Vector3();
 
 const materials = {
 	images_root_path: 'images/',
@@ -43,7 +42,7 @@ const materials = {
 	getWhiteSquareTextureName: function () {
 		return `${this.board_texture_path}white_${this.white_sqr_style_name}.png`;
 	},
-	getBlackSquareTextureName: function (styleName) {
+	getBlackSquareTextureName: function () {
 		return `${this.board_texture_path}black_${this.black_sqr_style_name}.png`;
 	},
 	getWhitePieceTextureName: function () {
@@ -759,7 +758,6 @@ const board = {
 	mousepick: function () {
 		raycaster.setFromCamera(mouse, camera);
 		const intersects = raycaster.intersectObjects(scene.children);
-		const obj = null;
 		let a;
 		for (a = 0; a < intersects.length; a++) {
 			const potential = intersects[a].object;
@@ -1250,7 +1248,6 @@ const board = {
 		}
 	},
 	notate: function (txt) {
-		const res = false;
 		if (txt === 'R-0' || txt === '0-R' || txt === 'F-0' || txt === '0-F' || txt === '1-0' || txt === '0-1' || txt === '1/2-1/2') {
 			const ol = document.getElementById('moveslist');
 			const row = ol.insertRow();
