@@ -29,7 +29,7 @@ const server = {
 			this.connection.onmessage = function (e) {
 				const blob = e.data;
 				const reader = new FileReader();
-				reader.onload = function (event) {
+				reader.onload = function () {
 					const responseText = new TextDecoder('utf-8').decode(reader.result);
 					server.msg(responseText);
 					/*
@@ -42,7 +42,7 @@ const server = {
 				};
 				reader.readAsArrayBuffer(blob);
 			};
-			this.connection.onclose = function (e) {
+			this.connection.onclose = function () {
 				server.loggedin = false;
 				document.getElementById('login-button').textContent = 'Sign up / Login';
 				$('#onlineplayers').addClass('hidden');
@@ -510,7 +510,6 @@ const server = {
 					board.result = spl[2];
 
 					let msg = `Game over <span class='bold'>${spl[2]}</span><br>`;
-					let res;
 					let type;
 
 					if (spl[2] === 'R-0' || spl[2] === '0-R') {
