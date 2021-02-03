@@ -204,17 +204,13 @@ const chathandler = {
 		$('#chat-toggle-button').css('right', this.chat_width + 5);
 		$('#chat-toggle-text').html('>><br>c<br>h<br>a<br>t');
 		$('#chat').removeClass('hidden');
-		if (fixedcamera || true) {
-			generateCamera();
-		}
+		generateCamera();
 	},
 	hidechat: function () {
 		$('#chat-toggle-button').css('right', 0);
 		$('#chat-toggle-text').html('<<<br>c<br>h<br>a<br>t');
 		$('#chat').addClass('hidden');
-		if (fixedcamera || true) {
-			generateCamera();
-		}
+		generateCamera();
 	},
 	adjustChatWidth: function (width) {
 		this.chat_width = width;
