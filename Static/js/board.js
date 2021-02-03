@@ -1016,8 +1016,8 @@ const board = {
 		dontanimate = true;
 		fastforward();
 		const s1 = this.get_board_obj(f1.charCodeAt(0) - 'A'.charCodeAt(0), r1 - 1);
-		let fi = 0; let
-			ri = 0;
+		let fi = 0;
+		let ri = 0;
 		if (f1 === f2) {
 			ri = r2 > r1 ? 1 : -1;
 		}
@@ -1070,8 +1070,8 @@ const board = {
 		this.initEmpty();
 	},
 	findwhowon: function () {
-		let whitec = 0; let
-			blackc = 0;
+		let whitec = 0;
+		let blackc = 0;
 		for (let i = 0; i < this.size; i++) {
 			for (let j = 0; j < this.size; j++) {
 				const stk = this.sq[i][j];
@@ -1879,8 +1879,8 @@ const board = {
 					tot += parseInt(drops[i], 10);
 				}
 
-				let df = 0; let
-					dr = 0;
+				let df = 0;
+				let dr = 0;
 				if (dir === '<') {
 					df = -1;
 				} else if (dir === '>') {
