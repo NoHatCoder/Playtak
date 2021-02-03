@@ -11,7 +11,6 @@ function alert(type, msg) {
 	$alert.fadeTo(4000, 500).slideUp(500, () => {
 		$alert.addClass('hidden');
 	});
-	// eslint-disable-next-line no-use-before-define
 	alert2(type, msg);
 }
 
@@ -65,9 +64,7 @@ const botlist = {
 	cutak_bot: [80, 'Experimental'],
 };
 
-// eslint-disable-next-line no-use-before-define
 init();
-// eslint-disable-next-line no-use-before-define
 $(window).on('load', animate);
 
 function combinefrustumvectors(a, b) {

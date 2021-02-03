@@ -1,5 +1,3 @@
-/* eslint-disable no-use-before-define */
-
 function parsePTN(rawText) {
 	const text = rawText.replace(/\r/g, '')
 		.replace(/\{[^}]+\}/gm, '');
