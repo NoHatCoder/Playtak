@@ -491,7 +491,7 @@ function load() {
 
 	const text = $('#loadptntext').val();
 
-	const tpsRE = /\[(TPS\s*)?"?\s*([,x12345678SC/]+)(\s+([\d+]))?(\s+(\d+|-))?\s*"?\s*\]/;
+	const tpsRE = /\[(TPS\s*)?\"?\s*([,x12345678SC\/]+)(\s+([\d+]))?(\s+(\d+|-))?\s*\"?\s*\]/;
 	const tps = tpsRE.exec(text);
 
 	dontanimate = true;

@@ -1936,7 +1936,7 @@ const board = {
 
 		// simple RegEx for a basic TPS notation,
 		// but doesn't specify the details of the actual layout
-		const tpsRE = /\[(TPS\s*)?"?\s*([,x12345678SC/]+)(\s+([\d+]))?(\s+(\d+|-))?\s*"?\s*\]/;
+		const tpsRE = /\[(TPS\s*)?\"?\s*([,x12345678SC\/]+)(\s+([\d+]))?(\s+(\d+|-))?\s*\"?\s*\]/;
 		const result = tpsRE.exec(tps);
 		if (!result) {
 			alert('warning', 'Invalid TPS');

@@ -36,6 +36,7 @@ module.exports = {
 		'no-continue': ['off'],
 		'no-param-reassign': ['off'],
 		'no-cond-assign': ['off'],
+		'no-useless-escape': ['off'],
 	},
 	globals: {
 		server: 'readonly',
