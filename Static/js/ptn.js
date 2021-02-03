@@ -19,7 +19,6 @@ function parsePTNHeader(header) {
 	const tags = {};
 	let match;
 	const re = /\[(\S+)\s+\"([^\"]+)\"\]/gm;
-	// eslint-disable-next-line no-cond-assign
 	while ((match = re.exec(header)) !== null) {
 		tags[match[1]] = match[2];
 	}
