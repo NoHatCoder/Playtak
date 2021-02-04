@@ -1077,7 +1077,7 @@ const board = {
 					continue;
 				}
 				const top = stk[stk.length - 1];
-				if (top.isstanding && !top.iscapstone) {
+				if (top.isstanding || top.iscapstone) {
 					continue;
 				}
 				if (top.iswhitepiece) {

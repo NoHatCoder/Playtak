@@ -28,6 +28,7 @@ public class Player {
 	public static Map<String, Player> players = new ConcurrentHashMap<>();
 	public static Set<Player> modList = new ConcurrentHashSet<>();
 	public static Set<Player> gagList = new ConcurrentHashSet<>();
+	public static Set<String> takenName = new ConcurrentHashSet<>();
 	
 	static int idCount=0;
 	static AtomicInteger guestCount = new AtomicInteger(0);
@@ -36,6 +37,7 @@ public class Player {
 	private String password;
 	private String email;
 	private int id;//Primary key
+	//private int ratingid;
 
 	//Ratings for 4x4.. 8x8 games
 	private int r4;
@@ -69,6 +71,22 @@ public class Player {
 		
 		client = null;
 		game = null;
+	}
+	
+	public static String uniqifyName(String name){
+		name=name.toLowerCase();
+		name=name.replaceAll("[^0-9a-z]","");
+		name=name.replaceAll("[il]","1");
+		name=name.replaceAll("[o]","0");
+		return name;
+	}
+	
+	public static void takeName(String name){
+		takenName.add(uniqifyName(name));
+	}
+	
+	public static boolean isNameTaken(String name){
+		return takenName.contains(uniqifyName(name));
 	}
 	
 	public static String hash(String st) {
@@ -212,8 +230,9 @@ public class Player {
 			stmt.executeUpdate();
 			stmt.close();
 			
-			EMail.send(np.email, "playtak.com password", "Your password is "+tmpPass+". You can change it on playtak.com.");
+			EMail.send(np.email, "playtak.com password", "Hello "+np.name+", your password is "+tmpPass+". You can change it on playtak.com.");
 			players.put(np.name, np);
+			takeName(np.name);
 		} catch (SQLException ex) {
 			Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
 		}
@@ -223,6 +242,78 @@ public class Player {
 	@Override
 	public String toString() {
 		return name+" "+password+" "+email+" "+r4+" "+r5+" "+r6+" "+r7+" "+r8;
+	}
+	
+	public int getRating(long time){
+		String sql="SELECT rating, ratingage, ratingbase, unrated FROM players WHERE id=?";
+		double decayrate=1000*60*60*24*240;
+		double rating=0.0;
+		double ratingage=0.0;
+		int ratingbase=0;
+		int unrated=1;
+		ResultSet rs=null;
+		try{
+			try( 
+				PreparedStatement stmt = Database.playersConnection.prepareStatement(sql);
+			){
+				stmt.setInt(1, id);
+				rs = stmt.executeQuery();
+				if (rs.next()) {
+					rating=rs.getDouble("rating");
+					ratingage=rs.getDouble("ratingage");
+					ratingbase=rs.getInt("ratingbase");
+					unrated=rs.getInt("unrated");
+				}
+			} catch (SQLException ex) {
+				Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
+			}
+			finally{
+				if(rs!=null){
+					rs.close();
+				}
+			}
+
+			if(ratingbase!=0){
+				try( 
+					PreparedStatement stmt=Database.playersConnection.prepareStatement(sql);
+				){
+					stmt.setInt(1, ratingbase);
+					rs = stmt.executeQuery();
+					if (rs.next()) {
+						rating=rs.getDouble("rating");
+						ratingage=rs.getDouble("ratingage");
+						ratingbase=rs.getInt("ratingbase");
+						unrated=rs.getInt("unrated");
+					}
+				} catch (SQLException ex) {
+					Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
+				}
+				finally{
+					if(rs!=null){
+						rs.close();
+					}
+				}
+			}
+		}catch (SQLException ex) {
+			Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
+		}
+		if(unrated==1){
+			return 0;
+		}
+		if(rating<1500.0){
+			return (int)rating;
+		}
+		double decaytime=((double)time-ratingage)/decayrate;
+		if(decaytime<1.0){
+			return (int)rating;
+		}
+		double retention=Math.pow(0.5,decaytime)*2.0;
+		if(rating<1700.0){
+			return (int)Math.min(rating,1500.0+retention*200.0);
+		}
+		else{
+			return (int)(rating-200.0*(1.0-retention));
+		}
 	}
 	
 	public void setR4(int r4) {
@@ -370,6 +461,7 @@ public class Player {
 
 				//System.out.println("Read player "+np);
 				players.put(np.name, np);
+				takeName(np.name);
 				if(idCount<np.id)
 					idCount=np.id;
 				

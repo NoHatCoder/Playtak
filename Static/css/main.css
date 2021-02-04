@@ -185,22 +185,6 @@ input[type=range]::-webkit-slider-runnable-track {
 	z-index: 10;
 }
 
-#pindicator {
-	position: absolute;
-	top: 60px;
-	left: 50%;
-	transform: translate(-50%, 0);
-	font-size: 200%;
-	z-index: 10;
-}
-
-#zoomcontrols {
-	position: absolute;
-	bottom: 5px;
-	left: 5px;
-	z-index: 10;
-}
-
 #rmenu {
 	border-style: solid;
 	border-width: 2px;
@@ -213,6 +197,7 @@ input[type=range]::-webkit-slider-runnable-track {
 	background-color: #e7e7e7;
 	top:0;
 	bottom:0;
+	left:0;
 	position:absolute;
 	display:flex;
 	flex-direction:column;
@@ -235,6 +220,7 @@ input[type=range]::-webkit-slider-runnable-track {
 #alertbox {
 	position: absolute;
 	bottom: 0px;
+	left:0px;
 	width: 100%;
 	z-index: 8;
 }
@@ -438,6 +424,10 @@ a .fa:not(#undo):not(#draw) {
 	}
 }
 
+.rating{
+	position:relative;
+}
+
 .rating:before{
 	vertical-align: middle;
 }
@@ -481,9 +471,11 @@ a .fa:not(#undo):not(#draw) {
 	text-align: center;
 	background-color: #fef4c5;
 	border: 1px solid #d4b943;
-	width: 250px;
+	width: 320px;
 	border-radius: 2px;
-	z-index: 3;;
+	z-index: 3;
+	right:-200px;
+	top:20px;
 }
 .rating:hover:after{
 	display: block;
