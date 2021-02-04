@@ -413,7 +413,7 @@ public class Client extends Thread {
 							send("Can't register with guest in the name");
 						} else {
 							synchronized(Player.players) {
-								if (Player.players.containsKey(tname)) {
+								if (Player.isNameTaken(tname)) {
 									send("Name already taken");
 								}
 								else {
@@ -916,7 +916,7 @@ public class Client extends Thread {
 			sendAll("Message "+msg);
 			
 			int sleep=Integer.parseInt(br.readLine());
-			TakServer.Log("sleeping "+sleep+" seconds");
+			TakServer.Log("sleeping "+sleep+" milliseconds");
 			Thread.sleep(sleep);
 			sendAll("Message "+br.readLine());
 			

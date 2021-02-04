@@ -61,6 +61,10 @@ public class Game {
 	static Set<Player> gameListeners = new ConcurrentHashSet<>();
 
 	public static int reconnectionTime;
+	
+	int capCount;
+	int tileCount;
+	int komi;
 
 	class Board {
 		int boardSize;
@@ -146,8 +150,8 @@ public class Game {
 				case 8: capstonesCount = 2; tilesCount = 50; break;
 			}
 
-			whiteCapstones = blackCapstones = capstonesCount;
-			whiteTilesCount = blackTilesCount = tilesCount;
+			capCount = whiteCapstones = blackCapstones = capstonesCount;
+			tileCount = whiteTilesCount = blackTilesCount = tilesCount;
 
 			moveCount = 0;
 
@@ -240,11 +244,12 @@ public class Game {
 	 * @param clr: color choice of p2
 	 */
 	Game(Player p1, Player p2, int b, int t, int i, Seek.COLOR clr) {
-		int rand = new Random().nextInt(99);
+		int rand = new Random().nextInt(2);
+		komi=0;
 
 		if(clr == Seek.COLOR.ANY) {
-			white = (rand>=50)?p1:p2;
-			black = (rand>=50)?p2:p1;
+			white = (rand==0)?p1:p2;
+			black = (rand==0)?p2:p1;
 		} else {
 			white = (clr == Seek.COLOR.WHITE)?p2:p1;
 			black = (clr == Seek.COLOR.WHITE)?p1:p2;
@@ -819,8 +824,8 @@ public class Game {
 	}
 	void insertEmpty() {
 		try {
-			String sql = "INSERT INTO games (date, size, player_white, player_black, timertime, timerinc, notation, result) " +
-				"VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+			String sql = "INSERT INTO games (date, size, player_white, player_black, timertime, timerinc, notation, result, rating_white, rating_black, unrated, tournament, komi, pieces, capstones, rating_change_white, rating_change_black) " +
+				"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 			PreparedStatement stmt = Database.gamesConnection.prepareStatement
 				(sql, Statement.RETURN_GENERATED_KEYS);
 			stmt.setLong(1, time);
@@ -831,6 +836,15 @@ public class Game {
 			stmt.setLong(6, incrementTime/1000);
 			stmt.setString(7, "");
 			stmt.setString(8, "0-0");
+			stmt.setInt(9, white.getRating(time));
+			stmt.setInt(10, black.getRating(time));
+			stmt.setInt(11, 0);
+			stmt.setInt(12, 0);
+			stmt.setInt(13, komi);
+			stmt.setInt(14, tileCount);
+			stmt.setInt(15, capCount);
+			stmt.setInt(16, -1000);
+			stmt.setInt(17, -1000);
 			stmt.executeUpdate();
 			ResultSet inserted = stmt.getGeneratedKeys();
 			if (inserted.next())

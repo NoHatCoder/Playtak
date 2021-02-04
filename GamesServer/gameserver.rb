@@ -308,6 +308,10 @@ def ratingchangeformat(change)
 	return sign+(change/10).floor.to_s+"."+(change%10).to_s
 end
 
+def komiformat(komi)
+	return (komi/2).floor.to_s+"."+((komi%2)*5).to_s
+end
+
 templatefile=File.open("games.html")
 template=templatefile.read().split("%")
 templatefile.close()
@@ -409,6 +413,20 @@ server.mount_proc '/' do |req, res|
 							searchvalues2={}
 							searchvalues2['size']=game.size.to_s+"x"+game.size.to_s
 							searchvalues2['id']=game.id.to_s
+							searchvalues2['rules']=""
+							if game.komi>0
+								searchvalues2['rules']="Komi: "+komiformat(game.komi)
+							end
+							stdpieces=[0,0,0,10,15,21,30,40,50][game.size]
+							stdcaps=[0,0,0,0,0,1,1,2,2][game.size]
+							gpieces=game.pieces==-1 ? stdpieces : game.pieces
+							gcaps=game.capstones==-1 ? stdcaps : game.capstones
+							if gpieces!=stdpieces || gcaps!=stdcaps
+								if game.komi>0
+									searchvalues2['rules']+="<br>"
+								end
+								searchvalues2['rules']+="Pieces: "+gpieces+"/"+gcaps
+							end
 							#gametime=Time.at(game.date/1000,in:"UTC")
 							gametime=Time.at(game.date/1000).utc
 							searchvalues2['date']=gametime.strftime("%Y-%m-%d %H:%M:%S")
@@ -423,12 +441,19 @@ server.mount_proc '/' do |req, res|
 								searchvalues2['playerw']=game.player_white
 								searchvalues2['playerb']=game.player_black
 							end
-							if game.size<5 || game.unrated==1 || game.rating_white==0 || game.rating_black==0
+							if game.size<5 || game.unrated==1 || game.rating_white==0 || game.rating_black==0 || (game.result!="0-0" && game.notation.length<6)
 								if game.rating_white>=1000
 									searchvalues2['playerwrt']=game.rating_white.to_s
 								end
 								if game.rating_black>=1000
 									searchvalues2['playerbrt']=game.rating_black.to_s
+								end
+							elsif game.rating_change_white<0 && game.rating_change_black<0
+								if game.rating_white>=1000
+									searchvalues2['playerwrt']=game.rating_white.to_s+" +?"
+								end
+								if game.rating_black>=1000
+									searchvalues2['playerbrt']=game.rating_black.to_s+" +?"
 								end
 							else
 								if game.rating_white>=1000

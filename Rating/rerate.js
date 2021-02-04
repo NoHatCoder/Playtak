@@ -200,11 +200,11 @@ function handlegames(){
 			rtb=plb.rating
 			artb=adjustedrating(plb,gm.date)
 		}
-		var artw2=artw
-		var artb2=artb
+		var artw2=artw-100
+		var artb2=artb-100
 		var quickresult={"R-0":1,"F-0":1,"1-0":1,"0-R":0,"0-F":0,"0-1":0,"1/2-1/2":0.5}[gm.result]
 		
-		if(plw && plb && gm.size>=5 && gm.unrated==0 && updating && plw!=plb && gm.notationlength>6){
+		if(plw && plb && gm.size>=5 && gm.unrated==0 && updating && plw!=plb && (gm.notationlength>6 || quickresult===undefined)){
 			if(quickresult===undefined && gm.date>recentlimit){
 				updating=false
 			}

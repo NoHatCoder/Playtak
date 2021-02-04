@@ -1017,7 +1017,7 @@ var board = {
 				if (stk.length === 0)
 					continue;
 				var top = stk[stk.length - 1];
-				if (top.isstanding && !top.iscapstone)
+				if (top.isstanding || top.iscapstone)
 					continue;
 				if (top.iswhitepiece)
 					whitec++;
