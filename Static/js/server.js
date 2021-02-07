@@ -1,4 +1,51 @@
+// eslint-disable-next-line max-classes-per-file
 const ratingListUrl = '/ratinglist.json';
+
+class Game {
+	/**
+	 * @param {number|string} gameId
+	 * @param {string} player1name
+	 * @param {string} player2name
+	 * @param {number} boardSize
+	 * @param {number} time
+	 * @param {number} timeIncrement
+	 */
+	constructor(gameId, player1name, player2name, boardSize, time, timeIncrement) {
+		this.gameId = gameId;
+		this.player1name = player1name;
+		this.player2name = player2name;
+		this.boardSize = boardSize;
+		this.time = time;
+		this.timeIncrement = timeIncrement;
+	}
+
+	/**
+	 * @param {server} server
+	 * @returns {HTMLTableRowElement}
+	 */
+	render(server) {
+		const timeMinutes = Math.floor(this.timeIncrement / 60);
+		const timeSeconds = getZero(Math.floor(this.timeIncrement % 60));
+
+		const p1rating = server.getPlayerRatingRow(this.player1name);
+		const p2rating = server.getPlayerRatingRow(this.player2name);
+		const myRating = server.getPlayerRatingRow(server.myname);
+
+		const sizeSpan = `<span class='badge'>${this.boardSize}</span>`;
+
+		const row = $('<tr/>').addClass('row').addClass(`game${this.gameId}`)
+			.click(() => this.observegame(this.gameId));
+		$('<td class="right"/>').append(Server.getRatingSpan(myRating, p1rating)).appendTo(row);
+		$('<td class="playername right"/>').append(this.player1name).appendTo(row);
+		$('<td class="center"/>').append('vs').appendTo(row);
+		$('<td class="playername left"/>').append(this.player2name).appendTo(row);
+		$('<td class="left"/>').append(Server.getRatingSpan(myRating, p2rating)).appendTo(row);
+		$('<td/>').append(sizeSpan).appendTo(row);
+		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
+		$('<td/>').append(`+${this.timeIncrement}s`).appendTo(row);
+		return row;
+	}
+}
 
 class Server {
 	constructor() {
@@ -15,6 +62,9 @@ class Server {
 		/** @type {[[string, number, number, number, boolean]] | undefined} */
 		this.rating = undefined;
 		this.loginTimer = null;
+
+		/** @type {Game[]} */
+		this.gameList = [];
 	}
 
 	connect() {
@@ -81,7 +131,10 @@ class Server {
 			window.fetch(ratingListUrl)
 				.then((response) => {
 					response.json()
-						.then((json) => { this.rating = json; })
+						.then((json) => {
+							this.rating = json;
+							this.renderGameList();
+						})
 						.catch((err) => console.error('Failed to parse JSON from ratings', err));
 				})
 				.catch((err) => console.error('Failed to get ratings', err));
@@ -403,54 +456,25 @@ class Server {
 			chathandler.setRoom('room', `Game${board.gameno}`);
 		} else if (e.startsWith('GameList Add Game#')) {
 			// GameList Add Game#1 player1 vs player2, 4x4, 180, 15, 0 half-moves played, player1 to move
-			const spl = e.split(' ');
+			const split = e.split(' ');
 
-			const no = spl[2].split('Game#')[1];
+			const gameId = split[2].split('Game#')[1];
+			const time = Number(split[7].split(',')[0]);
+			const inc = split[8].split(',')[0];
+			const p1name = split[3];
+			const p2name = split[5].split(',')[0];
+			const boardSize = split[6].split(',')[0];
 
-			const t = Number(spl[7].split(',')[0]);
-			const m = Math.floor(t / 60);
-			const s = getZero(Math.floor(t % 60));
-
-			const inc = spl[8].split(',')[0];
-
-			const p1 = spl[3];
-			const p2 = spl[5].split(',')[0];
-			const sz = spl[6].split(',')[0];
-
-			const p1rating = this.getPlayerRatingRow(p1);
-			const p2rating = this.getPlayerRatingRow(p2);
-			const myRating = this.getPlayerRatingRow(this.myname);
-
-			const sizeSpan = `<span class='badge'>${sz}</span>`;
-
-			const row = $('<tr/>').addClass('row').addClass(`game${no}`)
-				.click(() => this.observegame(spl[2].split('Game#')[1]))
-				.appendTo($('#gamelist'));
-			$('<td class="right"/>').append(Server.getRatingSpan(myRating, p1rating)).appendTo(row);
-			$('<td class="playername right"/>').append(p1).appendTo(row);
-			$('<td class="center"/>').append('vs').appendTo(row);
-			$('<td class="playername left"/>').append(p2).appendTo(row);
-			$('<td class="left"/>').append(Server.getRatingSpan(myRating, p2rating)).appendTo(row);
-			$('<td/>').append(sizeSpan).appendTo(row);
-			$('<td/>').append(`${m}:${s}`).appendTo(row);
-			$('<td/>').append(`+${inc}s`).appendTo(row);
-
-			const op = document.getElementById('gamecount');
-			op.innerHTML = Number(op.innerHTML) + 1;
+			this.gameList.push(new Game(gameId, p1name, p2name, boardSize, time, inc));
+			this.renderGameList();
 		} else if (e.startsWith('GameList Remove Game#')) {
 			// GameList Remove Game#1 player1 vs player2, 4x4, 180, 0 half-moves played, player1 to move
-			const spl = e.split(' ');
+			const split = e.split(' ');
 
-			const no = spl[2].split('Game#')[1];
-			const gameElement = $(`.game${no}`);
+			const gameId = split[2].split('Game#')[1];
+			this.gameList = this.gameList.filter((game) => game.gameId === gameId);
 
-			const op = document.getElementById('gamecount');
-			if (gameElement.length) {
-				op.innerHTML = Number(op.innerHTML) - 1;
-				gameElement.remove();
-			} else {
-				console.log(`Game ${no} removed twice.`);
-			}
+			this.renderGameList();
 		} else if (e.startsWith('Game#')) {
 			const spl = e.split(' ');
 			const gameno = Number(e.split('Game#')[1].split(' ')[0]);
@@ -948,6 +972,13 @@ class Server {
 		}
 		this.unobserve();
 		this.send(`Observe ${no}`);
+	}
+
+	renderGameList() {
+		document.getElementById('gamecount').textContent = this.gameList.length;
+
+		$('#gamelist').empty();
+		this.gameList.forEach((game) => game.render(this).appendTo($('#gamelist')));
 	}
 
 	/**
