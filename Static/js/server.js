@@ -1,16 +1,24 @@
-const server = {
-	connection: null,
-	timeoutvar: null,
-	myname: null,
-	tries: 0,
-	timervar: null,
-	lastTimeUpdate: null,
-	anotherlogin: false,
-	loggedin: false,
-	/** @type {[[string, number, number, number, boolean]] | undefined} */
-	rating: undefined,
+const ratingListUrl = '/ratinglist.json';
 
-	connect: function () {
+class Server {
+	constructor() {
+		this.connection = null;
+		this.timeoutvar = null;
+		this.myname = null;
+		this.tries = 0;
+		this.timervar = null;
+		this.lastTimeUpdate = null;
+		this.lastBt = 0;
+		this.lastWt = 0;
+		this.anotherlogin = false;
+		this.loggedin = false;
+		/** @type {[[string, number, number, number, boolean]] | undefined} */
+		this.rating = undefined;
+		this.loginTimer = null;
+	}
+
+	connect() {
+		const self = this;
 		if (this.connection && this.connection.readyState > 1) {
 			this.connection = null;
 		}
@@ -23,27 +31,27 @@ const server = {
 				// url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
 			}
 			this.connection = new WebSocket(proto + url, 'binary');
-			this.connection.onerror = function (e) {
+			this.connection.onerror = (e) => {
 				output(`Connection error: ${e}`);
 			};
-			this.connection.onmessage = function (e) {
+			this.connection.onmessage = (e) => {
 				const blob = e.data;
 				const reader = new FileReader();
-				reader.onload = function () {
+				reader.onload = () => {
 					const responseText = new TextDecoder('utf-8').decode(reader.result);
-					server.msg(responseText);
+					self.msg(responseText);
 					/*
 					const res = res_text.split("\n");
 					const i;
 					for (i = 0; i < res.length - 1; i++) {
-						server.msg(res[i]);
+						this.msg(res[i]);
 					}
 					*/
 				};
 				reader.readAsArrayBuffer(blob);
 			};
-			this.connection.onclose = function () {
-				server.loggedin = false;
+			this.connection.onclose = () => {
+				this.loggedin = false;
 				document.getElementById('login-button').textContent = 'Sign up / Login';
 				$('#onlineplayers').addClass('hidden');
 				document.getElementById('onlineplayersbadge').innerHTML = '0';
@@ -55,20 +63,14 @@ const server = {
 				board.observing = false;
 				board.gameno = 0;
 				document.title = 'Tak';
-				$('#seeklist').children().each(function () {
-					this.remove();
-				});
-				$('#seeklistbot').children().each(function () {
-					this.remove();
-				});
-				$('#gamelist').children().each(function () {
-					this.remove();
-				});
+				$('#seeklist').empty();
+				$('#seeklistbot').empty();
+				$('#gamelist').empty();
 				stopTime();
 
-				if (localStorage.getItem('keeploggedin') === 'true' && !server.anotherlogin) {
+				if (localStorage.getItem('keeploggedin') === 'true' && !this.anotherlogin) {
 					alert('info', 'Connection lost. Trying to reconnect...');
-					server.startLoginTimer();
+					this.startLoginTimer();
 				} else {
 					alert('info', 'You\'re disconnected from server');
 				}
@@ -76,7 +78,7 @@ const server = {
 		}
 
 		if (!this.rating) {
-			window.fetch('/ratinglist.json')
+			window.fetch(ratingListUrl)
 				.then((response) => {
 					response.json()
 						.then((json) => { this.rating = json; })
@@ -84,8 +86,9 @@ const server = {
 				})
 				.catch((err) => console.error('Failed to get ratings', err));
 		}
-	},
-	logout: function () {
+	}
+
+	logout() {
 		localStorage.removeItem('keeploggedin');
 		localStorage.removeItem('usr');
 		localStorage.removeItem('token');
@@ -94,16 +97,17 @@ const server = {
 			alert('info', 'Disconnnecting from server....');
 			this.connection = null;
 		}
-	},
-	loginbutton: function () {
-		if (server.loggedin) {
+	}
+
+	loginbutton() {
+		if (this.loggedin) {
 			this.logout();
 		} else {
 			$('#login').modal('show');
 		}
-	},
+	}
 	/*
-	init: function () {
+	init() {
 		if (this.connection && this.connection.readyState === 2)//closing connection
 			this.connection = null;
 		if (this.connection && this.connection.readyState === 3)//closed
@@ -183,51 +187,51 @@ const server = {
 	},
 	*/
 
-	loginTimer: null,
-
-	startLoginTimer: function () {
-		if (server.loginTimer !== null) {
+	startLoginTimer() {
+		if (this.loginTimer !== null) {
 			return;
 		}
-		server.loginTimer = setTimeout(server.loginTimerFn, 5000);
-	},
+		this.loginTimer = setTimeout(() => this.loginTimerFn(), 5000);
+	}
 
-	stopLoginTimer: function () {
-		if (server.loginTimer === null) {
+	stopLoginTimer() {
+		if (this.loginTimer === null) {
 			return;
 		}
-		clearTimeout(server.loginTimer);
-		server.loginTimer = null;
-	},
+		clearTimeout(this.loginTimer);
+		this.loginTimer = null;
+	}
 
-	loginTimerFn: function () {
-		server.connect();
-		server.loginTimer = setTimeout(server.loginTimerFn, 5000);
-	},
+	loginTimerFn() {
+		this.connect();
+		this.loginTimer = setTimeout(() => this.loginTimerFn(), 5000);
+	}
 
-	login: function () {
+	login() {
 		this.connect();
 		if (this.connection.readyState === 0) {
-			this.connection.onopen = function () { server.login(); };
+			this.connection.onopen = () => this.login();
 		} else if (this.connection.readyState === 1) {
 			const name = $('#login-username').val();
 			const pass = $('#login-pwd').val();
 
 			this.send(`Login ${name} ${pass}`);
 		}
-	},
-	guestlogin: function () {
+	}
+
+	guestlogin() {
 		this.connect();
 		if (this.connection.readyState === 0) {
-			this.connection.onopen = function () { server.guestlogin(); };
+			this.connection.onopen = () => this.guestlogin();
 		} else if (this.connection.readyState === 1) {
 			this.send('Login Guest');
 		}
-	},
-	register: function () {
+	}
+
+	register() {
 		this.connect();
 		if (this.connection.readyState === 0) {
-			this.connection.onopen = function () { server.register(); };
+			this.connection.onopen = () => this.register();
 		} else if (this.connection.readyState === 1) {
 			const name = $('#register-username').val();
 			const email = $('#register-email').val();
@@ -240,11 +244,12 @@ const server = {
 
 			this.send(`Register ${name} ${email}`);
 		}
-	},
-	changepassword: function () {
+	}
+
+	changepassword() {
 		this.connect();
 		if (this.connection.readyState === 0) {
-			this.connection.onopen = function () { server.changepassword(); };
+			this.connection.onopen = () => this.changepassword();
 		} else if (this.connection.readyState === 1) {
 			const curpass = $('#cur-pwd').val();
 			const newpass = $('#new-pwd').val();
@@ -256,21 +261,23 @@ const server = {
 				this.send(`ChangePassword ${curpass} ${newpass}`);
 			}
 		}
-	},
-	sendresettoken: function () {
+	}
+
+	sendresettoken() {
 		this.connect();
 		if (this.connection.readyState === 0) {
-			this.connection.onopen = function () { server.sendresettoken(); };
+			this.connection.onopen = () => this.sendresettoken();
 		} else if (this.connection.readyState === 1) {
 			const name = $('#resettoken-username').val();
 			const email = $('#resettoken-email').val();
 			this.send(`SendResetToken ${name} ${email}`);
 		}
-	},
-	resetpwd: function () {
+	}
+
+	resetpwd() {
 		this.connect();
 		if (this.connection.readyState === 0) {
-			this.connection.onopen = function () { server.resetpwd(); };
+			this.connection.onopen = () => this.resetpwd();
 		} else if (this.connection.readyState === 1) {
 			const name = $('#resetpwd-username').val();
 			const token = $('#resetpwd-token').val();
@@ -282,17 +289,19 @@ const server = {
 				this.send(`ResetPassword ${name} ${token} ${npwd}`);
 			}
 		}
-	},
-	keepalive: function () {
-		if (server.connection && server.connection.readyState === 1) { // open connection
-			server.send('PING');
+	}
+
+	keepalive() {
+		if (this.connection && this.connection.readyState === 1) { // open connection
+			this.send('PING');
 		}
-	},
+	}
+
 	/**
 	 * Handles messages from the server
 	 * @param {string} e Message/command
 	 */
-	msg: function (rawMessage) {
+	msg(rawMessage) {
 		console.log(rawMessage);
 		output(rawMessage);
 		const e = rawMessage.trim();
@@ -415,13 +424,13 @@ const server = {
 			const sizeSpan = `<span class='badge'>${sz}</span>`;
 
 			const row = $('<tr/>').addClass('row').addClass(`game${no}`)
-				.click(() => server.observegame(spl[2].split('Game#')[1]))
+				.click(() => this.observegame(spl[2].split('Game#')[1]))
 				.appendTo($('#gamelist'));
-			$('<td class="right"/>').append(this.getRatingSpan(myRating, p1rating)).appendTo(row);
+			$('<td class="right"/>').append(Server.getRatingSpan(myRating, p1rating)).appendTo(row);
 			$('<td class="playername right"/>').append(p1).appendTo(row);
 			$('<td class="center"/>').append('vs').appendTo(row);
 			$('<td class="playername left"/>').append(p2).appendTo(row);
-			$('<td class="left"/>').append(this.getRatingSpan(myRating, p2rating)).appendTo(row);
+			$('<td class="left"/>').append(Server.getRatingSpan(myRating, p2rating)).appendTo(row);
 			$('<td/>').append(sizeSpan).appendTo(row);
 			$('<td/>').append(`${m}:${s}`).appendTo(row);
 			$('<td/>').append(`+${inc}s`).appendTo(row);
@@ -469,11 +478,11 @@ const server = {
 				else if (spl[1] === 'Time') {
 					const wt = Math.max(+spl[2] || 0, 0);
 					const bt = Math.max(+spl[3] || 0, 0);
-					lastWt = wt;
-					lastBt = bt;
+					this.lastWt = wt;
+					this.lastBt = bt;
 
 					const now = new Date();
-					lastTimeUpdate = now.getTime() / 1000;
+					this.lastTimeUpdate = now.getTime() / 1000;
 
 					board.timer_started = true;
 					startTime(true);
@@ -577,14 +586,14 @@ const server = {
 				}
 			}
 		} else if (e.startsWith('Login or Register')) {
-			server.stopLoginTimer();
-			server.send('Client TakWeb-16.05.26');
+			this.stopLoginTimer();
+			this.send('Client TakWeb-16.05.26');
 			clearInterval(this.timeoutvar);
-			this.timeoutvar = setInterval(this.keepalive, 30000);
+			this.timeoutvar = setInterval(() => this.keepalive(), 30000);
 			if (localStorage.getItem('keeploggedin') === 'true' && this.tries < 3) {
 				const uname = localStorage.getItem('usr');
 				const token = localStorage.getItem('token');
-				server.send(`Login ${uname} ${token}`);
+				this.send(`Login ${uname} ${token}`);
 				this.tries += 1;
 			} else {
 				localStorage.removeItem('keeploggedin');
@@ -636,7 +645,7 @@ const server = {
 			this.myname = e.split('Welcome ')[1].split('!')[0];
 			alert('success', `You're logged in ${this.myname}!`);
 			document.title = 'Tak';
-			server.loggedin = true;
+			this.loggedin = true;
 
 			const rem = $('#keeploggedin').is(':checked');
 			if (rem === true && !this.myname.startsWith('Guest')) {
@@ -655,7 +664,7 @@ const server = {
 			const msg = e.split('Message ');
 
 			if (e.includes('You\'ve logged in from another window. Disconnecting')) {
-				server.anotherlogin = true;
+				this.anotherlogin = true;
 			}
 
 			alert('info', `Server says: ${msg[1]}`);
@@ -729,7 +738,7 @@ const server = {
 			const opbot = document.getElementById('seekcountbot');
 
 			const row = $('<tr/>').addClass('row').addClass(`seek${no}`)
-				.click(() => { server.acceptseek(spl[2]); });
+				.click(() => { this.acceptseek(spl[2]); });
 
 			if (playerName.toLowerCase().indexOf('bot') !== -1) {
 				const listed = $('#seeklistbot').children();
@@ -767,7 +776,7 @@ const server = {
 			}
 			$('<td/>').append(img).appendTo(row);
 			$('<td/>').append(botlevel + playerNameSpan).appendTo(row);
-			$('<td class="right"/>').append(this.getRatingSpan(myRating, playerRating)).appendTo(row);
+			$('<td class="right"/>').append(Server.getRatingSpan(myRating, playerRating)).appendTo(row);
 			$('<td/>').append(sz).appendTo(row);
 			$('<td/>').append(`${m}:${s}`).appendTo(row);
 			$('<td/>').append(`+${inc}s`).appendTo(row);
@@ -815,8 +824,9 @@ const server = {
 
 			this.send(`Login ${name} ${pass}`);
 		}
-	},
-	chat: function (type, name, msg) {
+	}
+
+	chat(type, name, msg) {
 		if (type === 'global') {
 			this.send(`Shout ${msg}`);
 		}
@@ -829,11 +839,13 @@ const server = {
 		else {
 			console.log('undefined chat type');
 		}
-	},
-	leaveroom: function (room) {
+	}
+
+	leaveroom(room) {
 		this.send(`LeaveRoom ${room}`);
-	},
-	send: function (e) {
+	}
+
+	send(e) {
 		const binaryData = (new TextEncoder()).encode(`${e}\n`);
 
 		if (this.connection && this.connection.readyState === 1) {
@@ -842,11 +854,13 @@ const server = {
 		else {
 			this.error('You are not logged on to the server');
 		}
-	},
-	error: function (e) {
+	}
+
+	static error(e) {
 		alert('danger', e);
-	},
-	seek: function () {
+	}
+
+	seek() {
 		let size = $('#boardsize').find(':selected').text();
 		size = Math.floor(size);
 		const time = $('#timeselect').find(':selected').text();
@@ -862,12 +876,14 @@ const server = {
 
 		this.send(`Seek ${size} ${time * 60} ${inc}${clr}`);
 		$('#creategamemodal').modal('hide');
-	},
-	removeseek: function () {
+	}
+
+	removeseek() {
 		this.send('Seek 0 0 0');
 		$('#creategamemodal').modal('hide');
-	},
-	draw: function () {
+	}
+
+	draw() {
 		if (board.scratch || board.observing) {
 			return;
 		}
@@ -882,8 +898,9 @@ const server = {
 			$('#draw').removeClass('i-offered-draw').removeClass('opp-offered-draw').addClass('offer-draw');
 			this.send(`Game#${board.gameno} OfferDraw`);
 		}
-	},
-	undo: function () {
+	}
+
+	undo() {
 		if (board.observing) {
 			return;
 		}
@@ -900,24 +917,28 @@ const server = {
 			$('#undo').toggleClass('request-undo i-requested-undo');
 			alert('info', 'Undo request removed');
 		}
-	},
-	resign: function () {
+	}
+
+	resign() {
 		if (board.scratch || board.observing) {
 			return;
 		}
 
 		this.send(`Game#${board.gameno} Resign`);
-	},
-	acceptseek: function (e) {
+	}
+
+	acceptseek(e) {
 		this.send(`Accept ${e}`);
 		$('#joingame-modal').modal('hide');
-	},
-	unobserve: function () {
+	}
+
+	unobserve() {
 		if (board.gameno !== 0) {
 			this.send(`Unobserve ${board.gameno}`);
 		}
-	},
-	observegame: function (no) {
+	}
+
+	observegame(no) {
 		$('#watchgame-modal').modal('hide');
 		if (board.observing === false && board.scratch === false) { // don't observe game while playing another
 			return;
@@ -927,11 +948,12 @@ const server = {
 		}
 		this.unobserve();
 		this.send(`Observe ${no}`);
-	},
+	}
+
 	/**
 	 * @param {string} playerName
 	 */
-	getPlayerRatingRow: function (playerName) {
+	getPlayerRatingRow(playerName) {
 		if (!this.rating) return {};
 		const ratingRowIndex = this.rating.findIndex((row) => row[0].split(' ').includes(playerName));
 		if (ratingRowIndex === -1) return {};
@@ -944,13 +966,14 @@ const server = {
 			games: ratingRow[3],
 			isBot: ratingRow[4],
 		};
-	},
+	}
+
 	/**
 	 * @param {{displayRating?: number}} myRating
 	 * @param {{displayRating?: number}} playerRating
 	 * @returns {string} span with rating and corresponding classes
 	 */
-	getRatingSpan: function (myRating, playerRating) {
+	static getRatingSpan(myRating, playerRating) {
 		const ratingSpan = $(`<span class='rating'>${playerRating.displayRating ?? ''}</span>`);
 		if (playerRating.displayRating === undefined) {
 			ratingSpan.addClass('unrated');
@@ -973,5 +996,8 @@ const server = {
 			}
 		}
 		return ratingSpan[0].outerHTML;
-	},
-};
+	}
+}
+
+// eslint-disable-next-line no-unused-vars
+const server = new Server();

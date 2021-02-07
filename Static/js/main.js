@@ -1,3 +1,5 @@
+'use-strict';
+
 let scalelevel;
 
 function alert(type, msg) {
@@ -526,25 +528,25 @@ function startTime(fromFn) {
 	}
 	const now = new Date();
 	const t = now.getTime() / 1000;
-	const elapsed = t - lastTimeUpdate;
+	const elapsed = t - server.lastTimeUpdate;
 	let t1;
 	let nextupdate;
 	const ismymove = board.checkifmymove();
-	let t1f = lastWt;
-	let t2f = lastBt;
+	let t1f = server.lastWt;
+	let t2f = server.lastBt;
 
 	if (board.movecount % 2 === 0) {
-		t1f = Math.max(lastWt - elapsed, 0);
+		t1f = Math.max(server.lastWt - elapsed, 0);
 		t1 = Math.ceil(t1f);
 		nextupdate = 1000 * (1 - t1 + t1f);
 		$('.player1-time:first').html(`${Math.floor(t1 / 60)}:${getZero(t1 % 60)}`);
-		$('.player2-time:first').html(`${Math.floor(lastBt / 60)}:${getZero(lastBt % 60)}`);
+		$('.player2-time:first').html(`${Math.floor(server.lastBt / 60)}:${getZero(server.lastBt % 60)}`);
 	} else {
-		t2f = Math.max(lastBt - elapsed, 0);
+		t2f = Math.max(server.lastBt - elapsed, 0);
 		t1 = Math.ceil(t2f);
 		nextupdate = 1000 * (1 - t1 + t2f);
 		$('.player2-time:first').html(`${Math.floor(t1 / 60)}:${getZero(t1 % 60)}`);
-		$('.player1-time:first').html(`${Math.floor(lastWt / 60)}:${getZero(lastWt % 60)}`);
+		$('.player1-time:first').html(`${Math.floor(server.lastWt / 60)}:${getZero(server.lastWt % 60)}`);
 	}
 	if (t1f <= 10) {
 		$('.player1-time:first').addClass('hurrytime');
