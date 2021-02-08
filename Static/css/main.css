@@ -481,10 +481,6 @@ a .fa:not(#undo):not(#draw) {
 	display: block;
 }
 
-.colorchoice {
-	background: url("/images/circle_any.svg"); 
-	background-repeat: no-repeat;
-	background-position: center;
-}
-.colorchoice.W { background: url("/images/circle_white.svg"); }
-.colorchoice.B { background: url("/images/circle_black.svg"); }
+.colorchoice   { background: url("/images/circle_any.svg") no-repeat center; }
+.colorchoice.W { background: url("/images/circle_white.svg") no-repeat center; }
+.colorchoice.B { background: url("/images/circle_black.svg") no-repeat center; }
