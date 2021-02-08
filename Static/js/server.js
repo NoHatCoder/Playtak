@@ -878,20 +878,21 @@ class Server {
 	}
 
 	seek() {
-		let size = $('#boardsize').find(':selected').text();
-		size = Math.floor(size);
+		// boardSizeText is 3x3 / 4x4 ...
+		const boardSizeText = $('#boardsize').find(':selected').text();
+		const boardSize = parseInt(boardSizeText, 10);
 		const time = $('#timeselect').find(':selected').text();
 		const inc = $('#incselect').find(':selected').text();
-		const clrtxt = $('#colorselect').find(':selected').text();
-		let clr = '';
-		if (clrtxt === 'White') {
-			clr = ' W';
+		const colorText = $('#colorselect').find(':selected').text();
+		let color = '';
+		if (colorText === 'White') {
+			color = 'W';
 		}
-		if (clrtxt === 'Black') {
-			clr = ' B';
+		if (colorText === 'Black') {
+			color = 'B';
 		}
 
-		this.send(`Seek ${size} ${time * 60} ${inc}${clr}`);
+		this.send(`Seek ${boardSize} ${time * 60} ${inc} ${color}`);
 		$('#creategamemodal').modal('hide');
 	}
 
