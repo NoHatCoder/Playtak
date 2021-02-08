@@ -30,10 +30,10 @@ function Game(gameId, player1name, player2name, boardSize, time, timeIncrement) 
 		const p2rating = server.getPlayerRatingRow(self.player2name);
 		const myRating = server.getPlayerRatingRow(server.myname);
 
-		const boardSizeSpan = `<span class='badge'>${self.boardSize}</span>`;
+		const boardSizeSpan = '<span class="badge">' + self.boardSize + '</span>';
 
 		const row = $('<tr/>')
-			.addClass(`row game${self.gameId}`)
+			.addClass('row game' + self.gameId)
 			.click(function () { server.observegame(self.gameId); });
 		$('<td class="right"/>').append(server.getRatingSpan(myRating, p1rating)).appendTo(row);
 		$('<td class="playername right"/>').append(self.player1name).appendTo(row);
@@ -41,8 +41,8 @@ function Game(gameId, player1name, player2name, boardSize, time, timeIncrement) 
 		$('<td class="playername left"/>').append(self.player2name).appendTo(row);
 		$('<td class="left"/>').append(server.getRatingSpan(myRating, p2rating)).appendTo(row);
 		$('<td/>').append(boardSizeSpan).appendTo(row);
-		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
-		$('<td/>').append(`+${self.timeIncrement}s`).appendTo(row);
+		$('<td/>').append(timeMinutes + ':' + timeSeconds).appendTo(row);
+		$('<td/>').append('+ ' + self.timeIncrement + 's').appendTo(row);
 		return row;
 	};
 }
@@ -89,19 +89,19 @@ function Seek(gameId, playerName, boardSize, time, timeIncrement, color) {
 		if (self.color) {
 			img.src = (self.color === 'W' ? 'images/circle_white.svg' : 'images/circle_black.svg');
 		}
-		const descriptionSpan = self.description ? `<span class='botlevel'>${self.description}</span>` : '';
-		const playerNameSpan = `<span class='playername'>${self.playerName}</span>`;
-		const boardSizeSpan = `<span class='badge'>${self.boardSize}x${self.boardSize}</span>`;
+		const descriptionSpan = self.description ? '<span class= "botlevel">' + self.description + '</span>' : '';
+		const playerNameSpan = '<span class="playername">' + self.playerName + '</span>';
+		const boardSizeSpan = '<span class="badge">' + self.boardSize + 'x' + self.boardSize + '</span>';
 
 		const row = $('<tr/>')
-			.addClass(`row seek${self.gameId}`)
+			.addClass('row seek' + self.gameId)
 			.click(function () { server.acceptseek(self.gameId); });
-		$(`<td class="colorchoice ${self.color || ''}"/>`).appendTo(row);
+		$('<td class="colorchoice ' + (self.color || '') + '/>').appendTo(row);
 		$('<td/>').append(descriptionSpan + playerNameSpan).appendTo(row);
 		$('<td class="right"/>').append(server.getRatingSpan(myRating, playerRating)).appendTo(row);
 		$('<td/>').append(boardSizeSpan).appendTo(row);
-		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
-		$('<td/>').append(`+${self.timeIncrement}s`).appendTo(row);
+		$('<td/>').append(timeMinutes + ':' + timeSeconds).appendTo(row);
+		$('<td/>').append('+ ' + self.timeIncrement + 's').appendTo(row);
 		return row;
 	};
 }
@@ -134,7 +134,7 @@ function Server() {
 		}
 		if (!self.connection) {
 			const proto = 'wss://';
-			let url = `${window.location.host}/ws`;
+			let url = window.location.host + 'ws';
 			if (window.location.host.indexOf('localhost') > -1 || window.location.host.indexOf('127.0.0.1') > -1 || window.location.host.indexOf('192.168.') === 0) {
 				url = 'www.playtak.com/ws/';
 				// proto = 'ws://'
@@ -142,7 +142,7 @@ function Server() {
 			}
 			self.connection = new WebSocket(proto + url, 'binary');
 			self.connection.onerror = function (e) {
-				output(`Connection error: ${e}`);
+				output('Connection error: ' + e);
 			};
 			self.connection.onmessage = function (e) {
 				const blob = e.data;
@@ -321,7 +321,7 @@ function Server() {
 			const name = $('#login-username').val();
 			const pass = $('#login-pwd').val();
 
-			self.send(`Login ${name} ${pass}`);
+			self.send('Login ' + name + ' ' + pass);
 		}
 	};
 
@@ -348,7 +348,7 @@ function Server() {
 				return;
 			}
 
-			self.send(`Register ${name} ${email}`);
+			self.send('Register ' + name + ' ' + email);
 		}
 	};
 
@@ -364,7 +364,7 @@ function Server() {
 			if (newpass !== retypenewpass) {
 				alert('danger', 'Passwords don\'t match');
 			} else {
-				self.send(`ChangePassword ${curpass} ${newpass}`);
+				self.send('ChangePassword ' + curpass + ' ' + newpass);
 			}
 		}
 	};
@@ -376,7 +376,7 @@ function Server() {
 		} else if (self.connection.readyState === 1) {
 			const name = $('#resettoken-username').val();
 			const email = $('#resettoken-email').val();
-			self.send(`SendResetToken ${name} ${email}`);
+			self.send('SendResetToken ' + name + ' ' + email);
 		}
 	};
 
@@ -392,7 +392,7 @@ function Server() {
 			if (npwd !== rnpwd) {
 				alert('danger', 'Passwords don\'t match');
 			} else {
-				self.send(`ResetPassword ${name} ${token} ${npwd}`);
+				self.send('ResetPassword ' + name + ' ' + token + ' ' + npwd);
 			}
 		}
 	};
@@ -416,7 +416,7 @@ function Server() {
 			const spl = e.split(' ');
 			board.newgame(Number(spl[3]), spl[7]);
 			board.gameno = Number(spl[2]);
-			console.log(`gno ${board.gameno}`);
+			console.log('gno ' + board.gameno);
 			document.getElementById('scratchsize').disabled = true;
 
 			$('#player-me-name').removeClass('player1-name');
@@ -458,13 +458,13 @@ function Server() {
 
 			$('.player1-name:first').html(spl[4]);
 			$('.player2-name:first').html(spl[6]);
-			document.title = `Tak: ${spl[4]} vs ${spl[6]}`;
+			document.title = 'Tak: ' + spl[4] + ' vs ' + spl[6];
 
 			const time = Number(spl[8]);
 			const m = Math.floor(time / 60);
 			const s = getZero(Math.floor(time % 60));
-			$('.player1-time:first').html(`${m}:${s}`);
-			$('.player2-time:first').html(`${m}:${s}`);
+			$('.player1-time:first').html(m + ':' + s);
+			$('.player2-time:first').html(m + ':' + s);
 
 			if (spl[7] === 'white') { // I am white
 				if (!chathandler.roomExists('priv', spl[6])) {
@@ -495,18 +495,18 @@ function Server() {
 			board.gameno = Number(spl[1].split('Game#')[1]);
 			$('.player1-name:first').html(p1);
 			$('.player2-name:first').html(p2);
-			document.title = `Tak: ${p1} vs ${p2}`;
+			document.title = 'Tak: ' + p1 + ' vs ' + p2;
 
 			const time = Number(spl[6].split(',')[0]);
 			const m = Math.floor(time / 60);
 			const s = getZero(Math.floor(time % 60));
-			$('.player1-time:first').html(`${m}:${s}`);
-			$('.player2-time:first').html(`${m}:${s}`);
+			$('.player1-time:first').html(m + ':' + s);
+			$('.player2-time:first').html(m + ':' + s);
 
-			if (!chathandler.roomExists('room', `Game${board.gameno}`)) {
-				chathandler.createGameRoom(`Game${board.gameno}`, p1, p2);
+			if (!chathandler.roomExists('room', 'Game' + board.gameno)) {
+				chathandler.createGameRoom('Game' + board.gameno, p1, p2);
 			}
-			chathandler.setRoom('room', `Game${board.gameno}`);
+			chathandler.setRoom('room', 'Game' + board.gameno);
 		} else if (e.startsWith('GameList Add Game#')) {
 			// GameList Add Game#1 player1 vs player2, 4x4, 180, 15, 0 half-moves played, player1 to move
 			const split = e.split(' ');
@@ -594,7 +594,7 @@ function Server() {
 					document.title = 'Tak';
 					board.result = spl[2];
 
-					let msg = `Game over <span class='bold'>${spl[2]}</span><br>`;
+					let msg = 'Game over <span class="bold">' + spl[2] + '</span><br>';
 					let type;
 
 					if (spl[2] === 'R-0' || spl[2] === '0-R') {
@@ -609,11 +609,11 @@ function Server() {
 
 					if (spl[2] === 'R-0' || spl[2] === 'F-0' || spl[2] === '1-0') {
 						if (board.observing === true) {
-							msg += `White wins by ${type}`;
+							msg += 'White wins by ' + type;
 						} else if (board.mycolor === 'white') {
-							msg += `You win by ${type}`;
+							msg += 'You win by ' + type;
 						} else {
-							msg += `Your opponent wins by ${type}`;
+							msg += 'Your opponent wins by ' + type;
 						}
 					} else if (spl[2] === '1/2-1/2') {
 						msg += 'The game is a draw!';
@@ -622,11 +622,11 @@ function Server() {
 					} else { // black wins
 						// eslint-disable-next-line no-lonely-if
 						if (board.observing === true) {
-							msg += `Black wins by ${type}`;
+							msg += 'Black wins by ' + type;
 						} else if (board.mycolor === 'white') {
-							msg += `Your opponent wins by ${type}`;
+							msg += 'Your opponent wins by ' + type;
 						} else {
-							msg += `You win by ${type}`;
+							msg += 'You win by ' + type;
 						}
 					}
 
@@ -648,7 +648,7 @@ function Server() {
 						board.result = '0-1';
 					}
 
-					let msg = `Game abandoned by ${spl[2]}.`;
+					let msg = 'Game abandoned by ' + spl[2] + '.';
 					if (!board.observing) {
 						msg += ' You win!';
 					}
@@ -669,7 +669,7 @@ function Server() {
 			if (localStorage.getItem('keeploggedin') === 'true' && self.tries < 3) {
 				const uname = localStorage.getItem('usr');
 				const token = localStorage.getItem('token');
-				self.send(`Login ${uname} ${token}`);
+				self.send('Login ' + uname + ' ' + token);
 				self.tries += 1;
 			} else {
 				localStorage.removeItem('keeploggedin');
@@ -719,7 +719,7 @@ function Server() {
 			$('#login').modal('hide');
 			document.getElementById('login-button').textContent = 'Logout';
 			self.myname = e.split('Welcome ')[1].split('!')[0];
-			alert('success', `You're logged in ${self.myname}!`);
+			alert('success', 'You\'re logged in ' + self.myname + '!');
 			document.title = 'Tak';
 			self.loggedin = true;
 
@@ -745,10 +745,10 @@ function Server() {
 				self.anotherlogin = true;
 			}
 
-			alert('info', `Server says: ${msg[1]}`);
+			alert('info', 'Server says: ' + msg[1]);
 		} else if (e.startsWith('Error')) {
 			const msg = e.split('Error:')[1];
-			alert('danger', `Server says: ${msg}`);
+			alert('danger', 'Server says: ' + msg);
 		}
 		// Shout <name> msg
 		else if (e.startsWith('Shout ')) {
@@ -779,7 +779,7 @@ function Server() {
 			chathandler.received('priv', match[1], self.myname, match[2]);
 		} else if (e.startsWith('CmdReply')) {
 			const msg = e.split('CmdReply ')[1];
-			const messageSpan = `<span class="cmdreply">${msg}</span>`;
+			const messageSpan = '<span class="cmdreply">' + msg + '</span>';
 
 			chathandler.raw('global', 'global', messageSpan);
 		}
@@ -831,19 +831,19 @@ function Server() {
 			const name = $('#resetpwd-username').val();
 			const pass = $('#reset-new-pwd').val();
 
-			self.send(`Login ${name} ${pass}`);
+			self.send('Login ' + name + ' ' + pass);
 		}
 	};
 
 	self.chat = function (type, name, msg) {
 		if (type === 'global') {
-			self.send(`Shout ${msg}`);
+			self.send('Shout ' + msg);
 		}
 		else if (type === 'room') {
-			self.send(`ShoutRoom ${name} ${msg}`);
+			self.send('ShoutRoom ' + name + ' ' + msg);
 		}
 		else if (type === 'priv') {
-			self.send(`Tell ${name} ${msg}`);
+			self.send('Tell ' + name + ' ' + msg);
 		}
 		else {
 			console.log('undefined chat type');
@@ -851,11 +851,11 @@ function Server() {
 	};
 
 	self.leaveroom = function (room) {
-		self.send(`LeaveRoom ${room}`);
+		self.send('LeaveRoom ' + room);
 	};
 
 	self.send = function (e) {
-		const binaryData = (new TextEncoder()).encode(`${e}\n`);
+		const binaryData = (new TextEncoder()).encode(e + '\n');
 
 		if (self.connection && self.connection.readyState === 1) {
 			self.connection.send(binaryData);
@@ -884,7 +884,7 @@ function Server() {
 			color = 'B';
 		}
 
-		self.send(`Seek ${boardSize} ${time * 60} ${inc} ${color}`);
+		self.send('Seek ' + boardSize + ' ' + (time * 60) + ' ' + inc + ' ' + color);
 		$('#creategamemodal').modal('hide');
 	};
 
@@ -900,13 +900,13 @@ function Server() {
 
 		if ($('#draw').hasClass('offer-draw')) { // offer
 			$('#draw').toggleClass('i-offered-draw offer-draw');
-			self.send(`Game#${board.gameno} OfferDraw`);
+			self.send('Game#' + board.gameno + ' OfferDraw');
 		} else if ($('#draw').hasClass('i-offered-draw')) { // remove offer
 			$('#draw').toggleClass('i-offered-draw offer-draw');
-			self.send(`Game#${board.gameno} RemoveDraw`);
+			self.send('Game#' + board.gameno + ' RemoveDraw');
 		} else { // accept the offer
 			$('#draw').removeClass('i-offered-draw').removeClass('opp-offered-draw').addClass('offer-draw');
-			self.send(`Game#${board.gameno} OfferDraw`);
+			self.send('Game#' + board.gameno + ' OfferDraw');
 		}
 	};
 
@@ -916,14 +916,14 @@ function Server() {
 		}
 
 		if ($('#undo').hasClass('request-undo')) { // request undo
-			self.send(`Game#${board.gameno} RequestUndo`);
+			self.send('Game#' + board.gameno + ' RequestUndo');
 			$('#undo').toggleClass('request-undo i-requested-undo');
 			alert('info', 'Undo request sent');
 		} else if ($('#undo').hasClass('opp-requested-undo')) { // accept request
-			self.send(`Game#${board.gameno} RequestUndo`);
+			self.send('Game#' + board.gameno + ' RequestUndo');
 			$('#undo').toggleClass('request-undo opp-requested-undo');
 		} else if ($('#undo').hasClass('i-requested-undo')) { // remove request
-			self.send(`Game#${board.gameno} RemoveUndo`);
+			self.send('Game#' + board.gameno + ' RemoveUndo');
 			$('#undo').toggleClass('request-undo i-requested-undo');
 			alert('info', 'Undo request removed');
 		}
@@ -934,17 +934,17 @@ function Server() {
 			return;
 		}
 
-		self.send(`Game#${board.gameno} Resign`);
+		self.send('Game#' + board.gameno + ' Resign');
 	};
 
 	self.acceptseek = function (e) {
-		self.send(`Accept ${e}`);
+		self.send('Accept ' + e);
 		$('#joingame-modal').modal('hide');
 	};
 
 	self.unobserve = function () {
 		if (board.gameno !== 0) {
-			self.send(`Unobserve ${board.gameno}`);
+			self.send('Unobserve ' + board.gameno);
 		}
 	};
 
@@ -957,7 +957,7 @@ function Server() {
 			return;
 		}
 		self.unobserve();
-		self.send(`Observe ${no}`);
+		self.send('Observe ' + no);
 	};
 
 	self.renderGameList = function () {
@@ -986,7 +986,7 @@ function Server() {
 	self.renderMyRating = function () {
 		const myDisplayRating = self.getPlayerRatingRow(self.myname).displayRating;
 		if (self.loggedin && myDisplayRating) {
-			document.getElementById('myrating').textContent = `${self.myname}: ${myDisplayRating}`;
+			document.getElementById('myrating').textContent = self.myname + ': ' + myDisplayRating;
 		} else {
 			document.getElementById('myrating').textContent = '';
 		}
@@ -1047,7 +1047,8 @@ function Server() {
 	 * @returns {string} span with rating and corresponding classes
 	 */
 	self.getRatingSpan = function (myRating, playerRating) {
-		const ratingSpan = $(`<span class='rating'>${playerRating.displayRating ?? ''}</span>`);
+		const displayRatingString = playerRating.displayRating == null ? '' : playerRating.displayRating;
+		const ratingSpan = $('<span class="rating">' + displayRatingString + '</span>');
 		if (playerRating.displayRating === undefined) {
 			ratingSpan.addClass('unrated');
 		}
@@ -1058,7 +1059,7 @@ function Server() {
 			const ratingLevelStep = 150; // delta between levels
 			// Relative level in [-3, ... +3]. -3 is much weaker, +3 much stronger
 			const relativeLevel = Math.max(-3, Math.min(roundTo0(difference / ratingLevelStep), 3));
-			const relativeLevelClass = `level${Math.abs(relativeLevel)}`;
+			const relativeLevelClass = 'level' + Math.abs(relativeLevel);
 
 			if (relativeLevel === 0) {
 				ratingSpan.addClass('even');

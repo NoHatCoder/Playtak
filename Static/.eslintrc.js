@@ -39,6 +39,7 @@ module.exports = {
 		'no-useless-escape': ['off'],
 		'max-classes-per-file': ['off'],
 		'prefer-arrow-callback': ['off'],
+		'prefer-template': ['off'],
 	},
 	globals: {
 		server: 'readonly',
