@@ -129,7 +129,6 @@ class Server {
 	}
 
 	connect() {
-		const self = this;
 		if (this.connection && this.connection.readyState > 1) {
 			this.connection = null;
 		}
@@ -150,7 +149,7 @@ class Server {
 				const reader = new FileReader();
 				reader.onload = () => {
 					const responseText = new TextDecoder('utf-8').decode(reader.result);
-					self.msg(responseText);
+					this.msg(responseText);
 					/*
 					const res = res_text.split("\n");
 					const i;
