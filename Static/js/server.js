@@ -173,9 +173,10 @@ class Server {
 				board.observing = false;
 				board.gameno = 0;
 				document.title = 'Tak';
-				$('#seeklist').empty();
-				$('#seeklistbot').empty();
-				$('#gamelist').empty();
+
+				this.gameList = [];
+				this.seekList = [];
+				this.renderRatingRelatedInformation();
 				stopTime();
 
 				if (localStorage.getItem('keeploggedin') === 'true' && !this.anotherlogin) {
@@ -193,9 +194,8 @@ class Server {
 					response.json()
 						.then((json) => {
 							this.rating = json;
-							// Update lists once the rating is available
-							this.renderGameList();
-							this.renderSeekList();
+							// Update data once the rating is available
+							this.renderRatingRelatedInformation();
 						})
 						.catch((err) => console.error('Failed to parse JSON from ratings', err));
 				})
@@ -742,6 +742,8 @@ class Server {
 				localStorage.setItem('usr', name);
 				localStorage.setItem('token', token);
 			}
+			// Update ratings related to the now available username
+			this.renderRatingRelatedInformation();
 		} else if (e.startsWith('Password changed')) {
 			$('#settings-modal').modal('hide');
 			alert('success', 'Password changed!');
@@ -988,6 +990,21 @@ class Server {
 
 		document.getElementById('seekcount').textContent = playerSeeks.length;
 		document.getElementById('seekcountbot').textContent = botSeeks.length;
+	}
+
+	renderMyRating() {
+		const myDisplayRating = this.getPlayerRatingRow(this.myname).displayRating;
+		if (this.loggedin && myDisplayRating) {
+			document.getElementById('myrating').textContent = `${this.myname}: ${myDisplayRating}`;
+		} else {
+			document.getElementById('myrating').textContent = '';
+		}
+	}
+
+	renderRatingRelatedInformation() {
+		this.renderGameList();
+		this.renderSeekList();
+		this.renderMyRating();
 	}
 
 	/**
