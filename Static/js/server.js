@@ -1,29 +1,27 @@
 const ratingListUrl = '/ratinglist.json';
 const ratingRecalculationTimespanMS = 3600 * 1000;
 
-class Game {
-	/**
-	 * @param {number|string} gameId
-	 * @param {string} player1name
-	 * @param {string} player2name
-	 * @param {string} boardSize 4x4 | 5x5 | ...
-	 * @param {number} time
-	 * @param {number} timeIncrement
-	 */
-	constructor(gameId, player1name, player2name, boardSize, time, timeIncrement) {
-		this.gameId = gameId;
-		this.player1name = player1name;
-		this.player2name = player2name;
-		this.boardSize = boardSize;
-		this.time = time;
-		this.timeIncrement = timeIncrement;
-	}
+/**
+ * @param {number|string} gameId
+ * @param {string} player1name
+ * @param {string} player2name
+ * @param {string} boardSize 4x4 | 5x5 | ...
+ * @param {number} time
+ * @param {number} timeIncrement
+ */
+function Game(gameId, player1name, player2name, boardSize, time, timeIncrement) {
+	this.gameId = gameId;
+	this.player1name = player1name;
+	this.player2name = player2name;
+	this.boardSize = boardSize;
+	this.time = time;
+	this.timeIncrement = timeIncrement;
 
 	/**
 	 * @param {server} server
 	 * @returns {HTMLTableRowElement}
 	 */
-	render(server) {
+	this.render = (server) => {
 		const timeMinutes = Math.floor(this.timeIncrement / 60);
 		const timeSeconds = getZero(Math.floor(this.timeIncrement % 60));
 
@@ -36,50 +34,49 @@ class Game {
 		const row = $('<tr/>')
 			.addClass(`row game${this.gameId}`)
 			.click(() => server.observegame(this.gameId));
-		$('<td class="right"/>').append(Server.getRatingSpan(myRating, p1rating)).appendTo(row);
+		$('<td class="right"/>').append(server.getRatingSpan(myRating, p1rating)).appendTo(row);
 		$('<td class="playername right"/>').append(this.player1name).appendTo(row);
 		$('<td class="center"/>').append('vs').appendTo(row);
 		$('<td class="playername left"/>').append(this.player2name).appendTo(row);
-		$('<td class="left"/>').append(Server.getRatingSpan(myRating, p2rating)).appendTo(row);
+		$('<td class="left"/>').append(server.getRatingSpan(myRating, p2rating)).appendTo(row);
 		$('<td/>').append(boardSizeSpan).appendTo(row);
 		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
 		$('<td/>').append(`+${this.timeIncrement}s`).appendTo(row);
 		return row;
-	}
+	};
 }
-class Seek {
-	/**
-	 * @param {number|string} gameId
-	 * @param {string} playerName
-	 * @param {number} boardSize
-	 * @param {number} time
-	 * @param {number} timeIncrement
-	 * @param {'W'|'B'|undefined} color
-	 */
-	constructor(gameId, playerName, boardSize, time, timeIncrement, color) {
-		this.gameId = gameId;
-		this.playerName = playerName;
-		this.boardSize = boardSize;
-		this.time = time;
-		this.timeIncrement = timeIncrement;
-		this.color = color;
 
-		if (playerName.toLowerCase().includes('bot')) {
-			const [botLevel, botLevelDescription] = botlist[playerName] || [100, 'Unknown'];
-			this.isBot = true;
-			this.botLevel = botLevel;
-			this.description = botLevelDescription;
-		} else {
-			this.isBot = false;
-			this.description = '';
-		}
+/**
+ * @param {number|string} gameId
+ * @param {string} playerName
+ * @param {number} boardSize
+ * @param {number} time
+ * @param {number} timeIncrement
+ * @param {'W'|'B'|undefined} color
+ */
+function Seek(gameId, playerName, boardSize, time, timeIncrement, color) {
+	this.gameId = gameId;
+	this.playerName = playerName;
+	this.boardSize = boardSize;
+	this.time = time;
+	this.timeIncrement = timeIncrement;
+	this.color = color;
+
+	if (playerName.toLowerCase().includes('bot')) {
+		const [botLevel, botLevelDescription] = botlist[playerName] || [100, 'Unknown'];
+		this.isBot = true;
+		this.botLevel = botLevel;
+		this.description = botLevelDescription;
+	} else {
+		this.isBot = false;
+		this.description = '';
 	}
 
 	/**
 	 * @param {server} server
 	 * @returns {HTMLTableRowElement}
 	 */
-	render(server) {
+	this.render = (server) => {
 		const timeMinutes = Math.floor(this.timeIncrement / 60);
 		const timeSeconds = getZero(Math.floor(this.timeIncrement % 60));
 
@@ -99,38 +96,36 @@ class Seek {
 			.click(() => { server.acceptseek(this.gameId); });
 		$(`<td class="colorchoice ${this.color || ''}"/>`).appendTo(row);
 		$('<td/>').append(descriptionSpan + playerNameSpan).appendTo(row);
-		$('<td class="right"/>').append(Server.getRatingSpan(myRating, playerRating)).appendTo(row);
+		$('<td class="right"/>').append(server.getRatingSpan(myRating, playerRating)).appendTo(row);
 		$('<td/>').append(boardSizeSpan).appendTo(row);
 		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
 		$('<td/>').append(`+${this.timeIncrement}s`).appendTo(row);
 		return row;
-	}
+	};
 }
 
-class Server {
-	constructor() {
-		this.connection = null;
-		this.timeoutvar = null;
-		this.myname = null;
-		this.tries = 0;
-		this.timervar = null;
-		this.lastTimeUpdate = null;
-		this.lastBt = 0;
-		this.lastWt = 0;
-		this.anotherlogin = false;
-		this.loggedin = false;
-		/** @type {[[string, number, number, number, boolean]] | undefined} */
-		this.rating = undefined;
-		this.ratingTimer = 0;
-		this.loginTimer = null;
+function Server() {
+	this.connection = null;
+	this.timeoutvar = null;
+	this.myname = null;
+	this.tries = 0;
+	this.timervar = null;
+	this.lastTimeUpdate = null;
+	this.lastBt = 0;
+	this.lastWt = 0;
+	this.anotherlogin = false;
+	this.loggedin = false;
+	/** @type {[[string, number, number, number, boolean]] | undefined} */
+	this.rating = undefined;
+	this.ratingTimer = 0;
+	this.loginTimer = null;
 
-		/** @type {Game[]} */
-		this.gameList = [];
-		/** @type {Seek[]} */
-		this.seekList = [];
-	}
+	/** @type {Game[]} */
+	this.gameList = [];
+	/** @type {Seek[]} */
+	this.seekList = [];
 
-	connect() {
+	this.connect = () => {
 		if (this.connection && this.connection.readyState > 1) {
 			this.connection = null;
 		}
@@ -194,9 +189,9 @@ class Server {
 			this.updateRatingData(true);
 			this.ratingTimer = setInterval(() => this.updateRatingData(true), ratingRecalculationTimespanMS);
 		}
-	}
+	};
 
-	logout() {
+	this.logout = () => {
 		localStorage.removeItem('keeploggedin');
 		localStorage.removeItem('usr');
 		localStorage.removeItem('token');
@@ -205,15 +200,15 @@ class Server {
 			alert('info', 'Disconnnecting from server....');
 			this.connection = null;
 		}
-	}
+	};
 
-	loginbutton() {
+	this.loginbutton = () => {
 		if (this.loggedin) {
 			this.logout();
 		} else {
 			$('#login').modal('show');
 		}
-	}
+	};
 	/*
 	init() {
 		if (this.connection && this.connection.readyState === 2)//closing connection
@@ -295,27 +290,27 @@ class Server {
 	},
 	*/
 
-	startLoginTimer() {
+	this.startLoginTimer = () => {
 		if (this.loginTimer !== null) {
 			return;
 		}
 		this.loginTimer = setTimeout(() => this.loginTimerFn(), 5000);
-	}
+	};
 
-	stopLoginTimer() {
+	this.stopLoginTimer = () => {
 		if (this.loginTimer === null) {
 			return;
 		}
 		clearTimeout(this.loginTimer);
 		this.loginTimer = null;
-	}
+	};
 
-	loginTimerFn() {
+	this.loginTimerFn = () => {
 		this.connect();
 		this.loginTimer = setTimeout(() => this.loginTimerFn(), 5000);
-	}
+	};
 
-	login() {
+	this.login = () => {
 		this.connect();
 		if (this.connection.readyState === 0) {
 			this.connection.onopen = () => this.login();
@@ -325,18 +320,18 @@ class Server {
 
 			this.send(`Login ${name} ${pass}`);
 		}
-	}
+	};
 
-	guestlogin() {
+	this.guestlogin = () => {
 		this.connect();
 		if (this.connection.readyState === 0) {
 			this.connection.onopen = () => this.guestlogin();
 		} else if (this.connection.readyState === 1) {
 			this.send('Login Guest');
 		}
-	}
+	};
 
-	register() {
+	this.register = () => {
 		this.connect();
 		if (this.connection.readyState === 0) {
 			this.connection.onopen = () => this.register();
@@ -352,9 +347,9 @@ class Server {
 
 			this.send(`Register ${name} ${email}`);
 		}
-	}
+	};
 
-	changepassword() {
+	this.changepassword = () => {
 		this.connect();
 		if (this.connection.readyState === 0) {
 			this.connection.onopen = () => this.changepassword();
@@ -369,9 +364,9 @@ class Server {
 				this.send(`ChangePassword ${curpass} ${newpass}`);
 			}
 		}
-	}
+	};
 
-	sendresettoken() {
+	this.sendresettoken = () => {
 		this.connect();
 		if (this.connection.readyState === 0) {
 			this.connection.onopen = () => this.sendresettoken();
@@ -380,9 +375,9 @@ class Server {
 			const email = $('#resettoken-email').val();
 			this.send(`SendResetToken ${name} ${email}`);
 		}
-	}
+	};
 
-	resetpwd() {
+	this.resetpwd = () => {
 		this.connect();
 		if (this.connection.readyState === 0) {
 			this.connection.onopen = () => this.resetpwd();
@@ -397,19 +392,19 @@ class Server {
 				this.send(`ResetPassword ${name} ${token} ${npwd}`);
 			}
 		}
-	}
+	};
 
-	keepalive() {
+	this.keepalive = () => {
 		if (this.connection && this.connection.readyState === 1) { // open connection
 			this.send('PING');
 		}
-	}
+	};
 
 	/**
 	 * Handles messages from the server
 	 * @param {string} e Message/command
 	 */
-	msg(rawMessage) {
+	this.msg = (rawMessage) => {
 		console.log(rawMessage);
 		output(rawMessage);
 		const e = rawMessage.trim();
@@ -835,9 +830,9 @@ class Server {
 
 			this.send(`Login ${name} ${pass}`);
 		}
-	}
+	};
 
-	chat(type, name, msg) {
+	this.chat = (type, name, msg) => {
 		if (type === 'global') {
 			this.send(`Shout ${msg}`);
 		}
@@ -850,13 +845,13 @@ class Server {
 		else {
 			console.log('undefined chat type');
 		}
-	}
+	};
 
-	leaveroom(room) {
+	this.leaveroom = (room) => {
 		this.send(`LeaveRoom ${room}`);
-	}
+	};
 
-	send(e) {
+	this.send = (e) => {
 		const binaryData = (new TextEncoder()).encode(`${e}\n`);
 
 		if (this.connection && this.connection.readyState === 1) {
@@ -865,13 +860,13 @@ class Server {
 		else {
 			this.error('You are not logged on to the server');
 		}
-	}
+	};
 
-	static error(e) {
+	this.error = (e) => {
 		alert('danger', e);
-	}
+	};
 
-	seek() {
+	this.seek = () => {
 		// boardSizeText is 3x3 / 4x4 ...
 		const boardSizeText = $('#boardsize').find(':selected').text();
 		const boardSize = parseInt(boardSizeText, 10);
@@ -888,14 +883,14 @@ class Server {
 
 		this.send(`Seek ${boardSize} ${time * 60} ${inc} ${color}`);
 		$('#creategamemodal').modal('hide');
-	}
+	};
 
-	removeseek() {
+	this.removeseek = () => {
 		this.send('Seek 0 0 0');
 		$('#creategamemodal').modal('hide');
-	}
+	};
 
-	draw() {
+	this.draw = () => {
 		if (board.scratch || board.observing) {
 			return;
 		}
@@ -910,9 +905,9 @@ class Server {
 			$('#draw').removeClass('i-offered-draw').removeClass('opp-offered-draw').addClass('offer-draw');
 			this.send(`Game#${board.gameno} OfferDraw`);
 		}
-	}
+	};
 
-	undo() {
+	this.undo = () => {
 		if (board.observing) {
 			return;
 		}
@@ -929,28 +924,28 @@ class Server {
 			$('#undo').toggleClass('request-undo i-requested-undo');
 			alert('info', 'Undo request removed');
 		}
-	}
+	};
 
-	resign() {
+	this.resign = () => {
 		if (board.scratch || board.observing) {
 			return;
 		}
 
 		this.send(`Game#${board.gameno} Resign`);
-	}
+	};
 
-	acceptseek(e) {
+	this.acceptseek = (e) => {
 		this.send(`Accept ${e}`);
 		$('#joingame-modal').modal('hide');
-	}
+	};
 
-	unobserve() {
+	this.unobserve = () => {
 		if (board.gameno !== 0) {
 			this.send(`Unobserve ${board.gameno}`);
 		}
-	}
+	};
 
-	observegame(no) {
+	this.observegame = (no) => {
 		$('#watchgame-modal').modal('hide');
 		if (board.observing === false && board.scratch === false) { // don't observe game while playing another
 			return;
@@ -960,16 +955,16 @@ class Server {
 		}
 		this.unobserve();
 		this.send(`Observe ${no}`);
-	}
+	};
 
-	renderGameList() {
+	this.renderGameList = () => {
 		document.getElementById('gamecount').textContent = this.gameList.length;
 
 		$('#gamelist').empty();
 		this.gameList.forEach((game) => game.render(this).appendTo($('#gamelist')));
-	}
+	};
 
-	renderSeekList() {
+	this.renderSeekList = () => {
 		const playerSeeks = this.seekList.filter((seek) => !seek.isBot);
 		const botSeeks = this.seekList.filter((seek) => seek.isBot);
 		botSeeks.sort((seekA, seekB) => seekA.botLevel > seekB.botLevel);
@@ -983,27 +978,27 @@ class Server {
 
 		document.getElementById('seekcount').textContent = playerSeeks.length;
 		document.getElementById('seekcountbot').textContent = botSeeks.length;
-	}
+	};
 
-	renderMyRating() {
+	this.renderMyRating = () => {
 		const myDisplayRating = this.getPlayerRatingRow(this.myname).displayRating;
 		if (this.loggedin && myDisplayRating) {
 			document.getElementById('myrating').textContent = `${this.myname}: ${myDisplayRating}`;
 		} else {
 			document.getElementById('myrating').textContent = '';
 		}
-	}
+	};
 
-	renderRatingRelatedInformation() {
+	this.renderRatingRelatedInformation = () => {
 		this.renderGameList();
 		this.renderSeekList();
 		this.renderMyRating();
-	}
+	};
 
 	/**
 	 * @param {boolean|undefined} ignoreCache
 	 */
-	updateRatingData(ignoreCache) {
+	this.updateRatingData = (ignoreCache) => {
 		const noCacheHeaders = new Headers();
 		noCacheHeaders.append('pragma', 'no-cache');
 		noCacheHeaders.append('cache-control', 'no-cache');
@@ -1023,12 +1018,12 @@ class Server {
 					.catch((err) => console.error('Failed to parse JSON from ratings', err));
 			})
 			.catch((err) => console.error('Failed to get ratings', err));
-	}
+	};
 
 	/**
 	 * @param {string} playerName
 	 */
-	getPlayerRatingRow(playerName) {
+	this.getPlayerRatingRow = (playerName) => {
 		if (!this.rating) return {};
 		const ratingRowIndex = this.rating.findIndex((row) => row[0].split(' ').includes(playerName));
 		if (ratingRowIndex === -1) return {};
@@ -1041,14 +1036,14 @@ class Server {
 			games: ratingRow[3],
 			isBot: ratingRow[4],
 		};
-	}
+	};
 
 	/**
 	 * @param {{displayRating?: number}} myRating
 	 * @param {{displayRating?: number}} playerRating
 	 * @returns {string} span with rating and corresponding classes
 	 */
-	static getRatingSpan(myRating, playerRating) {
+	this.getRatingSpan = (myRating, playerRating) => {
 		const ratingSpan = $(`<span class='rating'>${playerRating.displayRating ?? ''}</span>`);
 		if (playerRating.displayRating === undefined) {
 			ratingSpan.addClass('unrated');
@@ -1071,7 +1066,7 @@ class Server {
 			}
 		}
 		return ratingSpan[0].outerHTML;
-	}
+	};
 }
 
 // eslint-disable-next-line no-unused-vars
