@@ -48,8 +48,11 @@ let anisoLevel = 16;
 
 let settingscounter = 0;
 
+/**
+ * @type {{[key: string]: [number, string]}}
+ */
 // eslint-disable-next-line no-unused-vars
-const botlist = { // Used-in-server.js
+const botlist = {
 	Tiltak_Bot: [0, 'Very&nbsp;Hard'],
 	TakticianBot: [2, 'Very&nbsp;Hard'],
 	TakkerusBot: [5, 'Very&nbsp;Hard'],

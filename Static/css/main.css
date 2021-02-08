@@ -480,3 +480,11 @@ a .fa:not(#undo):not(#draw) {
 .rating:hover:after{
 	display: block;
 }
+
+.colorchoice {
+	background: url("/images/circle_any.svg"); 
+	background-repeat: no-repeat;
+	background-position: center;
+}
+.colorchoice.W { background: url("/images/circle_white.svg"); }
+.colorchoice.B { background: url("/images/circle_black.svg"); }

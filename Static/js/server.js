@@ -1,4 +1,3 @@
-// eslint-disable-next-line max-classes-per-file
 const ratingListUrl = '/ratinglist.json';
 
 class Game {
@@ -6,7 +5,7 @@ class Game {
 	 * @param {number|string} gameId
 	 * @param {string} player1name
 	 * @param {string} player2name
-	 * @param {number} boardSize
+	 * @param {string} boardSize 4x4 | 5x5 | ...
 	 * @param {number} time
 	 * @param {number} timeIncrement
 	 */
@@ -31,16 +30,76 @@ class Game {
 		const p2rating = server.getPlayerRatingRow(this.player2name);
 		const myRating = server.getPlayerRatingRow(server.myname);
 
-		const sizeSpan = `<span class='badge'>${this.boardSize}</span>`;
+		const boardSizeSpan = `<span class='badge'>${this.boardSize}</span>`;
 
-		const row = $('<tr/>').addClass('row').addClass(`game${this.gameId}`)
-			.click(() => this.observegame(this.gameId));
+		const row = $('<tr/>')
+			.addClass(`row game${this.gameId}`)
+			.click(() => server.observegame(this.gameId));
 		$('<td class="right"/>').append(Server.getRatingSpan(myRating, p1rating)).appendTo(row);
 		$('<td class="playername right"/>').append(this.player1name).appendTo(row);
 		$('<td class="center"/>').append('vs').appendTo(row);
 		$('<td class="playername left"/>').append(this.player2name).appendTo(row);
 		$('<td class="left"/>').append(Server.getRatingSpan(myRating, p2rating)).appendTo(row);
-		$('<td/>').append(sizeSpan).appendTo(row);
+		$('<td/>').append(boardSizeSpan).appendTo(row);
+		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
+		$('<td/>').append(`+${this.timeIncrement}s`).appendTo(row);
+		return row;
+	}
+}
+class Seek {
+	/**
+	 * @param {number|string} gameId
+	 * @param {string} playerName
+	 * @param {number} boardSize
+	 * @param {number} time
+	 * @param {number} timeIncrement
+	 * @param {'W'|'B'|undefined} color
+	 */
+	constructor(gameId, playerName, boardSize, time, timeIncrement, color) {
+		this.gameId = gameId;
+		this.playerName = playerName;
+		this.boardSize = boardSize;
+		this.time = time;
+		this.timeIncrement = timeIncrement;
+		this.color = color;
+
+		if (playerName.toLowerCase().includes('bot')) {
+			const [botLevel, botLevelDescription] = botlist[playerName] || [100, 'Unknown'];
+			this.isBot = true;
+			this.botLevel = botLevel;
+			this.description = botLevelDescription;
+		} else {
+			this.isBot = false;
+			this.description = '';
+		}
+	}
+
+	/**
+	 * @param {server} server
+	 * @returns {HTMLTableRowElement}
+	 */
+	render(server) {
+		const timeMinutes = Math.floor(this.timeIncrement / 60);
+		const timeSeconds = getZero(Math.floor(this.timeIncrement % 60));
+
+		const playerRating = server.getPlayerRatingRow(this.playerName);
+		const myRating = server.getPlayerRatingRow(server.myname);
+
+		const img = $('<img src="images/circle_any.svg"/>');
+		if (this.color) {
+			img.src = (this.color === 'W' ? 'images/circle_white.svg' : 'images/circle_black.svg');
+		}
+		const descriptionSpan = this.description ? `<span class='botlevel'>${this.description}</span>` : '';
+		const playerNameSpan = `<span class='playername'>${this.playerName}</span>`;
+		const boardSizeSpan = `<span class='badge'>${this.boardSize}x${this.boardSize}</span>`;
+
+		const row = $('<tr/>')
+			.addClass(`row seek${this.gameId}`)
+			.click(() => { server.acceptseek(this.gameId); });
+		$(`<td class="colorchoice ${this.color || ''}"/>`).appendTo(row);
+		$('<td/>').append(descriptionSpan + playerNameSpan).appendTo(row);
+		$('<td class="right"/>').append(Server.getRatingSpan(myRating, playerRating)).appendTo(row);
+		$('<td/>').append(boardSizeSpan).appendTo(row);
 		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
 		$('<td/>').append(`+${this.timeIncrement}s`).appendTo(row);
 		return row;
@@ -65,6 +124,8 @@ class Server {
 
 		/** @type {Game[]} */
 		this.gameList = [];
+		/** @type {Seek[]} */
+		this.seekList = [];
 	}
 
 	connect() {
@@ -133,7 +194,9 @@ class Server {
 					response.json()
 						.then((json) => {
 							this.rating = json;
+							// Update lists once the rating is available
 							this.renderGameList();
+							this.renderSeekList();
 						})
 						.catch((err) => console.error('Failed to parse JSON from ratings', err));
 				})
@@ -472,8 +535,7 @@ class Server {
 			const split = e.split(' ');
 
 			const gameId = split[2].split('Game#')[1];
-			this.gameList = this.gameList.filter((game) => game.gameId === gameId);
-
+			this.gameList = this.gameList.filter((game) => game.gameId !== gameId);
 			this.renderGameList();
 		} else if (e.startsWith('Game#')) {
 			const spl = e.split(' ');
@@ -732,96 +794,27 @@ class Server {
 		// new seek
 		else if (e.startsWith('Seek new')) {
 			// Seek new 1 chaitu 5 180 15 W|B
-			const spl = e.split(' ');
+			const split = e.split(' ');
 
-			const no = spl[2];
-			const t = Number(spl[5]);
-			const m = Math.floor(t / 60);
-			const s = getZero(Math.floor(t % 60));
+			const gameId = split[2];
+			const time = Number(split[5]);
+			const timeIncrement = split[6];
 
-			const inc = spl[6];
+			const playerName = split[3];
+			const boardSize = split[4];
+			const color = split[7];
 
-			const playerName = spl[3];
-			const playerRating = this.getPlayerRatingRow(playerName);
-			const myRating = this.getPlayerRatingRow(this.myname);
-
-			let sz = `${spl[4]}x${spl[4]}`;
-
-			let img = 'images/circle_any.svg';
-			if (spl.length === 8) {
-				img = (spl[7] === 'W' ? 'images/circle_white.svg' : 'images/circle_black.svg');
-			}
-			img = `<img src="${img}"/>`;
-
-			const playerNameSpan = `<span class='playername'>${playerName}</span>`;
-
-			sz = `<span class='badge'>${sz}</span>`;
-			let botlevel = '';
-
-			const op = document.getElementById('seekcount');
-			const opbot = document.getElementById('seekcountbot');
-
-			const row = $('<tr/>').addClass('row').addClass(`seek${no}`)
-				.click(() => { this.acceptseek(spl[2]); });
-
-			if (playerName.toLowerCase().indexOf('bot') !== -1) {
-				const listed = $('#seeklistbot').children();
-				let previous = null;
-				let hardness = 'Unknown';
-				let level = 100;
-				const botsettings = botlist[playerName];
-
-				if (botsettings) {
-					for (let i = 0; i < listed.length; i += 1) {
-						const position = +(/(^| )botid([0-9]+)($| )/.exec(listed[i].className)[2]);
-						if (position < botsettings[0]) {
-							previous = $(listed[i]);
-						}
-					}
-					level = botsettings[0];
-					hardness = botsettings[1];
-				} else if (listed.length > 0) {
-					previous = $(listed[listed.length - 1]);
-				}
-
-				if (previous) {
-					previous.after(row);
-				}
-				else {
-					$('#seeklistbot').prepend(row);
-				}
-
-				row.addClass(`botid${level}`);
-				botlevel = `<span class='botlevel'>${hardness}</span>`;
-				opbot.innerHTML = Number(opbot.innerHTML) + 1;
-			} else {
-				row.appendTo($('#seeklist'));
-				op.innerHTML = Number(op.innerHTML) + 1;
-			}
-			$('<td/>').append(img).appendTo(row);
-			$('<td/>').append(botlevel + playerNameSpan).appendTo(row);
-			$('<td class="right"/>').append(Server.getRatingSpan(myRating, playerRating)).appendTo(row);
-			$('<td/>').append(sz).appendTo(row);
-			$('<td/>').append(`${m}:${s}`).appendTo(row);
-			$('<td/>').append(`+${inc}s`).appendTo(row);
+			this.seekList.push(new Seek(gameId, playerName, boardSize, time, timeIncrement, color));
+			this.renderSeekList();
 		}
 		// remove seek
 		else if (e.startsWith('Seek remove')) {
 			// Seek remove 1 chaitu 5 15
-			const spl = e.split(' ');
+			const split = e.split(' ');
 
-			const no = spl[2];
-
-			const botgame = $(`#seeklistbot .seek${no}`).length;
-			$(`.seek${no}`).remove();
-
-			const op = document.getElementById('seekcount');
-			const opbot = document.getElementById('seekcountbot');
-			if (botgame) {
-				opbot.innerHTML = Number(opbot.innerHTML) - 1;
-			} else {
-				op.innerHTML = Number(op.innerHTML) - 1;
-			}
+			const gameId = split[2];
+			this.seekList = this.seekList.filter((seek) => seek.gameId !== gameId);
+			this.renderSeekList();
 		}
 		// Online players
 		else if (e.startsWith('Online ')) {
@@ -979,6 +972,22 @@ class Server {
 
 		$('#gamelist').empty();
 		this.gameList.forEach((game) => game.render(this).appendTo($('#gamelist')));
+	}
+
+	renderSeekList() {
+		const playerSeeks = this.seekList.filter((seek) => !seek.isBot);
+		const botSeeks = this.seekList.filter((seek) => seek.isBot);
+		botSeeks.sort((seekA, seekB) => seekA.botLevel > seekB.botLevel);
+
+		const playerSeekTbody = $('#seeklist');
+		playerSeekTbody.empty();
+		playerSeeks.forEach((seek) => seek.render(this).appendTo(playerSeekTbody));
+		const botSeekTbody = $('#seeklistbot');
+		botSeekTbody.empty();
+		botSeeks.forEach((seek) => seek.render(this).appendTo(botSeekTbody));
+
+		document.getElementById('seekcount').textContent = playerSeeks.length;
+		document.getElementById('seekcountbot').textContent = botSeeks.length;
 	}
 
 	/**
