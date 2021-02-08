@@ -38,6 +38,7 @@ module.exports = {
 		'no-cond-assign': ['off'],
 		'no-useless-escape': ['off'],
 		'max-classes-per-file': ['off'],
+		'prefer-arrow-callback': ['off'],
 	},
 	globals: {
 		server: 'readonly',

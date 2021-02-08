@@ -10,38 +10,39 @@ const ratingRecalculationTimespanMS = 3600 * 1000;
  * @param {number} timeIncrement
  */
 function Game(gameId, player1name, player2name, boardSize, time, timeIncrement) {
-	this.gameId = gameId;
-	this.player1name = player1name;
-	this.player2name = player2name;
-	this.boardSize = boardSize;
-	this.time = time;
-	this.timeIncrement = timeIncrement;
+	const self = this;
+	self.gameId = gameId;
+	self.player1name = player1name;
+	self.player2name = player2name;
+	self.boardSize = boardSize;
+	self.time = time;
+	self.timeIncrement = timeIncrement;
 
 	/**
 	 * @param {server} server
 	 * @returns {HTMLTableRowElement}
 	 */
-	this.render = (server) => {
-		const timeMinutes = Math.floor(this.timeIncrement / 60);
-		const timeSeconds = getZero(Math.floor(this.timeIncrement % 60));
+	self.render = function (server) {
+		const timeMinutes = Math.floor(self.timeIncrement / 60);
+		const timeSeconds = getZero(Math.floor(self.timeIncrement % 60));
 
-		const p1rating = server.getPlayerRatingRow(this.player1name);
-		const p2rating = server.getPlayerRatingRow(this.player2name);
+		const p1rating = server.getPlayerRatingRow(self.player1name);
+		const p2rating = server.getPlayerRatingRow(self.player2name);
 		const myRating = server.getPlayerRatingRow(server.myname);
 
-		const boardSizeSpan = `<span class='badge'>${this.boardSize}</span>`;
+		const boardSizeSpan = `<span class='badge'>${self.boardSize}</span>`;
 
 		const row = $('<tr/>')
-			.addClass(`row game${this.gameId}`)
-			.click(() => server.observegame(this.gameId));
+			.addClass(`row game${self.gameId}`)
+			.click(function () { server.observegame(self.gameId); });
 		$('<td class="right"/>').append(server.getRatingSpan(myRating, p1rating)).appendTo(row);
-		$('<td class="playername right"/>').append(this.player1name).appendTo(row);
+		$('<td class="playername right"/>').append(self.player1name).appendTo(row);
 		$('<td class="center"/>').append('vs').appendTo(row);
-		$('<td class="playername left"/>').append(this.player2name).appendTo(row);
+		$('<td class="playername left"/>').append(self.player2name).appendTo(row);
 		$('<td class="left"/>').append(server.getRatingSpan(myRating, p2rating)).appendTo(row);
 		$('<td/>').append(boardSizeSpan).appendTo(row);
 		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
-		$('<td/>').append(`+${this.timeIncrement}s`).appendTo(row);
+		$('<td/>').append(`+${self.timeIncrement}s`).appendTo(row);
 		return row;
 	};
 }
@@ -55,81 +56,83 @@ function Game(gameId, player1name, player2name, boardSize, time, timeIncrement) 
  * @param {'W'|'B'|undefined} color
  */
 function Seek(gameId, playerName, boardSize, time, timeIncrement, color) {
-	this.gameId = gameId;
-	this.playerName = playerName;
-	this.boardSize = boardSize;
-	this.time = time;
-	this.timeIncrement = timeIncrement;
-	this.color = color;
+	const self = this;
+	self.gameId = gameId;
+	self.playerName = playerName;
+	self.boardSize = boardSize;
+	self.time = time;
+	self.timeIncrement = timeIncrement;
+	self.color = color;
 
 	if (playerName.toLowerCase().includes('bot')) {
 		const [botLevel, botLevelDescription] = botlist[playerName] || [100, 'Unknown'];
-		this.isBot = true;
-		this.botLevel = botLevel;
-		this.description = botLevelDescription;
+		self.isBot = true;
+		self.botLevel = botLevel;
+		self.description = botLevelDescription;
 	} else {
-		this.isBot = false;
-		this.description = '';
+		self.isBot = false;
+		self.description = '';
 	}
 
 	/**
 	 * @param {server} server
 	 * @returns {HTMLTableRowElement}
 	 */
-	this.render = (server) => {
-		const timeMinutes = Math.floor(this.timeIncrement / 60);
-		const timeSeconds = getZero(Math.floor(this.timeIncrement % 60));
+	self.render = function (server) {
+		const timeMinutes = Math.floor(self.timeIncrement / 60);
+		const timeSeconds = getZero(Math.floor(self.timeIncrement % 60));
 
-		const playerRating = server.getPlayerRatingRow(this.playerName);
+		const playerRating = server.getPlayerRatingRow(self.playerName);
 		const myRating = server.getPlayerRatingRow(server.myname);
 
 		const img = $('<img src="images/circle_any.svg"/>');
-		if (this.color) {
-			img.src = (this.color === 'W' ? 'images/circle_white.svg' : 'images/circle_black.svg');
+		if (self.color) {
+			img.src = (self.color === 'W' ? 'images/circle_white.svg' : 'images/circle_black.svg');
 		}
-		const descriptionSpan = this.description ? `<span class='botlevel'>${this.description}</span>` : '';
-		const playerNameSpan = `<span class='playername'>${this.playerName}</span>`;
-		const boardSizeSpan = `<span class='badge'>${this.boardSize}x${this.boardSize}</span>`;
+		const descriptionSpan = self.description ? `<span class='botlevel'>${self.description}</span>` : '';
+		const playerNameSpan = `<span class='playername'>${self.playerName}</span>`;
+		const boardSizeSpan = `<span class='badge'>${self.boardSize}x${self.boardSize}</span>`;
 
 		const row = $('<tr/>')
-			.addClass(`row seek${this.gameId}`)
-			.click(() => { server.acceptseek(this.gameId); });
-		$(`<td class="colorchoice ${this.color || ''}"/>`).appendTo(row);
+			.addClass(`row seek${self.gameId}`)
+			.click(function () { server.acceptseek(self.gameId); });
+		$(`<td class="colorchoice ${self.color || ''}"/>`).appendTo(row);
 		$('<td/>').append(descriptionSpan + playerNameSpan).appendTo(row);
 		$('<td class="right"/>').append(server.getRatingSpan(myRating, playerRating)).appendTo(row);
 		$('<td/>').append(boardSizeSpan).appendTo(row);
 		$('<td/>').append(`${timeMinutes}:${timeSeconds}`).appendTo(row);
-		$('<td/>').append(`+${this.timeIncrement}s`).appendTo(row);
+		$('<td/>').append(`+${self.timeIncrement}s`).appendTo(row);
 		return row;
 	};
 }
 
 function Server() {
-	this.connection = null;
-	this.timeoutvar = null;
-	this.myname = null;
-	this.tries = 0;
-	this.timervar = null;
-	this.lastTimeUpdate = null;
-	this.lastBt = 0;
-	this.lastWt = 0;
-	this.anotherlogin = false;
-	this.loggedin = false;
+	const self = this;
+	self.connection = null;
+	self.timeoutvar = null;
+	self.myname = null;
+	self.tries = 0;
+	self.timervar = null;
+	self.lastTimeUpdate = null;
+	self.lastBt = 0;
+	self.lastWt = 0;
+	self.anotherlogin = false;
+	self.loggedin = false;
 	/** @type {[[string, number, number, number, boolean]] | undefined} */
-	this.rating = undefined;
-	this.ratingTimer = 0;
-	this.loginTimer = null;
+	self.rating = undefined;
+	self.ratingTimer = 0;
+	self.loginTimer = null;
 
 	/** @type {Game[]} */
-	this.gameList = [];
+	self.gameList = [];
 	/** @type {Seek[]} */
-	this.seekList = [];
+	self.seekList = [];
 
-	this.connect = () => {
-		if (this.connection && this.connection.readyState > 1) {
-			this.connection = null;
+	self.connect = function () {
+		if (self.connection && self.connection.readyState > 1) {
+			self.connection = null;
 		}
-		if (!this.connection) {
+		if (!self.connection) {
 			const proto = 'wss://';
 			let url = `${window.location.host}/ws`;
 			if (window.location.host.indexOf('localhost') > -1 || window.location.host.indexOf('127.0.0.1') > -1 || window.location.host.indexOf('192.168.') === 0) {
@@ -137,28 +140,28 @@ function Server() {
 				// proto = 'ws://'
 				// url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
 			}
-			this.connection = new WebSocket(proto + url, 'binary');
-			this.connection.onerror = (e) => {
+			self.connection = new WebSocket(proto + url, 'binary');
+			self.connection.onerror = function (e) {
 				output(`Connection error: ${e}`);
 			};
-			this.connection.onmessage = (e) => {
+			self.connection.onmessage = function (e) {
 				const blob = e.data;
 				const reader = new FileReader();
-				reader.onload = () => {
+				reader.onload = function () {
 					const responseText = new TextDecoder('utf-8').decode(reader.result);
-					this.msg(responseText);
+					self.msg(responseText);
 					/*
 					const res = res_text.split("\n");
 					const i;
 					for (i = 0; i < res.length - 1; i++) {
-						this.msg(res[i]);
+						self.msg(res[i]);
 					}
 					*/
 				};
 				reader.readAsArrayBuffer(blob);
 			};
-			this.connection.onclose = () => {
-				this.loggedin = false;
+			self.connection.onclose = function () {
+				self.loggedin = false;
 				document.getElementById('login-button').textContent = 'Sign up / Login';
 				$('#onlineplayers').addClass('hidden');
 				document.getElementById('onlineplayersbadge').innerHTML = '0';
@@ -171,40 +174,40 @@ function Server() {
 				board.gameno = 0;
 				document.title = 'Tak';
 
-				this.gameList = [];
-				this.seekList = [];
-				this.renderRatingRelatedInformation();
+				self.gameList = [];
+				self.seekList = [];
+				self.renderRatingRelatedInformation();
 				stopTime();
 
-				if (localStorage.getItem('keeploggedin') === 'true' && !this.anotherlogin) {
+				if (localStorage.getItem('keeploggedin') === 'true' && !self.anotherlogin) {
 					alert('info', 'Connection lost. Trying to reconnect...');
-					this.startLoginTimer();
+					self.startLoginTimer();
 				} else {
 					alert('info', 'You\'re disconnected from server');
 				}
 			};
 		}
 
-		if (!this.ratingTimer) {
-			this.updateRatingData(true);
-			this.ratingTimer = setInterval(() => this.updateRatingData(true), ratingRecalculationTimespanMS);
+		if (!self.ratingTimer) {
+			self.updateRatingData(true);
+			self.ratingTimer = setInterval(function () { self.updateRatingData(true); }, ratingRecalculationTimespanMS);
 		}
 	};
 
-	this.logout = () => {
+	self.logout = function () {
 		localStorage.removeItem('keeploggedin');
 		localStorage.removeItem('usr');
 		localStorage.removeItem('token');
-		if (this.connection) {
-			this.connection.close();
+		if (self.connection) {
+			self.connection.close();
 			alert('info', 'Disconnnecting from server....');
-			this.connection = null;
+			self.connection = null;
 		}
 	};
 
-	this.loginbutton = () => {
-		if (this.loggedin) {
-			this.logout();
+	self.loginbutton = function () {
+		if (self.loggedin) {
+			self.logout();
 		} else {
 			$('#login').modal('show');
 		}
@@ -290,52 +293,52 @@ function Server() {
 	},
 	*/
 
-	this.startLoginTimer = () => {
-		if (this.loginTimer !== null) {
+	self.startLoginTimer = function () {
+		if (self.loginTimer !== null) {
 			return;
 		}
-		this.loginTimer = setTimeout(() => this.loginTimerFn(), 5000);
+		self.loginTimer = setTimeout(function () { self.loginTimerFn(); }, 5000);
 	};
 
-	this.stopLoginTimer = () => {
-		if (this.loginTimer === null) {
+	self.stopLoginTimer = function () {
+		if (self.loginTimer === null) {
 			return;
 		}
-		clearTimeout(this.loginTimer);
-		this.loginTimer = null;
+		clearTimeout(self.loginTimer);
+		self.loginTimer = null;
 	};
 
-	this.loginTimerFn = () => {
-		this.connect();
-		this.loginTimer = setTimeout(() => this.loginTimerFn(), 5000);
+	self.loginTimerFn = function () {
+		self.connect();
+		self.loginTimer = setTimeout(function () { self.loginTimerFn(); }, 5000);
 	};
 
-	this.login = () => {
-		this.connect();
-		if (this.connection.readyState === 0) {
-			this.connection.onopen = () => this.login();
-		} else if (this.connection.readyState === 1) {
+	self.login = function () {
+		self.connect();
+		if (self.connection.readyState === 0) {
+			self.connection.onopen = function () { self.login(); };
+		} else if (self.connection.readyState === 1) {
 			const name = $('#login-username').val();
 			const pass = $('#login-pwd').val();
 
-			this.send(`Login ${name} ${pass}`);
+			self.send(`Login ${name} ${pass}`);
 		}
 	};
 
-	this.guestlogin = () => {
-		this.connect();
-		if (this.connection.readyState === 0) {
-			this.connection.onopen = () => this.guestlogin();
-		} else if (this.connection.readyState === 1) {
-			this.send('Login Guest');
+	self.guestlogin = function () {
+		self.connect();
+		if (self.connection.readyState === 0) {
+			self.connection.onopen = function () { self.guestlogin(); };
+		} else if (self.connection.readyState === 1) {
+			self.send('Login Guest');
 		}
 	};
 
-	this.register = () => {
-		this.connect();
-		if (this.connection.readyState === 0) {
-			this.connection.onopen = () => this.register();
-		} else if (this.connection.readyState === 1) {
+	self.register = function () {
+		self.connect();
+		if (self.connection.readyState === 0) {
+			self.connection.onopen = function () { self.register(); };
+		} else if (self.connection.readyState === 1) {
 			const name = $('#register-username').val();
 			const email = $('#register-email').val();
 			const retypedEmail = $('#retype-register-email').val();
@@ -345,15 +348,15 @@ function Server() {
 				return;
 			}
 
-			this.send(`Register ${name} ${email}`);
+			self.send(`Register ${name} ${email}`);
 		}
 	};
 
-	this.changepassword = () => {
-		this.connect();
-		if (this.connection.readyState === 0) {
-			this.connection.onopen = () => this.changepassword();
-		} else if (this.connection.readyState === 1) {
+	self.changepassword = function () {
+		self.connect();
+		if (self.connection.readyState === 0) {
+			self.connection.onopen = function () { self.changepassword(); };
+		} else if (self.connection.readyState === 1) {
 			const curpass = $('#cur-pwd').val();
 			const newpass = $('#new-pwd').val();
 			const retypenewpass = $('#retype-new-pwd').val();
@@ -361,27 +364,27 @@ function Server() {
 			if (newpass !== retypenewpass) {
 				alert('danger', 'Passwords don\'t match');
 			} else {
-				this.send(`ChangePassword ${curpass} ${newpass}`);
+				self.send(`ChangePassword ${curpass} ${newpass}`);
 			}
 		}
 	};
 
-	this.sendresettoken = () => {
-		this.connect();
-		if (this.connection.readyState === 0) {
-			this.connection.onopen = () => this.sendresettoken();
-		} else if (this.connection.readyState === 1) {
+	self.sendresettoken = function () {
+		self.connect();
+		if (self.connection.readyState === 0) {
+			self.connection.onopen = function () { self.sendresettoken(); };
+		} else if (self.connection.readyState === 1) {
 			const name = $('#resettoken-username').val();
 			const email = $('#resettoken-email').val();
-			this.send(`SendResetToken ${name} ${email}`);
+			self.send(`SendResetToken ${name} ${email}`);
 		}
 	};
 
-	this.resetpwd = () => {
-		this.connect();
-		if (this.connection.readyState === 0) {
-			this.connection.onopen = () => this.resetpwd();
-		} else if (this.connection.readyState === 1) {
+	self.resetpwd = function () {
+		self.connect();
+		if (self.connection.readyState === 0) {
+			self.connection.onopen = function () { self.resetpwd(); };
+		} else if (self.connection.readyState === 1) {
 			const name = $('#resetpwd-username').val();
 			const token = $('#resetpwd-token').val();
 			const npwd = $('#reset-new-pwd').val();
@@ -389,14 +392,14 @@ function Server() {
 			if (npwd !== rnpwd) {
 				alert('danger', 'Passwords don\'t match');
 			} else {
-				this.send(`ResetPassword ${name} ${token} ${npwd}`);
+				self.send(`ResetPassword ${name} ${token} ${npwd}`);
 			}
 		}
 	};
 
-	this.keepalive = () => {
-		if (this.connection && this.connection.readyState === 1) { // open connection
-			this.send('PING');
+	self.keepalive = function () {
+		if (self.connection && self.connection.readyState === 1) { // open connection
+			self.send('PING');
 		}
 	};
 
@@ -404,7 +407,7 @@ function Server() {
 	 * Handles messages from the server
 	 * @param {string} e Message/command
 	 */
-	this.msg = (rawMessage) => {
+	self.msg = function (rawMessage) {
 		console.log(rawMessage);
 		output(rawMessage);
 		const e = rawMessage.trim();
@@ -515,15 +518,15 @@ function Server() {
 			const p2name = split[5].split(',')[0];
 			const boardSize = split[6].split(',')[0];
 
-			this.gameList.push(new Game(gameId, p1name, p2name, boardSize, time, inc));
-			this.renderGameList();
+			self.gameList.push(new Game(gameId, p1name, p2name, boardSize, time, inc));
+			self.renderGameList();
 		} else if (e.startsWith('GameList Remove Game#')) {
 			// GameList Remove Game#1 player1 vs player2, 4x4, 180, 0 half-moves played, player1 to move
 			const split = e.split(' ');
 
 			const gameId = split[2].split('Game#')[1];
-			this.gameList = this.gameList.filter((game) => game.gameId !== gameId);
-			this.renderGameList();
+			self.gameList = self.gameList.filter(function (game) { return game.gameId !== gameId; });
+			self.renderGameList();
 		} else if (e.startsWith('Game#')) {
 			const spl = e.split(' ');
 			const gameno = Number(e.split('Game#')[1].split(' ')[0]);
@@ -551,11 +554,11 @@ function Server() {
 				else if (spl[1] === 'Time') {
 					const wt = Math.max(+spl[2] || 0, 0);
 					const bt = Math.max(+spl[3] || 0, 0);
-					this.lastWt = wt;
-					this.lastBt = bt;
+					self.lastWt = wt;
+					self.lastBt = bt;
 
 					const now = new Date();
-					this.lastTimeUpdate = now.getTime() / 1000;
+					self.lastTimeUpdate = now.getTime() / 1000;
 
 					board.timer_started = true;
 					startTime(true);
@@ -659,15 +662,15 @@ function Server() {
 				}
 			}
 		} else if (e.startsWith('Login or Register')) {
-			this.stopLoginTimer();
-			this.send('Client TakWeb-16.05.26');
-			clearInterval(this.timeoutvar);
-			this.timeoutvar = setInterval(() => this.keepalive(), 30000);
-			if (localStorage.getItem('keeploggedin') === 'true' && this.tries < 3) {
+			self.stopLoginTimer();
+			self.send('Client TakWeb-16.05.26');
+			clearInterval(self.timeoutvar);
+			self.timeoutvar = setInterval(function () { self.keepalive(); }, 30000);
+			if (localStorage.getItem('keeploggedin') === 'true' && self.tries < 3) {
 				const uname = localStorage.getItem('usr');
 				const token = localStorage.getItem('token');
-				this.send(`Login ${uname} ${token}`);
-				this.tries += 1;
+				self.send(`Login ${uname} ${token}`);
+				self.tries += 1;
 			} else {
 				localStorage.removeItem('keeploggedin');
 				localStorage.removeItem('usr');
@@ -708,20 +711,20 @@ function Server() {
 		// You're already logged in
 		else if (e.startsWith('You\'re already logged in')) {
 			alert('warning', 'You\'re already logged in from another window');
-			this.connection.close();
+			self.connection.close();
 		}
 		// Welcome kaka!
 		else if (e.startsWith('Welcome ')) {
-			this.tries = 0;
+			self.tries = 0;
 			$('#login').modal('hide');
 			document.getElementById('login-button').textContent = 'Logout';
-			this.myname = e.split('Welcome ')[1].split('!')[0];
-			alert('success', `You're logged in ${this.myname}!`);
+			self.myname = e.split('Welcome ')[1].split('!')[0];
+			alert('success', `You're logged in ${self.myname}!`);
 			document.title = 'Tak';
-			this.loggedin = true;
+			self.loggedin = true;
 
 			const rem = $('#keeploggedin').is(':checked');
-			if (rem === true && !this.myname.startsWith('Guest')) {
+			if (rem === true && !self.myname.startsWith('Guest')) {
 				console.log('storing');
 				const name = $('#login-username').val();
 				const token = $('#login-pwd').val();
@@ -731,7 +734,7 @@ function Server() {
 				localStorage.setItem('token', token);
 			}
 			// Update ratings related to the now available username
-			this.renderRatingRelatedInformation();
+			self.renderRatingRelatedInformation();
 		} else if (e.startsWith('Password changed')) {
 			$('#settings-modal').modal('hide');
 			alert('success', 'Password changed!');
@@ -739,7 +742,7 @@ function Server() {
 			const msg = e.split('Message ');
 
 			if (e.includes('You\'ve logged in from another window. Disconnecting')) {
-				this.anotherlogin = true;
+				self.anotherlogin = true;
 			}
 
 			alert('info', `Server says: ${msg[1]}`);
@@ -773,7 +776,7 @@ function Server() {
 			const regex = /Told <([^\s]*)> (.*)/g;
 			const match = regex.exec(e);
 
-			chathandler.received('priv', match[1], this.myname, match[2]);
+			chathandler.received('priv', match[1], self.myname, match[2]);
 		} else if (e.startsWith('CmdReply')) {
 			const msg = e.split('CmdReply ')[1];
 			const messageSpan = `<span class="cmdreply">${msg}</span>`;
@@ -793,8 +796,8 @@ function Server() {
 			const boardSize = split[4];
 			const color = split[7];
 
-			this.seekList.push(new Seek(gameId, playerName, boardSize, time, timeIncrement, color));
-			this.renderSeekList();
+			self.seekList.push(new Seek(gameId, playerName, boardSize, time, timeIncrement, color));
+			self.renderSeekList();
 		}
 		// remove seek
 		else if (e.startsWith('Seek remove')) {
@@ -802,8 +805,8 @@ function Server() {
 			const split = e.split(' ');
 
 			const gameId = split[2];
-			this.seekList = this.seekList.filter((seek) => seek.gameId !== gameId);
-			this.renderSeekList();
+			self.seekList = self.seekList.filter(function (seek) { return seek.gameId !== gameId; });
+			self.renderSeekList();
 		}
 		// Online players
 		else if (e.startsWith('Online ')) {
@@ -828,45 +831,45 @@ function Server() {
 			const name = $('#resetpwd-username').val();
 			const pass = $('#reset-new-pwd').val();
 
-			this.send(`Login ${name} ${pass}`);
+			self.send(`Login ${name} ${pass}`);
 		}
 	};
 
-	this.chat = (type, name, msg) => {
+	self.chat = function (type, name, msg) {
 		if (type === 'global') {
-			this.send(`Shout ${msg}`);
+			self.send(`Shout ${msg}`);
 		}
 		else if (type === 'room') {
-			this.send(`ShoutRoom ${name} ${msg}`);
+			self.send(`ShoutRoom ${name} ${msg}`);
 		}
 		else if (type === 'priv') {
-			this.send(`Tell ${name} ${msg}`);
+			self.send(`Tell ${name} ${msg}`);
 		}
 		else {
 			console.log('undefined chat type');
 		}
 	};
 
-	this.leaveroom = (room) => {
-		this.send(`LeaveRoom ${room}`);
+	self.leaveroom = function (room) {
+		self.send(`LeaveRoom ${room}`);
 	};
 
-	this.send = (e) => {
+	self.send = function (e) {
 		const binaryData = (new TextEncoder()).encode(`${e}\n`);
 
-		if (this.connection && this.connection.readyState === 1) {
-			this.connection.send(binaryData);
+		if (self.connection && self.connection.readyState === 1) {
+			self.connection.send(binaryData);
 		}
 		else {
-			this.error('You are not logged on to the server');
+			self.error('You are not logged on to the server');
 		}
 	};
 
-	this.error = (e) => {
+	self.error = function (e) {
 		alert('danger', e);
 	};
 
-	this.seek = () => {
+	self.seek = function () {
 		// boardSizeText is 3x3 / 4x4 ...
 		const boardSizeText = $('#boardsize').find(':selected').text();
 		const boardSize = parseInt(boardSizeText, 10);
@@ -881,71 +884,71 @@ function Server() {
 			color = 'B';
 		}
 
-		this.send(`Seek ${boardSize} ${time * 60} ${inc} ${color}`);
+		self.send(`Seek ${boardSize} ${time * 60} ${inc} ${color}`);
 		$('#creategamemodal').modal('hide');
 	};
 
-	this.removeseek = () => {
-		this.send('Seek 0 0 0');
+	self.removeseek = function () {
+		self.send('Seek 0 0 0');
 		$('#creategamemodal').modal('hide');
 	};
 
-	this.draw = () => {
+	self.draw = function () {
 		if (board.scratch || board.observing) {
 			return;
 		}
 
 		if ($('#draw').hasClass('offer-draw')) { // offer
 			$('#draw').toggleClass('i-offered-draw offer-draw');
-			this.send(`Game#${board.gameno} OfferDraw`);
+			self.send(`Game#${board.gameno} OfferDraw`);
 		} else if ($('#draw').hasClass('i-offered-draw')) { // remove offer
 			$('#draw').toggleClass('i-offered-draw offer-draw');
-			this.send(`Game#${board.gameno} RemoveDraw`);
+			self.send(`Game#${board.gameno} RemoveDraw`);
 		} else { // accept the offer
 			$('#draw').removeClass('i-offered-draw').removeClass('opp-offered-draw').addClass('offer-draw');
-			this.send(`Game#${board.gameno} OfferDraw`);
+			self.send(`Game#${board.gameno} OfferDraw`);
 		}
 	};
 
-	this.undo = () => {
+	self.undo = function () {
 		if (board.observing) {
 			return;
 		}
 
 		if ($('#undo').hasClass('request-undo')) { // request undo
-			this.send(`Game#${board.gameno} RequestUndo`);
+			self.send(`Game#${board.gameno} RequestUndo`);
 			$('#undo').toggleClass('request-undo i-requested-undo');
 			alert('info', 'Undo request sent');
 		} else if ($('#undo').hasClass('opp-requested-undo')) { // accept request
-			this.send(`Game#${board.gameno} RequestUndo`);
+			self.send(`Game#${board.gameno} RequestUndo`);
 			$('#undo').toggleClass('request-undo opp-requested-undo');
 		} else if ($('#undo').hasClass('i-requested-undo')) { // remove request
-			this.send(`Game#${board.gameno} RemoveUndo`);
+			self.send(`Game#${board.gameno} RemoveUndo`);
 			$('#undo').toggleClass('request-undo i-requested-undo');
 			alert('info', 'Undo request removed');
 		}
 	};
 
-	this.resign = () => {
+	self.resign = function () {
 		if (board.scratch || board.observing) {
 			return;
 		}
 
-		this.send(`Game#${board.gameno} Resign`);
+		self.send(`Game#${board.gameno} Resign`);
 	};
 
-	this.acceptseek = (e) => {
-		this.send(`Accept ${e}`);
+	self.acceptseek = function (e) {
+		self.send(`Accept ${e}`);
 		$('#joingame-modal').modal('hide');
 	};
 
-	this.unobserve = () => {
+	self.unobserve = function () {
 		if (board.gameno !== 0) {
-			this.send(`Unobserve ${board.gameno}`);
+			self.send(`Unobserve ${board.gameno}`);
 		}
 	};
 
-	this.observegame = (no) => {
+	self.observegame = function (no) {
 		$('#watchgame-modal').modal('hide');
 		if (board.observing === false && board.scratch === false) { // don't observe game while playing another
 			return;
@@ -953,52 +956,52 @@ function Server() {
 		if (no === board.gameno) {
 			return;
 		}
-		this.unobserve();
-		this.send(`Observe ${no}`);
+		self.unobserve();
+		self.send(`Observe ${no}`);
 	};
 
-	this.renderGameList = () => {
-		document.getElementById('gamecount').textContent = this.gameList.length;
+	self.renderGameList = function () {
+		document.getElementById('gamecount').textContent = self.gameList.length;
 
 		$('#gamelist').empty();
-		this.gameList.forEach((game) => game.render(this).appendTo($('#gamelist')));
+		self.gameList.forEach(function (game) { game.render(self).appendTo($('#gamelist')); });
 	};
 
-	this.renderSeekList = () => {
-		const playerSeeks = this.seekList.filter((seek) => !seek.isBot);
-		const botSeeks = this.seekList.filter((seek) => seek.isBot);
-		botSeeks.sort((seekA, seekB) => seekA.botLevel > seekB.botLevel);
+	self.renderSeekList = function () {
+		const playerSeeks = self.seekList.filter(function (seek) { return !seek.isBot; });
+		const botSeeks = self.seekList.filter(function (seek) { return seek.isBot; });
+		botSeeks.sort(function (seekA, seekB) { return seekA.botLevel > seekB.botLevel; });
 
 		const playerSeekTbody = $('#seeklist');
 		playerSeekTbody.empty();
-		playerSeeks.forEach((seek) => seek.render(this).appendTo(playerSeekTbody));
+		playerSeeks.forEach(function (seek) { return seek.render(self).appendTo(playerSeekTbody); });
 		const botSeekTbody = $('#seeklistbot');
 		botSeekTbody.empty();
-		botSeeks.forEach((seek) => seek.render(this).appendTo(botSeekTbody));
+		botSeeks.forEach(function (seek) { return seek.render(self).appendTo(botSeekTbody); });
 
 		document.getElementById('seekcount').textContent = playerSeeks.length;
 		document.getElementById('seekcountbot').textContent = botSeeks.length;
 	};
 
-	this.renderMyRating = () => {
-		const myDisplayRating = this.getPlayerRatingRow(this.myname).displayRating;
-		if (this.loggedin && myDisplayRating) {
-			document.getElementById('myrating').textContent = `${this.myname}: ${myDisplayRating}`;
+	self.renderMyRating = function () {
+		const myDisplayRating = self.getPlayerRatingRow(self.myname).displayRating;
+		if (self.loggedin && myDisplayRating) {
+			document.getElementById('myrating').textContent = `${self.myname}: ${myDisplayRating}`;
 		} else {
 			document.getElementById('myrating').textContent = '';
 		}
 	};
 
-	this.renderRatingRelatedInformation = () => {
-		this.renderGameList();
-		this.renderSeekList();
-		this.renderMyRating();
+	self.renderRatingRelatedInformation = function () {
+		self.renderGameList();
+		self.renderSeekList();
+		self.renderMyRating();
 	};
 
 	/**
 	 * @param {boolean|undefined} ignoreCache
 	 */
-	this.updateRatingData = (ignoreCache) => {
+	self.updateRatingData = function (ignoreCache) {
 		const noCacheHeaders = new Headers();
 		noCacheHeaders.append('pragma', 'no-cache');
 		noCacheHeaders.append('cache-control', 'no-cache');
@@ -1008,26 +1011,26 @@ function Server() {
 		};
 
 		window.fetch(ratingListUrl, options)
-			.then((response) => {
-				response.json()
-					.then((json) => {
-						this.rating = json;
+			.then(function (response) {
+				return response.json()
+					.then(function (json) {
+						self.rating = json;
 						// Update data once the rating is available
-						this.renderRatingRelatedInformation();
+						self.renderRatingRelatedInformation();
 					})
-					.catch((err) => console.error('Failed to parse JSON from ratings', err));
+					.catch(function (err) { console.error('Failed to parse JSON from ratings', err); });
 			})
-			.catch((err) => console.error('Failed to get ratings', err));
+			.catch(function (err) { console.error('Failed to get ratings', err); });
 	};
 
 	/**
 	 * @param {string} playerName
 	 */
-	this.getPlayerRatingRow = (playerName) => {
-		if (!this.rating) return {};
-		const ratingRowIndex = this.rating.findIndex((row) => row[0].split(' ').includes(playerName));
+	self.getPlayerRatingRow = function (playerName) {
+		if (!self.rating) return {};
+		const ratingRowIndex = self.rating.findIndex(function (row) { return row[0].split(' ').includes(playerName); });
 		if (ratingRowIndex === -1) return {};
-		const ratingRow = this.rating[ratingRowIndex];
+		const ratingRow = self.rating[ratingRowIndex];
 		return {
 			rank: ratingRowIndex,
 			names: ratingRow[0].split(' '),
@@ -1043,7 +1046,7 @@ function Server() {
 	 * @param {{displayRating?: number}} playerRating
 	 * @returns {string} span with rating and corresponding classes
 	 */
-	this.getRatingSpan = (myRating, playerRating) => {
+	self.getRatingSpan = function (myRating, playerRating) {
 		const ratingSpan = $(`<span class='rating'>${playerRating.displayRating ?? ''}</span>`);
 		if (playerRating.displayRating === undefined) {
 			ratingSpan.addClass('unrated');
@@ -1051,7 +1054,7 @@ function Server() {
 		if (playerRating.displayRating && myRating.displayRating) {
 			const difference = playerRating.displayRating - myRating.displayRating;
 
-			const roundTo0 = (v) => (v > 0 ? Math.floor(v) : Math.ceil(v));
+			const roundTo0 = function (v) { return (v > 0 ? Math.floor(v) : Math.ceil(v)); };
 			const ratingLevelStep = 150; // delta between levels
 			// Relative level in [-3, ... +3]. -3 is much weaker, +3 much stronger
 			const relativeLevel = Math.max(-3, Math.min(roundTo0(difference / ratingLevelStep), 3));
