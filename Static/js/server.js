@@ -1,4 +1,5 @@
 const ratingListUrl = '/ratinglist.json';
+const ratingRecalculationTimespanMS = 3600 * 1000;
 
 class Game {
 	/**
@@ -120,6 +121,7 @@ class Server {
 		this.loggedin = false;
 		/** @type {[[string, number, number, number, boolean]] | undefined} */
 		this.rating = undefined;
+		this.ratingTimer = 0;
 		this.loginTimer = null;
 
 		/** @type {Game[]} */
@@ -188,18 +190,9 @@ class Server {
 			};
 		}
 
-		if (!this.rating) {
-			window.fetch(ratingListUrl)
-				.then((response) => {
-					response.json()
-						.then((json) => {
-							this.rating = json;
-							// Update data once the rating is available
-							this.renderRatingRelatedInformation();
-						})
-						.catch((err) => console.error('Failed to parse JSON from ratings', err));
-				})
-				.catch((err) => console.error('Failed to get ratings', err));
+		if (!this.ratingTimer) {
+			this.updateRatingData(true);
+			this.ratingTimer = setInterval(() => this.updateRatingData(true), ratingRecalculationTimespanMS);
 		}
 	}
 
@@ -1005,6 +998,31 @@ class Server {
 		this.renderGameList();
 		this.renderSeekList();
 		this.renderMyRating();
+	}
+
+	/**
+	 * @param {boolean|undefined} ignoreCache
+	 */
+	updateRatingData(ignoreCache) {
+		const noCacheHeaders = new Headers();
+		noCacheHeaders.append('pragma', 'no-cache');
+		noCacheHeaders.append('cache-control', 'no-cache');
+		const options = {
+			method: 'GET',
+			headers: ignoreCache ? noCacheHeaders : undefined,
+		};
+
+		window.fetch(ratingListUrl, options)
+			.then((response) => {
+				response.json()
+					.then((json) => {
+						this.rating = json;
+						// Update data once the rating is available
+						this.renderRatingRelatedInformation();
+					})
+					.catch((err) => console.error('Failed to parse JSON from ratings', err));
+			})
+			.catch((err) => console.error('Failed to get ratings', err));
 	}
 
 	/**
