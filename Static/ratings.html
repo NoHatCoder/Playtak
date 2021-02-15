@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title>Tak rating</title>
+		<link rel="icon" type="image/png" href="favicon.png">
+		<script src="js/thirdparty/dom.js"></script>
+		<style>
+			*{
+				font:16px/20px arial,sans-serif;
+			}
+			th{
+				font-weight:bold;
+				border-bottom:2px solid #ddd;
+			}
+			td{
+				height:24px;
+				max-width:230px;
+				border-bottom:1px solid #ddd;
+			}
+			td, th{
+				padding:3px 8px;
+			}
+			.firstname{
+				color:#000;
+			}
+			.secondname{
+				color:#666;
+			}
+			.fullrating{
+				color:#666;
+			}
+			.bot{
+				width:24px;
+				height:24px;
+				vertical-align:middle;
+			}
+			.numbercell{
+				text-align:right;
+			}
+			.textcell{
+				text-align:left;
+			}
+			table {
+				border-spacing:0;
+				border-collapse:collapse;
+			}
+			tbody > tr:nth-of-type(2n+1){
+				background-color:#f9f9f9;
+			}
+			p{
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<p id="|content">
+		</p>
+		<script src="js/ratinglist.js"></script>
+	</body>
+</html>

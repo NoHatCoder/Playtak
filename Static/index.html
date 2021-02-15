@@ -19,6 +19,18 @@
 		<link rel="stylesheet" href="css/thirdparty/font-awesome.min.css">
 		<link rel="stylesheet" href="css/main.css">
 		<link rel="stylesheet" href="css/chat.css">
+		
+		<script>
+			var errorslogged=0;
+			window.onerror=function errorHandler(message, source, lineno, colno, error){
+				if(errorslogged<5){
+					errorslogged++;
+					var xhttp=new XMLHttpRequest();
+					xhttp.open("GET", "jserror/"+message+"/"+source.replace(/^[\s\S]*\//,"")+"/"+lineno+"/"+colno+"/"+navigator.userAgent, true);
+					xhttp.send();
+				}
+			}
+		</script>
 
 		<script src="js/thirdparty/jquery.min.js"></script>
 		<script src="js/thirdparty/three.min.js"></script>
@@ -37,13 +49,59 @@
 	</head>
 
 	<body style="border:1px solid #000000;">
+		<audio id="move-sound">
+			<source src="audio/move.ogg" type="audio/ogg">
+			<source src="audio/move.mp3" type="audio/mpeg">
+		</audio>
+		<audio id="chime-sound">
+			<source src="audio/chime.ogg" type="audio/ogg">
+			<source src="audio/chime.mp3" type="audio/mpeg">
+		</audio>
+		<audio id="hurry-sound">
+			<source src="audio/hurry.ogg" type="audio/ogg">
+			<source src="audio/hurry.mp3" type="audio/mpeg">
+		</audio>
+		<!--
 		<div class="device-xs hidden-xs"></div>
 		<div class="device-sm hidden-sm"></div>
 		<div class="device-md hidden-md"></div>
 		<div class="device-lg hidden-lg"></div>
+		-->
 
 		<!-- Static navbar -->
-		<nav class="navbar navbar-default navbar-fixed-top">
+		<nav id="menubar" class="singleline">
+			<div class="navright">
+				<form action="ratings.html" method="get" target="_blank" id="ratingslinkform" style="display:inline-block;"><button type="submit" class="navitem" id="playerinfo">
+				</button></form><button class="navitem" id="soundoff" onclick="turnsoundon()" style="display:none;">
+					<svg class="navicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path d="M215.03 71.05L126.06 160H24c-13.26 0-24 10.74-24 24v144c0 13.25 10.74 24 24 24h102.06l88.97 88.95c15.03 15.03 40.97 4.47 40.97-16.97V88.02c0-21.46-25.96-31.98-40.97-16.97zM461.64 256l45.64-45.64c6.3-6.3 6.3-16.52 0-22.82l-22.82-22.82c-6.3-6.3-16.52-6.3-22.82 0L416 210.36l-45.64-45.64c-6.3-6.3-16.52-6.3-22.82 0l-22.82 22.82c-6.3 6.3-6.3 16.52 0 22.82L370.36 256l-45.63 45.63c-6.3 6.3-6.3 16.52 0 22.82l22.82 22.82c6.3 6.3 16.52 6.3 22.82 0L416 301.64l45.64 45.64c6.3 6.3 16.52 6.3 22.82 0l22.82-22.82c6.3-6.3 6.3-16.52 0-22.82L461.64 256z"/></svg>
+				</button><button class="navitem" id="soundon" onclick="turnsoundoff()">
+					<svg class="navicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><path d="M215.03 71.05L126.06 160H24c-13.26 0-24 10.74-24 24v144c0 13.25 10.74 24 24 24h102.06l88.97 88.95c15.03 15.03 40.97 4.47 40.97-16.97V88.02c0-21.46-25.96-31.98-40.97-16.97zm233.32-51.08c-11.17-7.33-26.18-4.24-33.51 6.95-7.34 11.17-4.22 26.18 6.95 33.51 66.27 43.49 105.82 116.6 105.82 195.58 0 78.98-39.55 152.09-105.82 195.58-11.17 7.32-14.29 22.34-6.95 33.5 7.04 10.71 21.93 14.56 33.51 6.95C528.27 439.58 576 351.33 576 256S528.27 72.43 448.35 19.97zM480 256c0-63.53-32.06-121.94-85.77-156.24-11.19-7.14-26.03-3.82-33.12 7.46s-3.78 26.21 7.41 33.36C408.27 165.97 432 209.11 432 256s-23.73 90.03-63.48 115.42c-11.19 7.14-14.5 22.07-7.41 33.36 6.51 10.36 21.12 15.14 33.12 7.46C447.94 377.94 480 319.54 480 256zm-141.77-76.87c-11.58-6.33-26.19-2.16-32.61 9.45-6.39 11.61-2.16 26.2 9.45 32.61C327.98 228.28 336 241.63 336 256c0 14.38-8.02 27.72-20.92 34.81-11.61 6.41-15.84 21-9.45 32.61 6.43 11.66 21.05 15.8 32.61 9.45 28.23-15.55 45.77-45 45.77-76.88s-17.54-61.32-45.78-76.86z"/></svg>
+				</button><button class="navitem" onclick="$('#settings-modal').modal('show')">
+					<svg class="navicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M487.4 315.7l-42.6-24.6c4.3-23.2 4.3-47 0-70.2l42.6-24.6c4.9-2.8 7.1-8.6 5.5-14-11.1-35.6-30-67.8-54.7-94.6-3.8-4.1-10-5.1-14.8-2.3L380.8 110c-17.9-15.4-38.5-27.3-60.8-35.1V25.8c0-5.6-3.9-10.5-9.4-11.7-36.7-8.2-74.3-7.8-109.2 0-5.5 1.2-9.4 6.1-9.4 11.7V75c-22.2 7.9-42.8 19.8-60.8 35.1L88.7 85.5c-4.9-2.8-11-1.9-14.8 2.3-24.7 26.7-43.6 58.9-54.7 94.6-1.7 5.4.6 11.2 5.5 14L67.3 221c-4.3 23.2-4.3 47 0 70.2l-42.6 24.6c-4.9 2.8-7.1 8.6-5.5 14 11.1 35.6 30 67.8 54.7 94.6 3.8 4.1 10 5.1 14.8 2.3l42.6-24.6c17.9 15.4 38.5 27.3 60.8 35.1v49.2c0 5.6 3.9 10.5 9.4 11.7 36.7 8.2 74.3 7.8 109.2 0 5.5-1.2 9.4-6.1 9.4-11.7v-49.2c22.2-7.9 42.8-19.8 60.8-35.1l42.6 24.6c4.9 2.8 11 1.9 14.8-2.3 24.7-26.7 43.6-58.9 54.7-94.6 1.5-5.5-.7-11.3-5.6-14.1zM256 336c-44.1 0-80-35.9-80-80s35.9-80 80-80 80 35.9 80 80-35.9 80-80 80z"/></svg>
+				</button><button class="navitemlogin" id="login-button" onclick="server.loginbutton()">
+					Log In
+				</button>
+			</div>
+			<button class="navitem" id="moremenu" onclick="$('#menubar').toggleClass('singleline')">
+				<svg class="navicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M448 80v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48zM92.5 220.5l123 123c4.7 4.7 12.3 4.7 17 0l123-123c7.6-7.6 2.2-20.5-8.5-20.5H101c-10.7 0-16.1 12.9-8.5 20.5z"/></svg>
+			</button><button class="navitem" onclick="$('#creategamemodal').modal('show')">New Seek</button
+			><button class="navitem" style="min-width:124px;" onclick="$('#joingame-modal').modal('show')">Join Game <span class="badge"><span id="seekcount">0</span> + <span id="seekcountbot">0</span></span></button
+			><button class="navitem" style="min-width:76px;" onclick="$('#watchgame-modal').modal('show')">Watch <span class="badge" id="gamecount">0</span></button
+			><div class="navitem" style="min-width:78px;">Online <span class="badge" id="onlineplayersbadge">0</span></div
+			><button class="navitem" onclick="$('#help-modal').modal('show')">Help</button
+			><form action="games" method="get" target="_blank" style="display:inline-block;"><button type="submit" class="navitem">History</button></form
+			><button class="navitem" id="scratchbutton" style="position:relative;top:0;left:0;" onclick="togglescratch()" onblur="$('#scratchlist').hide()">Board <span class="caret"></span><div id="scratchlist" style="display:none;">
+				<div class="scratchsize" onclick="scratchbutton(3)">3x3</div>
+				<div class="scratchsize" onclick="scratchbutton(4)">4x4</div>
+				<div class="scratchsize" onclick="scratchbutton(5)">5x5</div>
+				<div class="scratchsize" onclick="scratchbutton(6)">6x6</div>
+				<div class="scratchsize" onclick="scratchbutton(7)">7x7</div>
+				<div class="scratchsize" onclick="scratchbutton(8)">8x8</div>
+			</div></button
+			><button class="navitem" onclick="$('#loadmodal').modal('show')">Load</button>
+		</nav>
+		<!--
+		<nav class="navbar navbar-default navbar-fixed-top" style="display:none;">
 			<div class="container-fluid">
 				<div class="navbar-header">
 					<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
@@ -53,7 +111,7 @@
 						<span class="icon-bar"></span>
 					</button>
 					<div class="nav pull-left">
-						<button type="button" class="btn navbar-toggle " onclick="server.init()">
+						<button type="button" class="btn navbar-toggle " onclick="server.loginbutton()">
 							<i class="fa fa-user-circle-o fa-lg" aria-hidden="true"></i>
 						</button>
 						<button type="button" class="btn navbar-toggle " data-toggle="modal" data-target="#watchgame-modal">
@@ -105,18 +163,7 @@
 								<i id="volume-img" class="fa fa-volume-up fa-lg" aria-hidden="true"></i>
 							</a>
 
-							<audio id="move-sound">
-								<source src="audio/move.ogg" type="audio/ogg">
-								<source src="audio/move.mp3" type="audio/mpeg">
-							</audio>
-							<audio id="chime-sound">
-								<source src="audio/chime.ogg" type="audio/ogg">
-								<source src="audio/chime.mp3" type="audio/mpeg">
-							</audio>
-							<audio id="hurry-sound">
-								<source src="audio/hurry.ogg" type="audio/ogg">
-								<source src="audio/hurry.mp3" type="audio/mpeg">
-							</audio>
+
 						</li>
 						<li>
 							<a href="#" data-toggle="modal" data-target="#settings-modal">
@@ -127,12 +174,13 @@
 							<a href="#" title="Number of online players" >Online <span class="badge" id="onlineplayersbadge">0</span></a>
 						</li>
 						<li>
-							<button id="login-button" type="button" class="btn btn-default navbar-btn" onclick="server.loginbutton()">Sign up / Login</button>
+							<button id="login-button" type="button" class="btn btn-default navbar-btn" onclick="server.loginbutton()">Login</button>
 						</li>
 					</ul>
-				</div><!--/.nav-collapse -->
+				</div>
 			</div>
 		</nav>
+		-->
 
 		<div id="floating">
 				<div id="notation-toggle-text" class="toggle-text" title="Click to show/hide menu" onclick="rmenu()">
@@ -433,7 +481,7 @@
 						</div>
 					</div>
 					<div class="modal-footer">
-						<button type="button" class="btn btn-default" data-dismiss="modal" onclick="server.init()">Close</button>
+						<button type="button" class="btn btn-default" data-dismiss="modal" onclick="$('#login').modal('hide')">Close</button>
 					</div>
 				</div>
 
@@ -654,7 +702,7 @@
 									<li>Select board size to create a new empty board on which you can play locally</li>
 								</ul></li>
 							<li><ul>Play online:
-									<li>Login to server by clicking "Sign up/Login" button, signup and then login</li>
+									<li>Login to server by clicking "Login" button, signup and then login</li>
 									<li>Post your seek by selecting board size in "Create game" menu or accept another player's
 										seek by selecting it in "Join game" menu</li>
 									<li>Click on one of any ongoing games from "Watch" menu to watch an ongoing game</li>
@@ -681,6 +729,7 @@
 					</div>
 					<div class="modal-body">
 						<table class="table table-hover">
+							<!--
 							<thead>
 								<tr class="row">
 									<th class="left" title="You will play the oppsite color if you join">Color</th>
@@ -691,6 +740,7 @@
 									<th class="left" title="Time added per completed move">Inc</th>
 								</tr>
 							</thead>
+							-->
 							<tbody>
 								<tr class="row">
 									<th class="center" colspan="7" title="Play against another player">
@@ -724,18 +774,20 @@
 					</div>
 					<div class="modal-body">
 						<table class="table table-hover table-condensed">
+							<!--
 							<thead>
 								<tr class="row">
-									<th class="right" title="Rating of the player">Rating</th>
-									<th class="right">Name</th>
+									<th class="left" title="Rating of the player">Rating</th>
+									<th class="left">Name</th>
 									<th></th>
 									<th class="left">Name</th>
-									<th class="left"  title="Rating of the player">Rating</th>
+									<th class="left" title="Rating of the player">Rating</th>
 									<th class="left" title="Size of the board">Size</th>
 									<th class="left" title="Initial time to play">Time</th>
 									<th class="left" title="Time added per completed move">Inc</th>
 								</tr>
 							</thead>
+							-->
 							<tbody id="gamelist">
 							</tbody>
 						</table>

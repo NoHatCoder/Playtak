@@ -424,6 +424,79 @@ a .fa:not(#undo):not(#draw) {
 	}
 }
 
+.ratingup{
+	color:red;
+}
+.ratingdown{
+	color:green;
+}
+.ratingequal{
+	color:#aaa;
+}
+
+#menubar{
+	position:fixed;
+	left:0;
+	top:0;
+	right:0;
+	z-index:22;
+	background-color:white;
+	font:14px/24px arial;
+	color:#333;
+	overflow:hidden;
+}
+.singleline{
+	height:36px;
+}
+.navright{
+	float:right;
+}
+.navitem{
+	border:none;
+	padding:0 1px;
+	margin:0 5px;
+	background-color:transparent;
+	height:36px;
+	vertical-align:middle;
+	display:inline-block;
+}
+div.navitem{
+	line-height:36px;
+}
+.navitemlogin{
+	border:1px solid #090;
+	padding:0 2px;
+	margin:3px 4px;
+	background-color:#6f3;
+	height:30px;
+	vertical-align:middle;
+	border-radius: 4px;
+	width:80px;
+}
+.loggedin{
+	background-color:white;
+	border-color:#ccc;
+}
+.navicon{
+	height:20px;
+	vertical-align:middle;
+}
+#scratchlist{
+	display:inline-block;
+	position:fixed;
+	top:36px;
+	left:0;
+	background-color:white;
+	width:50px;
+}
+.scratchsize{
+	/*height:31px;*/
+	border:1px solid #ccc;
+	border-top:none;
+	line-height:30px;
+}
+
+/*
 .rating{
 	position:relative;
 }
@@ -463,7 +536,7 @@ a .fa:not(#undo):not(#draw) {
 }
 .even.rating:after{ content: "This player is rated roughly even with you"; }
 
-/* Popup when hovering the rating. Text is set via content depending on stronger/weaker/even and level*/
+Popup when hovering the rating. Text is set via content depending on stronger/weaker/even and level
 .rating:after{
 	padding: 2px;
 	display:none;
@@ -480,3 +553,4 @@ a .fa:not(#undo):not(#draw) {
 .rating:hover:after{
 	display: block;
 }
+*/
