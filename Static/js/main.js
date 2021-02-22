@@ -28,6 +28,7 @@ function alert2(type,msg) {
 var camera,scene,renderer,light,canvas,controls = null
 var perspective
 var ismobile=false
+var isidevice=false
 var fixedcamera=false
 var clickthrough=true
 var pixelratio=1
@@ -78,7 +79,10 @@ function generateCamera(){
 	if(!rendererdone){
 		return
 	}
-	var cuttop=37+10
+	
+	settingscounter=(settingscounter+1)&15
+	
+	var cuttop=$('nav').height()+10
 	var cutleft=($('#rmenu').hasClass('hidden')?0:209)+10
 	var cutright=($('#chat').hasClass('hidden')?0:6+(+localStorage.getItem('chat_size')||180))+10
 	var cutbottom=0+10
@@ -266,6 +270,25 @@ function init() {
 	if(ua.indexOf("android") > -1 || ua.indexOf("iphone") > -1 || ua.indexOf("ipod") > -1 || ua.indexOf("ipad") > -1){
 		ismobile=true
 	}
+	if(ua.indexOf("iphone") > -1 || ua.indexOf("ipod") > -1 || ua.indexOf("ipad") > -1){
+		isidevice=true
+		//document.body.ontouchstart=document.body.ontouchmove=document.body.ontouchend=document.body.ontouchcancel=document.body.ontouchforcechange=
+		
+		document.body.ongesturestart=document.body.ongesturechange=document.body.ongestureend=function(ev){
+			ev.preventDefault()
+		}
+	}
+	/*
+	document.body.onclick=document.body.onmousedown=document.body.onmouseup=document.body.onmousemove=function(ev){
+		if(ev.target && (ev.target.nodeName=="BUTTON" || ev.target.nodeName=="INPUT" || ev.target.nodeName=="A" || ev.target.onclick)){
+			
+		}
+		else{
+			//console.log(ev)
+			ev.preventDefault()
+		}
+	}
+	*/
 	loadSettings()
 
 	canvas = document.getElementById("gamecanvas")
@@ -309,9 +332,14 @@ function onWindowResize() {
 
 		generateCamera()
 
-		$('#chat').offset({ top:$('nav').height() + 5 })
-		$('#chat-toggle-button').offset({ top:$('nav').height() + 7 })
+		//$('#chat').offset({ top:$('nav').height() + 5 })
+		$('#chat').css("top",($('nav').height() + 5)+"px")
+		$('#chat-toggle-button').css("top",($('nav').height() + 7)+"px")
+		//$('#chat-toggle-button').offset({ top:$('nav').height() + 7 })
 		$('#chat').height(window.innerHeight - $('nav').height() - 118)
+		//$("#floating").offset({ top:$('nav').height() + 5 })
+		$('#floating').css("top",($('nav').height() + 5)+"px")
+		//alert("info",$('nav').height())
 	}
 }
 

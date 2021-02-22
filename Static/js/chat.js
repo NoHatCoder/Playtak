@@ -4,9 +4,11 @@ var chathandler = {
 	,cur_room:'global'
 
 	,init:function(){
-		$('#chat').offset({top:$('nav').height() + 5})
+		//$('#chat').offset({top:$('nav').height() + 5})
+		$('#chat').css("top",($('nav').height() + 5)+"px")
 		$('#chat').height(window.innerHeight - $('nav').height() - 118)
-		$('#chat-toggle-button').offset({top:$('nav').height() + 7})
+		//$('#chat-toggle-button').offset({top:$('nav').height() + 7})
+		$('#chat-toggle-button').css("top",($('nav').height() + 7)+"px")
 
 		$('#room-div-global').append('<a href="#" onclick="showPrivacyPolicy();"> Privacy Policy</a><br>')
 	}
@@ -219,7 +221,7 @@ var chathandler = {
 		$('#chat-size-slider').val(this.chat_width)
 		$('#chat').width(this.chat_width)
 
-		$('chat-toggle-button').css('right',this.chat_width+5)
+		$('#chat-toggle-button').css('right',this.chat_width+5)
 	}
 	,togglechat:function(){
 		if($('#chat').hasClass('hidden')){

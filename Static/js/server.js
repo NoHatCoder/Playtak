@@ -757,7 +757,7 @@ var server = {
 	,updateplayerinfo:function(){
 		document.getElementById("playerinfo").innerHTML=""
 		$("#playerinfo").append((this.myname||"")+" ("+getratingstring(this.myname)+")")
-		document.getElementById("ratingslinkform").action="ratings.html"+(this.myname?"#"+this.myname:"")
+		document.getElementById("playerinfo").href="ratings.html"+(this.myname?"#"+this.myname:"")
 	}
 	,rendeergameslist:function(){
 		var listtable=document.getElementById("gamelist")
@@ -769,7 +769,8 @@ var server = {
 			var p2 = "<span class='playername'>"+game.player2+"</span>"
 			var sz = "<span class='badge'>"+game.size+"</span>"
 
-			var row = $('<tr/>').addClass('row').addClass('game'+game.id)
+			var row = $('<tr/>')
+				.addClass('game'+game.id)
 				.click(game.id,function(ev){server.observegame(ev.data)})
 				.appendTo($('#gamelist'))
 			$('<td/>').append(getratingstring(game.player1)).appendTo(row)
@@ -812,7 +813,6 @@ var server = {
 			var pspan = "<span class='playername'>"+seek.player+"</span>"
 			var sizespan = "<span class='badge'>"+seek.size+"</span>"
 			var row = $('<tr/>')
-				.addClass('row')
 				.addClass('seek'+seek.id)
 				.click(seek.id,function(ev){server.acceptseek(ev.data)})
 			if(isbot(seek.player)){
@@ -843,6 +843,10 @@ var server = {
 			$('<td/>').append(minuteseconds(seek.time)).addClass("right").appendTo(row)
 			$('<td/>').append('+'+minuteseconds(seek.increment)).addClass("right").appendTo(row)
 		}
+		if(!botcount){
+			$('<tr/>').append($('<td colspan="6"/>')).appendTo($('#seeklistbot'))
+		}
+		$('<tr/>').append($('<td colspan="6"/>')).appendTo($('#seeklist'))
 		document.getElementById("seekcount").innerHTML=playercount
 		document.getElementById("seekcountbot").innerHTML=botcount
 		this.changeseektime=Date.now()
@@ -857,8 +861,6 @@ var server = {
 		this.send('LeaveRoom ' + room)
 	}
 	,send:function(e){
-		//var binary_data = (new TextEncoder()).encode(e + "\n")
-
 		if(this.connection && this.connection.readyState === 1){this.connection.send(e + "\n")}
 		else{this.error("You are not logged on to the server")}
 	}

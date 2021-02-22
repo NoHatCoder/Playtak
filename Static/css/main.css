@@ -1,22 +1,14 @@
 body {
 	margin: 0px;
 	padding: 0px;
+	width:100%;
 	overflow: hidden;
-}
-
-.canvaswrap {
-	display: block;
-	position: absolute;
-	width: 100%;
-	
-	top:0;
-	left:0;
-	
+	height:100px;
 }
 
 #gamecanvas{
 	display: block;
-	position: absolute;
+	position: fixed;
 	left: 0px;
 	top: 0px;
 }
@@ -218,7 +210,7 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 #alertbox {
-	position: absolute;
+	position: fixed;
 	bottom: 0px;
 	left:0px;
 	width: 100%;
@@ -460,8 +452,10 @@ a .fa:not(#undo):not(#draw) {
 	vertical-align:middle;
 	display:inline-block;
 }
-div.navitem{
+a.navitem, div.navitem{
 	line-height:36px;
+	text-decoration:none;
+	color:#333;
 }
 .navitemlogin{
 	border:1px solid #090;
@@ -490,67 +484,28 @@ div.navitem{
 	width:50px;
 }
 .scratchsize{
-	/*height:31px;*/
 	border:1px solid #ccc;
 	border-top:none;
 	line-height:30px;
 }
 
-/*
-.rating{
-	position:relative;
+.linestable{
+	width:100%;
 }
-
-.rating:before{
-	vertical-align: middle;
+.linestable tr{
+	border-top:1px solid #ccc;
+	border-bottom:1px solid #ccc;
 }
-.unrated.rating:before {
-	content: "?";
-	color: #aaa;
+#seeklistbot tr, #seeklist tr, #gamelist tr{
+	cursor:pointer;
 }
-.unrated.rating:after{ content: "This player is has no rating"; }
-
-.stronger.rating:before {
-	color: red;
+.linestable td{
+	padding:8px;
 }
-.stronger.rating.level1:before { content: "🠕"; }
-.stronger.rating.level2:before { content: "🠕🠕"; }
-.stronger.rating.level3:before { content: "🠕🠕🠕"; }
-.stronger.rating.level1:after { content: "This player is rated higher than you"; }
-.stronger.rating.level2:after { content: "This player is rated a lot higher than you"; }
-.stronger.rating.level3:after { content: "This player is rated significantly higher than you"; }
-
-.weaker.rating:before {
-	color: green;
+.linestable th{
+	padding:8px;
 }
-.weaker.rating.level1:before { content: "🠗"; }
-.weaker.rating.level2:before { content: "🠗🠗"; }
-.weaker.rating.level3:before { content: "🠗🠗🠗"; }
-.weaker.rating.level1:after { content: "This player is rated lower than you"; }
-.weaker.rating.level2:after { content: "This player is rated a lot lower than you"; }
-.weaker.rating.level3:after { content: "This player is rated significantly lower than you"; }
-
-.even.rating:before {
-	content: "≈";
-	color: #aaa;
+.linestable tr.headerrow{
+	border-top:2px solid #ccc;
+	border-bottom:2px solid #ccc;
 }
-.even.rating:after{ content: "This player is rated roughly even with you"; }
-
-Popup when hovering the rating. Text is set via content depending on stronger/weaker/even and level
-.rating:after{
-	padding: 2px;
-	display:none;
-	position: absolute;
-	text-align: center;
-	background-color: #fef4c5;
-	border: 1px solid #d4b943;
-	width: 320px;
-	border-radius: 2px;
-	z-index: 3;
-	right:-200px;
-	top:20px;
-}
-.rating:hover:after{
-	display: block;
-}
-*/
