@@ -198,6 +198,7 @@ var chathandler = {
 			})
 		}
 	}
+	/*
 	,showchat:function(){
 		$('#chat-toggle-button').css('right',this.chat_width+5)
 		$('#chat-toggle-text').html('>><br>c<br>h<br>a<br>t')
@@ -214,6 +215,7 @@ var chathandler = {
 			generateCamera()
 		}
 	}
+	*/
 	,adjustChatWidth:function(width){
 		this.chat_width = width
 
@@ -223,6 +225,7 @@ var chathandler = {
 
 		$('#chat-toggle-button').css('right',this.chat_width+5)
 	}
+	/*
 	,togglechat:function(){
 		if($('#chat').hasClass('hidden')){
 			this.showchat()
@@ -231,6 +234,7 @@ var chathandler = {
 			this.hidechat()
 		}
 	}
+	*/
 }
 
 $(function(){

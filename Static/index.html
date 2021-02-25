@@ -12,7 +12,7 @@
 		<meta name="keywords" content="online tak, playtak, play tak">
 
 		<title>Tak</title>
-		<link rel="icon" type="image/png" href="favicon.png">
+		<link rel="icon" type="image/x-icon" href="/favicon.ico">
 
 		<link rel="stylesheet" href="css/thirdparty/bootstrap.min.css">
 		<link rel="stylesheet" href="css/thirdparty/jquery.contextMenu.min.css">
@@ -94,9 +94,9 @@
 			>
 		</nav>
 		<div id="floating">
-				<div id="notation-toggle-text" class="toggle-text" title="Click to show/hide menu" onclick="rmenu()">
-					&lt;&lt;<br>n<br>o<br>t<br>a<br>t<br>i<br>o<br>n
-				</div>
+			<div id="notation-toggle-text" class="toggle-text" title="Click to show/hide menu" onclick="adjustsidemenu('toggle',null)">
+				&lt;&lt;<br>n<br>o<br>t<br>a<br>t<br>i<br>o<br>n
+			</div>
 
 			<div id="rmenu">
 				<div class="center">
@@ -154,7 +154,7 @@
 		</div>
 
 		<div id="chat-toggle-button">
-			<a href="#" onclick="chathandler.togglechat()">
+			<a href="#" onclick="adjustsidemenu(null,'toggle')">
 				<div id="chat-toggle-text" class="toggle-text">
 				&gt;&gt;<br>
 				c<br>h<br>a<br>t
@@ -281,8 +281,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
-		</div>
+		</div></div>
 
 		<div id="gameoveralert" class="modal fade" role="dialog">
 			<div class="modal-dialog modal-sm">
@@ -297,8 +296,7 @@
 						</div>
 					</div>
 				</div>
-			 </div>
-		</div>
+		</div></div>
 
 		<div id="loadmodal" class="modal fade" role="dialog">
 			<div class="modal-dialog modal-sm">
@@ -320,8 +318,7 @@
 						</div>
 					</div>
 				</div>
-			 </div>
-		</div>
+		</div></div>
 
 		<div id="login" class="modal fade" role="dialog">
 			<div class="modal-dialog">
@@ -396,8 +393,7 @@
 					</div>
 				</div>
 
-			</div>
-		</div>
+		</div></div>
 
 		<div id="settings-modal" class="modal fade">
 			<div class="modal-dialog">
@@ -415,6 +411,7 @@
 						<div class="tab-content clearfix">
 							<div class="tab-pane active" id="board">
 								<br>
+								Background color <input type="text" value="#ddd" id="clearcolorbox" oninput="clearcolorchange()" maxlength="20"></input>
 								<form>
 									<input id="wall-orientation" type="checkbox" onClick="checkboxDiagonalWalls()">
 									Diagonal walls
@@ -509,8 +506,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
-		</div>
+		</div></div>
 
 		<div id="privacy-modal" class="modal fade">
 			<div class="modal-dialog modal-md">
@@ -527,8 +523,7 @@
 						</ul>
 					</div>
 				</div>
-			</div>
-		</div>
+		</div></div>
 
 		<div id="resetpwd-modal" class="modal fade">
 			<div class="modal-dialog modal-md">
@@ -580,8 +575,7 @@
 						</div>
 					</div>
 				</div>
-			</div>
-		</div>
+		</div></div>
 
 		<div id="help-modal" class="modal fade">
 			<div class="modal-dialog modal-lg">
@@ -628,8 +622,7 @@
 						</ul>
 					</div>
 				</div>
-			</div>
-		</div>
+		</div></div>
 
 		<div id="joingame-modal" class="modal fade">
 			<div class="modal-dialog modal-md">
@@ -659,8 +652,7 @@
 						</table>
 					</div>
 				</div>
-			</div>
-		</div>
+		</div></div>
 
 		<div id="watchgame-modal" class="modal fade">
 			<div class="modal-dialog modal-md">
@@ -675,8 +667,7 @@
 						</table>
 					</div>
 				</div>
-			</div>
-		</div>
+		</div></div>
 		<div id="addressbarhack" style="height:5000px;width:100%;position:absolute;top:0;left:0;"></div>
 		<canvas id="gamecanvas"></canvas>
 		<script src="js/main.js"></script>

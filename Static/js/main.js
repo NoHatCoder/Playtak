@@ -33,6 +33,7 @@ var fixedcamera=false
 var clickthrough=true
 var pixelratio=1
 var rendererdone=false
+var clearcolor=0xdddddd
 
 var antialiasing_mode = true
 var maxaniso=1
@@ -299,7 +300,7 @@ function init() {
 	renderer.setSize( window.innerWidth,window.innerHeight )
 	pixelratio=(window.devicePixelRatio||1)*scalelevel
 	renderer.setPixelRatio(pixelratio)
-	renderer.setClearColor(0xdddddd,1)
+	renderer.setClearColor(clearcolor,1)
 	maxaniso=Math.min(renderer.getMaxAnisotropy()||1,16)
 
 	window.addEventListener('resize',onWindowResize,false)
@@ -329,6 +330,7 @@ function onWindowResize() {
 		renderer.setSize(window.innerWidth,window.innerHeight)
 		pixelratio=(window.devicePixelRatio||1)*scalelevel
 		renderer.setPixelRatio(pixelratio)
+		adjustsidemenu()
 
 		generateCamera()
 
@@ -472,6 +474,74 @@ function scratchbutton(size) {
 		board.clear()
 		board.create(size,"white",true)
 		board.initEmpty()
+	}
+}
+
+function adjustsidemenu(notation,chat){
+	var vertical=window.screen.width<window.screen.height
+	var notationstore="shownotation"+(vertical?"v":"h")
+	var chatstore="showchat"+(vertical?"v":"h")
+	
+	var notationstate=localStorage[notationstore]
+	if(notation=="show"){
+		notationstate="show"
+	}
+	else if(notation=="hide"){
+		notationstate="hide"
+	}
+	else if(notation=="toggle"){
+		notationstate=notationstate=="show"?"hide":"show"
+	}
+	else{
+		if(!(notationstate=="show" || notationstate=="hide")){
+			notationstate=(window.innerWidth<600?"hide":"show")
+		}
+	}
+	localStorage[notationstore]=notationstate
+	if($('#rmenu').hasClass('hidden')){
+		if(notationstate=="show"){
+			$('#notation-toggle-text').html('&lt;&lt;<br>n<br>o<br>t<br>a<br>t<br>i<br>o<br>n')
+			$('#notation-toggle-text').css("left","202px")
+			$('#rmenu').removeClass('hidden')
+			generateCamera()
+		}
+	}
+	else if(notationstate=="hide"){
+		$('#rmenu').addClass('hidden')
+		$('#notation-toggle-text').html('&gt;&gt;<br>n<br>o<br>t<br>a<br>t<br>i<br>o<br>n')
+		$('#notation-toggle-text').css("left","-5px")
+		generateCamera()
+	}
+	
+	var chatstate=localStorage[chatstore]
+	if(chat=="show"){
+		chatstate="show"
+	}
+	else if(chat=="hide"){
+		chatstate="hide"
+	}
+	else if(chat=="toggle"){
+		chatstate=chatstate=="show"?"hide":"show"
+	}
+	else{
+		if(!(chatstate=="show" || chatstate=="hide")){
+			chatstate=(window.innerWidth<600?"hide":"show")
+		}
+	}
+	localStorage[chatstore]=chatstate
+	if($('#chat').hasClass('hidden')){
+		if(chatstate=="show"){
+			$('#chat-toggle-button').css('right',chathandler.chat_width+5)
+			$('#chat-toggle-text').html('&gt;&gt;<br>c<br>h<br>a<br>t')
+			$('#chat').removeClass('hidden')
+			generateCamera()
+		}
+	}
+	else if(chatstate=="hide"){
+		$('#chat-toggle-button').css('right',0)
+		$('#chat-toggle-text').html('&lt;&lt;<br>c<br>h<br>a<br>t')
+		$('#chat').addClass('hidden')
+		generateCamera()
 	}
 }
 function rmenu() {
@@ -656,6 +726,8 @@ function getZero(t) {
 	return t<10?'0'+t:t
 }
 
+
+
 /*
  * Settings loaded on initialization. Try to keep them in the order of the window.
  * First the left-hand div, then the right-hand div.
@@ -748,9 +820,8 @@ function loadSettings() {
 		$('#chat').height(window.innerHeight - $('nav').height() - 51)
 	}
 
-	document.getElementById("chat-size-slider").value=+localStorage.getItem('chat_size')||180
-	document.getElementById("chat-size-display").innerHTML=+localStorage.getItem('chat_size')||180
 	sliderChatSize(+localStorage.getItem('chat_size')||180)
+	adjustsidemenu()
 
 	perspective=localStorage.getItem("perspective")
 	if(!perspective){
@@ -777,6 +848,9 @@ function loadSettings() {
 	if(localStorage.getItem('auto_rotate')==='false') {
 		document.getElementById('auto-rotate-checkbox').checked = false
 	}
+	
+	document.getElementById("clearcolorbox").value=localStorage["clearcolor"]||"#ddd"
+	clearcolorchange()
 }
 
 /*
@@ -916,6 +990,33 @@ function checkboxClick() {
 	}
 }
 
+function clearcolorchange(){
+	var ccb=document.getElementById("clearcolorbox")
+	ccb.style.backgroundColor="#ddd"
+	ccb.style.backgroundColor=ccb.value
+	localStorage["clearcolor"]=ccb.value
+	var colorstring=window.getComputedStyle(ccb).getPropertyValue('background-color')
+	var regresult=colorstring.match(/(\d+)\D+(\d+)\D+(\d+)/)
+	if(regresult){
+		var lum=(0.299*regresult[1]*regresult[1] + 0.587*regresult[2]*regresult[2] + 0.114*regresult[3]*regresult[3])/(255*255)
+		if(lum>0.4){
+			ccb.style.color="#000"
+		}
+		else{
+			ccb.style.color="#fff"
+		}
+		clearcolor=regresult[1]*256*256+regresult[2]*256+(+regresult[3])
+	}
+	else{
+		ccb.style.color="#000"
+		clearcolor=0xdddddd
+	}
+	if(renderer){
+		renderer.setClearColor(clearcolor,1)
+		settingscounter=(settingscounter+1)&15
+	}
+}
+
 
 /*
  * Notify checkbox change for checkbox:
@@ -1017,9 +1118,9 @@ function copyNotationLink() {
 }
 
 function sliderChatSize(newSize) {
-	chathandler.showchat()
 	chathandler.adjustChatWidth(+newSize)
 	localStorage.setItem('chat_size',newSize)
+	//adjustsidemenu(null,"show")
 	generateCamera()
 }
 
@@ -1069,14 +1170,6 @@ function fastforward() {
 $(document).ready(function() {
 	if(localStorage.getItem('sound')==='false') {
 		turnsoundoff()
-	}
-	if(isBreakpoint('xs') || isBreakpoint('sm')) {
-		chathandler.hidechat()
-		hidermenu()
-	}
-	else{
-		chathandler.showchat()
-		showrmenu()
 	}
 	chathandler.init()
 	if(location.search.slice(0,6)===('?load=')) {

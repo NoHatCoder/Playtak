@@ -258,10 +258,10 @@ input[type=range]::-webkit-slider-runnable-track {
 	text-align: center;
 }
 
-.modal:before {
+.modal:after {
 	display: inline-block;
 	vertical-align: middle;
-	content: " ";
+	content: "";
 	height: 100%;
 }
 

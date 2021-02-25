@@ -19,27 +19,78 @@ class GamesController
 		querys = []
 		join = ' and '
 		offset = 0
+		
+		mirror=params.has_key?("mirror")
+		
+		mirror_search="((1=1"
 
 		if params.has_key?("playerw") && params["playerw"].length > 0
-			queryf[queryf.count] = "player_white like ?"
+			mirror_search += " and player_white like ?"
 			querys[querys.count] = params["playerw"]
 			player_search = true
 		end
 
 		if params.has_key?("playerb") && params["playerb"].length > 0
-			queryf[queryf.count] = "player_black like ?"
+			mirror_search += " and player_black like ?"
 			querys[querys.count] = params["playerb"]
 			player_search = true
 		end
 
+		if params.has_key?("result") && params["result"].length > 0
+			if params["result"]=="X-0"
+				mirror_search += " and (result=? or result=? or result=?)"
+				querys[querys.count]="R-0"
+				querys[querys.count]="F-0"
+				querys[querys.count]="1-0"
+			elsif params["result"]=="0-X"
+				mirror_search += " and (result=? or result=? or result=?)"
+				querys[querys.count]="0-R"
+				querys[querys.count]="0-F"
+				querys[querys.count]="0-1"
+			else
+				mirror_search += " and result = ?"
+				querys[querys.count] = params["result"]
+			end
+		end
+		
+		if mirror
+			mirror_search+=") or (1=1"
+
+			if params.has_key?("playerw") && params["playerw"].length > 0
+				mirror_search += " and player_black like ?"
+				querys[querys.count] = params["playerw"]
+				player_search = true
+			end
+
+			if params.has_key?("playerb") && params["playerb"].length > 0
+				mirror_search += " and player_white like ?"
+				querys[querys.count] = params["playerb"]
+				player_search = true
+			end
+
+			if params.has_key?("result") && params["result"].length > 2
+				if params["result"]=="0-X"
+					mirror_search += " and (result=? or result=? or result=?)"
+					querys[querys.count]="R-0"
+					querys[querys.count]="F-0"
+					querys[querys.count]="1-0"
+				elsif params["result"]=="X-0"
+					mirror_search += " and (result=? or result=? or result=?)"
+					querys[querys.count]="0-R"
+					querys[querys.count]="0-F"
+					querys[querys.count]="0-1"
+				else
+					mirror_search += " and result = ?"
+					querys[querys.count] = params["result"].reverse
+				end
+			end
+		end
+		mirror_search+="))"
+		queryf[queryf.count]=mirror_search
+
 		if params.has_key?("size") && params["size"].length > 0
 			queryf[queryf.count] = "size = ?"
 			querys[querys.count] = params["size"]
-		end
-
-		if params.has_key?("result") && params["result"].length > 0
-			queryf[queryf.count] = "result = ?"
-			querys[querys.count] = params["result"]
 		end
 
 		if params.has_key?("offset") && params["offset"].length > 0
@@ -363,8 +414,13 @@ server.mount_proc '/' do |req, res|
 		searchvalues["result"]=""
 		searchvalues["dbsize"]=$dbsizestring
 		searchvalues["dbdate"]=$dbtimestring
+		if(params.has_key?("mirror"))
+			searchvalues["mirror"]="checked='checked'"
+		end
 		if(params.has_key?("playerw"))
 			searchvalues["playerw"]=params["playerw"].gsub(/[^A-Za-z0-9_]/,"")
+		else
+			searchvalues["mirror"]="checked='checked'" #Mirror is on by default, set if request is not originating from form submission.
 		end
 		if(params.has_key?("playerb"))
 			searchvalues["playerb"]=params["playerb"].gsub(/[^A-Za-z0-9_]/,"")
@@ -377,18 +433,18 @@ server.mount_proc '/' do |req, res|
 			searchvalues["s"+searchvalues["size"]]='selected'
 		end
 		if(params.has_key?("result"))
-			searchvalues["result"]=params["result"].gsub(/[^RF\-0\/12]/,"")
+			searchvalues["result"]=params["result"].gsub(/[^RFX\-0\/12]/,"")
 			searchvalues["s"+searchvalues["result"]]='selected'
 		end
 		games=gamesController.search(searchvalues)
 		offset=searchvalues["offset"].to_i
 		if offset>=100
-			searchvalues["back"]='<a href="/games/search?offset='+(offset-100).to_s+'&playerw='+searchvalues["playerw"]+'&playerb='+searchvalues["playerb"]+'&size='+searchvalues["size"]+'&result='+searchvalues["result"]+'">&lt;</a>'
+			searchvalues["back"]='<a href="/games/search?offset='+(offset-100).to_s+'&playerw='+searchvalues["playerw"]+'&playerb='+searchvalues["playerb"]+'&size='+searchvalues["size"]+'&result='+searchvalues["result"]+(params.has_key?("mirror") ? '&mirror=on':'')+'">&lt;</a>'
 		else
 			searchvalues["back"]='&lt;'
 		end
 		if games.length>100
-			searchvalues["forward"]='<a href="/games/search?offset='+(offset+100).to_s+'&playerw='+searchvalues["playerw"]+'&playerb='+searchvalues["playerb"]+'&size='+searchvalues["size"]+'&result='+searchvalues["result"]+'">&gt;</a>'
+			searchvalues["forward"]='<a href="/games/search?offset='+(offset+100).to_s+'&playerw='+searchvalues["playerw"]+'&playerb='+searchvalues["playerb"]+'&size='+searchvalues["size"]+'&result='+searchvalues["result"]+(params.has_key?("mirror") ? '&mirror=on':'')+'">&gt;</a>'
 		else
 			searchvalues["forward"]='&gt;'
 		end
@@ -406,6 +462,7 @@ server.mount_proc '/' do |req, res|
 					response<<searchvalues[part]
 				end
 				if(part=="rows")
+					abandonedtime=Time.now.utc-3600*6
 					gamecount=0
 					games.each do |game|
 						gamecount+=1
@@ -441,25 +498,25 @@ server.mount_proc '/' do |req, res|
 								searchvalues2['playerw']=game.player_white
 								searchvalues2['playerb']=game.player_black
 							end
-							if game.size<5 || game.unrated==1 || game.rating_white==0 || game.rating_black==0 || (game.result!="0-0" && game.notation.length<6)
-								if game.rating_white>=1000
+							if game.size<5 || game.unrated==1 || game.rating_white==0 || game.rating_black==0 || (game.result!="0-0" && game.notation.length<6) || (game.result=="0-0" && gametime<abandonedtime)
+								if game.rating_white>=100
 									searchvalues2['playerwrt']=game.rating_white.to_s
 								end
-								if game.rating_black>=1000
+								if game.rating_black>=100
 									searchvalues2['playerbrt']=game.rating_black.to_s
 								end
 							elsif game.rating_change_white<0 && game.rating_change_black<0
-								if game.rating_white>=1000
+								if game.rating_white>=100
 									searchvalues2['playerwrt']=game.rating_white.to_s+" +?"
 								end
-								if game.rating_black>=1000
+								if game.rating_black>=100
 									searchvalues2['playerbrt']=game.rating_black.to_s+" +?"
 								end
 							else
-								if game.rating_white>=1000
+								if game.rating_white>=100
 									searchvalues2['playerwrt']=game.rating_white.to_s+" "+ratingchangeformat(game.rating_change_white)
 								end
-								if game.rating_black>=1000
+								if game.rating_black>=100
 									searchvalues2['playerbrt']=game.rating_black.to_s+" "+ratingchangeformat(game.rating_change_black)
 								end
 							end

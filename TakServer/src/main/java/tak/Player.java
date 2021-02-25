@@ -246,7 +246,7 @@ public class Player {
 	
 	public int getRating(long time){
 		String sql="SELECT rating, ratingage, ratingbase, unrated FROM players WHERE id=?";
-		double decayrate=1000*60*60*24*240;
+		double decayrate=1000.0*60.0*60.0*24.0*240.0;
 		double rating=0.0;
 		double ratingage=0.0;
 		int ratingbase=0;
@@ -304,6 +304,10 @@ public class Player {
 			return (int)rating;
 		}
 		double decaytime=((double)time-ratingage)/decayrate;
+		//System.out.println("decaytime: "+decaytime);
+		//System.out.println("time: "+time);
+		//System.out.println("ratingage: "+ratingage);
+		//System.out.println("decayrate: "+decayrate);
 		if(decaytime<1.0){
 			return (int)rating;
 		}

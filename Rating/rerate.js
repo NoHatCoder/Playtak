@@ -88,6 +88,13 @@ var bots=[
 	,"BloodlessBot"
 	,"Tiltak_Bot"
 	,"Taik"
+	,"FlashBot"
+	,"FriendlyBot"
+	,"FPABot"
+	,"sTAKbot1"
+	,"sTAKbot2"
+	,"DoubleStackBot"
+	,"antakonistbot"
 ]
 var excluded=[
 	"FlashBot"
@@ -161,6 +168,10 @@ else{
 		p[a].ratingage=0
 		p[a].fatigue={}
 		p[a].changed=true
+		if(p[a].unrated){
+			p[a].rating=0
+			p[a].maxrating=0
+		}
 	}
 }
 
@@ -270,7 +281,7 @@ fs.writeFileSync("previous.txt",lastusedgame+" "+sourcehash)
 var playerlist=[]
 for(a=0;a<p.length;a++){
 	var pl=p[a]
-	if(pl.rating>initialrating){
+	if(pl.ratedgames>0 || (pl.unrated && pl.isbot)){
 		playerlist.push([pl.name+(alternames.hasOwnProperty(pl.id)?alternames[pl.id]:""),adjustedrating(pl,now),Math.floor(pl.rating),pl.ratedgames,pl.isbot?1:0])
 	}
 }

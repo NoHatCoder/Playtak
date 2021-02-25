@@ -6,7 +6,7 @@
 		<meta content='tak games, tak history, player history' name='keywords'>
 		<meta content='Chaitanya Vadrevu' name='author'>
 		<title>Tak Games</title>
-		<link rel="icon" type="image/png" href="/favicon.png">
+		<link rel="icon" type="image/x-icon" href="/favicon.ico">
 		<style>
 			#search {
 				border: 2px solid;
@@ -61,11 +61,13 @@
 							<select class='form-control' name='result'>
 								<option value=''>Any</option>
 								<optgroup label='White Wins'>
+									<option value='X-0' %sX-0%>X-0</option>
 									<option value='R-0' %sR-0%>R-0</option>
 									<option value='F-0' %sF-0%>F-0</option>
 									<option value='1-0' %s1-0%>1-0</option>
 								</optgroup>
 								<optgroup label='Black Wins'>
+									<option value='0-X' %s0-X%>0-X</option>
 									<option value='0-R' %s0-R%>0-R</option>
 									<option value='0-F' %s0-F%>0-F</option>
 									<option value='0-1' %s0-1%>0-1</option>
@@ -78,8 +80,12 @@
 					</div>
 					<div class='row'></div>
 					<div class='form-group'>
-						<div class='col-sm-offset-2 col-sm-10'>
+						<div class='col-sm-offset-2 col-sm-4'>
 							<button class='btn btn-primary'>Search</button>
+						</div>
+						<label class='col-sm-2'>Mirror</label>
+						<div class='col-sm-4'>
+							<input class='form-control' type='checkbox' name='mirror' %mirror%>
 						</div>
 					</div>
 				</div>
