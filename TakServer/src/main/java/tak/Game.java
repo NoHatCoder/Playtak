@@ -50,7 +50,7 @@ public class Game {
 
 	boolean abandoned;
 
-	Set<Player> spectators;
+	ConcurrentHashSet<Player> spectators;
 
 	public enum gameS {WHITE_ROAD, BLACK_ROAD, WHITE_TILE, BLACK_TILE, DRAW,
 						WHITE, BLACK, ABORT, NONE};
@@ -58,17 +58,20 @@ public class Game {
 	gameS gameState;
 
 	static Map<Integer, Game> games = new ConcurrentHashMap<>();
-	static Set<Player> gameListeners = new ConcurrentHashSet<>();
+	static ConcurrentHashSet<Player> gameListeners = new ConcurrentHashSet<>();
 
 	public static int reconnectionTime;
 	
 	int capCount;
 	int tileCount;
 	int komi;
+	int unrated;
+	int tournament;
 
 	class Board {
 		int boardSize;
 		int moveCount;
+		int lastResetMove;
 		int whiteCapstones;
 		int blackCapstones;
 
@@ -139,6 +142,7 @@ public class Game {
 			}
 
 			boardSize = b;
+			/*
 			int capstonesCount=0;
 			int tilesCount=0;
 			switch(b) {
@@ -152,8 +156,12 @@ public class Game {
 
 			capCount = whiteCapstones = blackCapstones = capstonesCount;
 			tileCount = whiteTilesCount = blackTilesCount = tilesCount;
-
+			*/
+			whiteCapstones = blackCapstones = capCount;
+			whiteTilesCount = blackTilesCount = tileCount;
+			
 			moveCount = 0;
+			lastResetMove=0;
 
 			squares = new Square[boardSize][boardSize];
 			for (int i = 0; i < b; i++) {
@@ -165,7 +173,7 @@ public class Game {
 
 		Board(int boardSize, int moveCount, int whiteCapstones,
 				int blackCapstones, int whiteTilesCount, int blackTilesCount,
-				Square[][] squares) {
+				Square[][] squares, int lastResetMove) {
 			this.boardSize = boardSize;
 			this.moveCount = moveCount;
 			this.whiteCapstones = whiteCapstones;
@@ -173,6 +181,7 @@ public class Game {
 			this.whiteTilesCount = whiteTilesCount;
 			this.blackTilesCount = blackTilesCount;
 			this.squares = squares;
+			this.lastResetMove=lastResetMove;
 		}
 
 		@Override
@@ -180,7 +189,7 @@ public class Game {
 			Board clone = new Board(boardSize, moveCount,
 								whiteCapstones, blackCapstones,
 								whiteTilesCount, blackTilesCount,
-								getClonedSquares());
+								getClonedSquares(), lastResetMove);
 
 			return clone;
 		}
@@ -243,9 +252,13 @@ public class Game {
 	 * @param t: time in seconds
 	 * @param clr: color choice of p2
 	 */
-	Game(Player p1, Player p2, int b, int t, int i, Seek.COLOR clr) {
+	Game(Player p1, Player p2, int b, int t, int i, Seek.COLOR clr, int komi, int pieces, int capstones, int unrated, int tournament) {
 		int rand = new Random().nextInt(2);
-		komi=0;
+		this.komi=komi;
+		tileCount=pieces;
+		capCount=capstones;
+		this.unrated=unrated;
+		this.tournament=tournament;
 
 		if(clr == Seek.COLOR.ANY) {
 			white = (rand==0)?p1:p2;
@@ -284,16 +297,16 @@ public class Game {
 
 	static void addGame(Game g) {
 		Game.games.put(g.no, g);
-		Game.updateGameListListeners("Add "+g.shortDesc());
+		Game.updateGameListListeners("Add "+g.stringForm());
 	}
 
 	static void removeGame(Game g) {
-		Game.updateGameListListeners("Remove "+g.shortDesc());
+		Game.updateGameListListeners("Remove "+g.stringForm());
 		Game.games.remove(g.no);
 	}
 
 	void newSpectator(Player p) {
-		p.send("Observe "+shortDesc());
+		p.send("Observe "+stringForm());
 		sendMoveListTo(p);
 		spectators.add(p);
 		updateTime(p);
@@ -371,7 +384,7 @@ public class Game {
 
 	static void sendGameListTo(Player p) {
 		for (Integer no : Game.games.keySet()) {
-			p.sendWithoutLogging("GameList Add "+Game.games.get(no).shortDesc());
+			p.sendWithoutLogging("GameList Add "+Game.games.get(no).stringForm());
 		}
 	}
 
@@ -379,16 +392,35 @@ public class Game {
 		for(String move:moveList)
 			p.sendWithoutLogging("Game#"+no+" "+move);
 	}
-
+	
+	String stringForm(){
+		StringBuilder sb=new StringBuilder(no+"");
+		sb.append(" ").append(white.getName());
+		sb.append(" ").append(black.getName());
+		sb.append(" ").append(board.boardSize);
+		sb.append(" ").append(originalTime/1000);
+		sb.append(" ").append(incrementTime/1000);
+		sb.append(" ").append(komi);
+		sb.append(" ").append(tileCount);
+		sb.append(" ").append(capCount);
+		sb.append(" ").append(unrated);
+		sb.append(" ").append(tournament);
+		return sb.toString();
+	}
+	/*
 	String shortDesc(){
 		StringBuilder sb=new StringBuilder("Game#"+no+" ");
 		sb.append(white.getName()).append(" vs ").append(black.getName());
 		sb.append(", ").append(board.boardSize).append("x").append(board.boardSize).append(", ");
 		sb.append(originalTime/1000).append(", ");
 		sb.append(incrementTime/1000).append(", ");
-		sb.append(board.moveCount).append(" half-moves played, ").append(isWhitesTurn()?white.getName():black.getName()).append(" to move");
+		sb.append(komi).append(" ");
+		sb.append(tileCount).append(" ");
+		sb.append(capCount).append(" ");
+		//sb.append(board.moveCount).append(" half-moves played, ").append(isWhitesTurn()?white.getName():black.getName()).append(" to move");
 		return sb.toString();
 	}
+	*/
 
 	static void registerGameListListener(Player p) {
 		gameListeners.add(p);
@@ -400,22 +432,26 @@ public class Game {
 	}
 
 	static void updateGameListListeners(final String st) {
+		for (Player p : gameListeners) {
+			p.sendWithoutLogging("GameList " + st);
+		}
+		/*
 		new Thread() {
 			@Override
 			public void run() {
-				for (Player p : gameListeners) {
-					p.sendWithoutLogging("GameList " + st);
-				}
+
 			}
 		}.start();
+		*/
 	}
-
+	/*
 	@Override
 	public String toString() {
 		StringBuilder sb=new StringBuilder(shortDesc());
 		sb.append("\n").append(board.getBoardString());
 		return sb.toString();
 	}
+	*/
 
 	private boolean boundsCheck(char file, int rank) {
 		int fl = file - 'A';
@@ -569,6 +605,7 @@ public class Game {
 
 			sq.add(ch);
 			board.moveCount++;
+			board.lastResetMove=board.moveCount;
 			String move="P "+file+rank+" "+(capstone?"C":"")+(wall?"W":"");
 			moveList.add(move.trim());
 			saveBoardPosition();
@@ -711,9 +748,9 @@ public class Game {
 				if(sqr!=endSq)
 					return new Status("Can't stack over walls", false);
 				else {
-					if(vals[vals.length-1]!=1 || !capstone)
-						return new Status("Capstone should be on top to flatten"
-								+ " walls", false);
+					if(vals[vals.length-1]!=1 || !capstone){
+						return new Status("Capstone should be on top to flatten"+ " walls", false);
+					}
 				}
 			}
 		}
@@ -733,11 +770,11 @@ public class Game {
 					moveStack.push(sqr.pop());
 			}
 			//flatten
-			else if(sqr == endSq && moveStack.size()==1 &&
-					isCapstone(moveStack.peek()) && isWall(sqr.topOfStack())){
+			else if(sqr == endSq && moveStack.size()==1 && isCapstone(moveStack.peek()) && isWall(sqr.topOfStack())){
 				char ch = sqr.pop();
 				sqr.add(isWhite(ch)?Character.toUpperCase(FLAT):FLAT);
 				sqr.add(moveStack.pop());
+				board.lastResetMove=board.moveCount+1;
 			}
 			//move elements
 			else {
@@ -758,6 +795,7 @@ public class Game {
 
 		checkRoadWin();
 		checkOutOfSquares();
+		checkStaleGame();
 		whenGameEnd();
 
 		updateTimeTurnChange();
@@ -838,8 +876,8 @@ public class Game {
 			stmt.setString(8, "0-0");
 			stmt.setInt(9, white.getRating(time));
 			stmt.setInt(10, black.getRating(time));
-			stmt.setInt(11, 0);
-			stmt.setInt(12, 0);
+			stmt.setInt(11, unrated);
+			stmt.setInt(12, tournament);
 			stmt.setInt(13, komi);
 			stmt.setInt(14, tileCount);
 			stmt.setInt(15, capCount);
@@ -885,13 +923,16 @@ public class Game {
 	}
 
 	void sendToSpectators(final String msg) {
+		for(Player p:spectators){
+			p.sendWithoutLogging(msg);
+		}
+		/*
 		new Thread() {
 			@Override
 			public void run() {
-				for(Player p:spectators)
-					p.sendWithoutLogging(msg);
 			}
 		}.start();
+		*/
 	}
 	void findWhoWon() {
 		int blackCount=0, whiteCount=0;
@@ -906,6 +947,9 @@ public class Game {
 				}
 			}
 		}
+		whiteCount*=2;
+		blackCount*=2;
+		blackCount+=komi;
 		if(whiteCount==blackCount)
 			gameState = gameS.DRAW;
 		else if(whiteCount>blackCount)
@@ -924,6 +968,13 @@ public class Game {
 		}
 		System.out.println("Out of squares");
 		findWhoWon();
+	}
+	void checkStaleGame(){
+		if(gameState!=gameS.NONE)
+			return;
+		if(board.lastResetMove+50<=board.moveCount){
+			gameState = gameS.DRAW;
+		}
 	}
 
 	void checkRoadWin() {
@@ -1051,6 +1102,10 @@ public class Game {
 	}
 
 	void playerDisconnected(Player p) {
+		int time=reconnectionTime;
+		if(tournament==1){
+			time=900;
+		}
 		Player otherPlayer = otherPlayer(p);
 		if(!otherPlayer.isLoggedIn()) {
 			//Both players have disconnected - so we abort the game
@@ -1062,15 +1117,15 @@ public class Game {
 			return;
 		}
 		otherPlayer.send("Message "+p.getName()+" has disconnected. They have "+
-									reconnectionTime +" seconds to reconnect");
+									time +" seconds to reconnect");
 		sendToSpectators("Message "+p.getName()+" has disconnected. They have "+
-									reconnectionTime +" seconds to reconnect");
+									time +" seconds to reconnect");
 		disconnectionTimer = new Timer();
 		disconnectionTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				playerQuit(white.isLoggedIn()?black:white);
-			}}, reconnectionTime*1000);
+			}}, time*1000);
 	}
 
 	void playerRejoin(Player p) {
@@ -1078,9 +1133,13 @@ public class Game {
 		disconnectionTimer = null;//Could cause race. TODO: Fix
 
 		Player otherPlayer = otherPlayer(p);
-
+		
 		String msg = "Game Start " + no +" "+board.boardSize+" "+white.getName()+" vs "+black.getName();
-		p.send(msg+" "+((white==p)?"white":"black")+" "+originalTime);
+		String msg2=(originalTime/1000)+" "+komi+" "+tileCount+" "+capCount;
+		p.send(msg+" "+((white==p)?"white":"black")+" "+msg2);
+
+		//String msg = "Game Start " + no +" "+board.boardSize+" "+white.getName()+" vs "+black.getName();
+		//p.send(msg+" "+((white==p)?"white":"black")+" "+originalTime);
 
 		sendMoveListTo(p);
 		updateTime(p);
@@ -1146,6 +1205,7 @@ public class Game {
 			count = 0;
 		}
 	}
+	/*
 	public static void main(String[] args) {
 		Database.initConnection();
 		try {
@@ -1165,4 +1225,5 @@ public class Game {
 			Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
+	*/
 }

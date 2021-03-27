@@ -31,6 +31,7 @@ var ismobile=false
 var isidevice=false
 var fixedcamera=false
 var clickthrough=true
+var hovertext=true
 var pixelratio=1
 var rendererdone=false
 var clearcolor=0xdddddd
@@ -85,7 +86,7 @@ function generateCamera(){
 	
 	var cuttop=$('nav').height()+10
 	var cutleft=($('#rmenu').hasClass('hidden')?0:209)+10
-	var cutright=($('#chat').hasClass('hidden')?0:6+(+localStorage.getItem('chat_size')||180))+10
+	var cutright=($('#cmenu').hasClass('hidden')?0:6+(+localStorage.getItem('chat_size')||180))+10
 	var cutbottom=0+10
 
 	var pointlist=[]
@@ -334,12 +335,9 @@ function onWindowResize() {
 
 		generateCamera()
 
-		//$('#chat').offset({ top:$('nav').height() + 5 })
 		$('#chat').css("top",($('nav').height() + 5)+"px")
-		$('#chat-toggle-button').css("top",($('nav').height() + 7)+"px")
-		//$('#chat-toggle-button').offset({ top:$('nav').height() + 7 })
-		$('#chat').height(window.innerHeight - $('nav').height() - 118)
-		//$("#floating").offset({ top:$('nav').height() + 5 })
+		//$('#chat-toggle-button').css("top",($('nav').height() + 7)+"px")
+		//$('#chat').height(window.innerHeight - $('nav').height() - 118)
 		$('#floating').css("top",($('nav').height() + 5)+"px")
 		//alert("info",$('nav').height())
 	}
@@ -529,18 +527,18 @@ function adjustsidemenu(notation,chat){
 		}
 	}
 	localStorage[chatstore]=chatstate
-	if($('#chat').hasClass('hidden')){
+	if($('#cmenu').hasClass('hidden')){
 		if(chatstate=="show"){
-			$('#chat-toggle-button').css('right',chathandler.chat_width+5)
-			$('#chat-toggle-text').html('&gt;&gt;<br>c<br>h<br>a<br>t')
-			$('#chat').removeClass('hidden')
+			$('#chat-toggle-button').css('right',chathandler.chat_width)
+			$('#chat-toggle-button').html('&gt;&gt;<br>c<br>h<br>a<br>t')
+			$('#cmenu').removeClass('hidden')
 			generateCamera()
 		}
 	}
 	else if(chatstate=="hide"){
-		$('#chat-toggle-button').css('right',0)
-		$('#chat-toggle-text').html('&lt;&lt;<br>c<br>h<br>a<br>t')
-		$('#chat').addClass('hidden')
+		$('#chat-toggle-button').css('right',"-5px")
+		$('#chat-toggle-button').html('&lt;&lt;<br>c<br>h<br>a<br>t')
+		$('#cmenu').addClass('hidden')
 		generateCamera()
 	}
 }
@@ -812,12 +810,23 @@ function loadSettings() {
 		clickthrough=false
 	}
 	document.getElementById('click-checkbox').checked = clickthrough
+	
+	if(localStorage.getItem('hovertext')==='false') {
+		hovertext=false
+	}
+	else if(localStorage.getItem('hovertext')==='true') {
+		hovertext=true
+	}
+	else{
+		hovertext=!ismobile
+	}
+	document.getElementById('hover-checkbox').checked = hovertext
 
 	// load whether or not the 'Send' button should be hidden.
 	if(localStorage.getItem('hide-send')==='true') {
 		document.getElementById('hide-send-checkbox').checked = true
 		document.getElementById('send-button').style.display = "none"
-		$('#chat').height(window.innerHeight - $('nav').height() - 51)
+		//$('#chat').height(window.innerHeight - $('nav').height() - 51)
 	}
 
 	sliderChatSize(+localStorage.getItem('chat_size')||180)
@@ -990,6 +999,17 @@ function checkboxClick() {
 	}
 }
 
+function checkboxHover() {
+	if(document.getElementById('hover-checkbox').checked) {
+		localStorage.setItem('hovertext','true')
+		hovertext=true
+	}
+	else{
+		localStorage.setItem('hovertext','false')
+		hovertext=false
+	}
+}
+
 function clearcolorchange(){
 	var ccb=document.getElementById("clearcolorbox")
 	ccb.style.backgroundColor="#ddd"
@@ -1026,12 +1046,12 @@ function checkboxHideSend() {
 	if(document.getElementById('hide-send-checkbox').checked) {
 		localStorage.setItem('hide-send','true')
 		document.getElementById('send-button').style.display = "none"
-		$('#chat').height(window.innerHeight - $('nav').height() - 51)
+		//$('#chat').height(window.innerHeight - $('nav').height() - 51)
 	}
 	else{
 		localStorage.setItem('hide-send','false')
 		document.getElementById('send-button').style.display = "initial"
-		$('#chat').height(window.innerHeight - $('nav').height() - 85)
+		//$('#chat').height(window.innerHeight - $('nav').height() - 85)
 	}
 
 }
@@ -1062,31 +1082,32 @@ function getNotation() {
 	var p1 = $('.player1-name:first').html()
 	var p2 = $('.player2-name:first').html()
 	var now = new Date()
-	var dt = (now.getYear()-100)+'.'+(now.getMonth()+1)+'.'+now.getDate()+' '+now.getHours()+'.'+getZero(now.getMinutes())
+	var dt = now.getFullYear()+'.'+(now.getMonth()+1)+'.'+now.getDate()+' '+now.getHours()+'.'+getZero(now.getMinutes())
 
 	$('#download_notation').attr('download',p1+' vs '+p2+' '+dt+'.ptn')
 
 	var res=''
 	res += getHeader('Site','PlayTak.com')
-	res += getHeader('Date','20'+(now.getYear()-100)+'.'+(now.getMonth()+1)+'.'+now.getDate())
+	res += getHeader('Date',now.getFullYear()+'.'+(now.getMonth()+1)+'.'+now.getDate())
 	res += getHeader('Player1',p1)
 	res += getHeader('Player2',p2)
 	res += getHeader('Size',board.size)
+	res += getHeader('Komi',board.komi/2)
+	res += getHeader('Flats',board.tottiles)
+	res += getHeader('Caps',board.totcaps)
 	res += getHeader('Result',board.result)
 	res += '\r\n'
 
-	var count=1
-
 	$('#moveslist tr').each(function() {
+		var line=""
 		$('td',this).each(function() {
 			var val = $(this).text()
+			if(line && val){
+				res += ' '
+			}
 			res += val
-
-			if(count%3 === 0) {res += '\r\n'}
-			else{res += ' '}
-
-			count++
 		})
+		res += line+'\r\n'
 	})
 
 	return res
@@ -1166,6 +1187,45 @@ function stepforward() {
 function fastforward() {
 	board.showmove(board.movecount)
 }
+
+function changeboardsize(){
+	var size=document.getElementById("boardsize").value
+	var piecescaps={
+		"3":[10,0]
+		,"4":[15,0]
+		,"5":[21,1]
+		,"6":[30,1]
+		,"7":[40,2]
+		,"8":[50,2]
+	}[size]
+	if(piecescaps){
+		document.getElementById("piececount").value=piecescaps[0]
+		document.getElementById("capcount").value=piecescaps[1]
+	}
+}
+
+function dohovertext(ev){
+	var el=document.getElementById("hovertext")
+	el.style.left=ev.clientX+"px"
+	el.style.top=(ev.clientY+50)+"px"
+	var target=ev.target
+	var hoverstring=""
+	while(target){
+		if(target.dataset.hasOwnProperty("hover")){
+			hoverstring=target.dataset.hover
+			break
+		}
+		target=target.parentElement
+	}
+	if(hoverstring && hovertext){
+		el.style.display="block"
+		el.textContent=hoverstring
+	}
+	else{
+		el.style.display="none"
+	}
+}
+document.body.onmousemove=dohovertext
 
 $(document).ready(function() {
 	if(localStorage.getItem('sound')==='false') {

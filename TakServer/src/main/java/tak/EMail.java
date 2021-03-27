@@ -51,7 +51,7 @@ public class EMail {
 			Logger.getLogger(EMail.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
-
+	/*
 	public static void main(String[] args) {
 		Settings.parse();
 		System.out.println("Sending mail");
@@ -64,4 +64,5 @@ public class EMail {
 			Logger.getLogger(EMail.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
+	*/
 }

@@ -8,6 +8,7 @@ package tak;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import tak.utils.ConcurrentHashSet;
+import java.util.concurrent.locks.*;
 
 /**
  *
@@ -15,79 +16,45 @@ import tak.utils.ConcurrentHashSet;
  */
 public class ChatRoom {
 	static final ConcurrentHashMap<String, ChatRoom> chatRooms = new ConcurrentHashMap<>();
+	static Lock roommaplock=new ReentrantLock();
 	
-	private final String name;
-	private Set<Client> members;
+	ConcurrentHashSet<Client> members;
 	
-	ChatRoom(String name) {
-		this.name = name;
+	ChatRoom() {
 		members = new ConcurrentHashSet<Client>();
 	}
 	
-	public static ChatRoom addRoom(String name) {
-		if(chatRooms.containsKey(name))
-			return null;
-		
-		ChatRoom room = new ChatRoom(name);
-		chatRooms.put(name, room);
+	public static ChatRoom joinRoom(String name, Client client){
+		roommaplock.lock();
+		ChatRoom room=chatRooms.get(name);
+		if(room==null){
+			room = new ChatRoom();
+			chatRooms.put(name, room);
+		}
+		room.members.add(client);
+		roommaplock.unlock();
 		return room;
 	}
 	
-	private static void removeRoom(String name) {
-		chatRooms.remove(name);
-	}
-	
-	public static void removeRoomIfEmpty(String name) {
-		ChatRoom room = ChatRoom.get(name);
-		if(room.isEmpty())
-			removeRoom(name);
-	}
-	
-	public static ChatRoom get(String roomName) {
-		return chatRooms.get(roomName);
-	}
-	
-	public String getName() {
-		return name;
-	}
-	
-	public void shout(Client client, String msg) {		
-		if(!contains(client)) {
-			client.sendNOK();
-			client.send("Error:"+"You need to be in the room");
-			return;
-		}
-		
-		sendAll("ShoutRoom "+name+" <"+client.player.getName()+"> "+msg);
-	}
-	
-	public void addMember(Client client) {
-		members.add(client);
-	}
-	
-	public boolean isEmpty() {
-		return members.isEmpty();
-	}
-	
-	public void removeMember(Client client) {
-		members.remove(client);
-		
-		if(isEmpty())
-			ChatRoom.removeRoom(name);
-	}
-	
-	private boolean contains(Client client) {
-		return members.contains(client);
-	}
-	
-	private void sendAll(final String msg) {
-		new Thread() {
-			@Override
-			public void run() {
-				for (Client cc : members) {
-					cc.sendWithoutLogging(msg);
-				}
+	public static void shout(String name, Client client, String msg) {		
+		ChatRoom room=chatRooms.get(name);
+		if(room!=null){
+			String compiledmessage="ShoutRoom "+name+" <"+client.player.getName()+"> "+msg;
+			for (Client cc : room.members) {
+				cc.sendWithoutLogging(compiledmessage);
 			}
-		}.start();
+		}
+	}
+	
+	public static void leaveRoom(String name, Client client){
+		roommaplock.lock();
+		ChatRoom room=chatRooms.get(name);
+		if(room!=null){
+			room.members.remove(client);
+			if(room.members.isEmpty()){
+				chatRooms.remove(name);
+			}
+		}
+		roommaplock.unlock();
 	}
 }

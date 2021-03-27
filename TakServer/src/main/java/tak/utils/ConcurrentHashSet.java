@@ -16,6 +16,28 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author chaitu
  */
+public class ConcurrentHashSet<T> extends ConcurrentHashMap<T, Boolean> implements Iterable<T> {
+	private Set<T> set;
+	
+	public ConcurrentHashSet () {
+		super();
+		set = Collections.newSetFromMap(this);
+	}
+	
+	@Override
+	public boolean contains(Object o) {
+		return this.containsKey(o);
+	}
+	
+	public boolean add(T o){
+		return this.put(o,true)==null;
+	}
+	public Iterator<T> iterator() {
+		//Set<T> set = Collections.newSetFromMap(this);
+		return set.iterator();
+	}
+}
+/*
 public class ConcurrentHashSet<T> implements Set<T> {
 
     Map<T, Boolean> map = new ConcurrentHashMap();
@@ -37,17 +59,17 @@ public class ConcurrentHashSet<T> implements Set<T> {
     }
 
     @Override
-    public Iterator iterator() {
+    public Iterator<T> iterator() {
         return set.iterator();
     }
 
     @Override
-    public Object[] toArray() {
+    public T[] toArray() {
         return set.toArray();
     }
 
     @Override
-    public Object[] toArray(Object[] a) {
+    public T[] toArray(T[] a) {
         return set.toArray(a);
     }
 
@@ -87,3 +109,4 @@ public class ConcurrentHashSet<T> implements Set<T> {
     }
     
 }
+*/

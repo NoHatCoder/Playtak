@@ -26,9 +26,9 @@ import tak.utils.ConcurrentHashSet;
  */
 public class Player {
 	public static Map<String, Player> players = new ConcurrentHashMap<>();
-	public static Set<Player> modList = new ConcurrentHashSet<>();
-	public static Set<Player> gagList = new ConcurrentHashSet<>();
-	public static Set<String> takenName = new ConcurrentHashSet<>();
+	public static ConcurrentHashSet<Player> modList = new ConcurrentHashSet<>();
+	public static ConcurrentHashSet<Player> gagList = new ConcurrentHashSet<>();
+	public static ConcurrentHashSet<String> takenName = new ConcurrentHashSet<>();
 	
 	static int idCount=0;
 	static AtomicInteger guestCount = new AtomicInteger(0);
@@ -474,7 +474,7 @@ public class Player {
 			Logger.getLogger(Player.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}
-	
+	/*
 	public static void main(String[] args) {
 		Database.initConnection();
 //		try {
@@ -510,4 +510,5 @@ public class Player {
 		//Test create after load
 		createPlayer("player4", "player4@playtak.com");
 	}
+	*/
 }

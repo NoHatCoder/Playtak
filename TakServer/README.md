@@ -1,6 +1,6 @@
 # TakServer
 
-*Last updated on 05/24/2016*
+*Last updated on March 23rd 2021*
 
 Server to handle online TAK games
 
@@ -9,7 +9,7 @@ The input/output of server is all text.
 The client to server commands and their format is as below
 (format of all squares is [Capital letter][digit]. e.g., A2, B5, C4, (row numbers start from 1)
 
-**Since the server and client are still in beta, the API is bound to change to support more features (though I would try to keep the changes to a minimum)**
+Komi is given in half flats as an integer from 0 to 8, denoting komis from +0.0 to +4.0
 
 |Commands to server|Description|
 |-----------------|-----------|
@@ -17,7 +17,8 @@ The client to server commands and their format is as below
 |Register **username email** |Register with the given username and email|
 |Login **username password** |Login with the username and password|
 |Login Guest |Login as a guest|
-|Seek **no** **time** **incr** **W\|B** |Seeks a game of board size **no** with time per player **time** specified in seconds, increment per move **incr** specified in seconds and an optional choice of color **W** for white, **B** for black|
+|Seek **no** **time** **incr** **W/B** |Seeks a game of board size **no** with time per player **time** specified in seconds, increment per move **incr** specified in seconds and an optional choice of color **W** for white, **B** for black|
+|Seek **no** **time** **incr** **W/B/A** **komi** **pieces** **capstones** **unrated** **tournament** **opponent** |Seeks a game of board size **no** with time per player **time** specified in seconds, increment per move **incr** specified in seconds, **opponent** is the name of the opponent allowed to join, blank to allow anyone to join|
 |Accept **no** |Accepts the seek with the number **no**|
 |Game#**no** P **Sq** C\|W |Sends a 'Place' move to the specified game no. The optional suffix 'C' or 'W' denote if it is a capstone or a wall (standing stone)|
 |Game#**no** M **Sq1** **Sq2** **no1** **no2**...|Sends a 'Move' move to the specified game no. **Sq1** is beginning square, **Sq2** is ending square, **no1**, **no2**, **no3**.. are the no. of pieces dropped in the in-between squares (including the last square)|
@@ -50,9 +51,9 @@ The list does not include error messages, you're free to poke around and figure 
 |Welcome! |Just a welcome message when connected to server|
 |Login or Register |Login with username/password or login as guest or register after this message|
 |Welcome **name**! |A welcome message indicating that you've logged in as **name**|
-|GameList Add Game#**no** **player_white** vs **player_black**, **size**x**size**, **original_time**, **incr**, **moves** half-moves played, **player_name** to move |Notifies client that a game has started (which the client can observe if it wants)|
-|GameList Remove Game#**no** **player_white** vs **player_black**, **size**x**size**, **original_time**, **incr**, **moves** half-moves played, **player_name** to move |Notifies client that the game has ended|
-|Game Start **no** **size** **player_white** vs **player_black** **your color** |Notifies client to start a game. The game no. being **no**, players' names being **white_player**, **black_player** and **your_color** being your color which could be either "white" or "black"|
+|GameList Add **no** **player_white** **player_black** **size** **original_time** **incr** **komi** **pieces** **capstones** **unrated** **tournament** |Notifies client that a game has started (which the client can observe if it wants)|
+|GameList Remove **no** **player_white** **player_black** **size** **original_time** **incr** **komi** **pieces** **capstones** **unrated** **tournament** |Notifies client that the game has ended|
+|Game Start **no** **size** **player_white** vs **player_black** **your color** **time** **komi** **pieces** **capstones** |Notifies client to start a game. The game no. being **no**, players' names being **white_player**, **black_player** and **your_color** being your color which could be either "white" or "black"|
 |Game#**no** P **Sq** C\|W|The 'Place' move played by the other player in game number **no**. The format is same as the command from client to server|
 |Game#**no** M **Sq1** **Sq2** **no1** **no2**...|The 'Move' move played by the other player in game number **no**. The format is same as the command from client to server|
 |Game#**no** Time **whitetime** **blacktime** |Update the clock with the time specified for white and black players|
@@ -63,9 +64,9 @@ The list does not include error messages, you're free to poke around and figure 
 |Game#**no** RemoveUndo |Opponent removes his undo request|
 |Game#**no** Undo |Undo the last move. Client is supposed to keep track of previous board states and undo to the last state.|
 |Game#**no** Abandoned|Game number **no** is abandoned by the opponent as he quit. Clients can treat this as resign.|
-|Seek new **no** **name** **boardsize** **time** **W\B** |There is a new seek with seek no. **no** posted by **name** with board size **boardsize** with **time** seconds for each player and an optional color choice for seek poster|
-|Seek remove **no** **name** **boardsize** **time** **W\B** |Existing seek no. **no** is removed (either the client has joined another game or has changed his seek or has quit)|
-|Observe Game#**no** **player_white** vs **player_black**, **size**x**size**, **original_time**, **moves** half-moves played, **player_name** to move| Start observing the game number **no** of board size **size** with original time setting of **origin_time** seconds where **moves** half-moves are played and it is **player_name**'s turn to move|
+|Seek new **no** **name** **boardsize** **time** **increment** **W/B/A** **komi** **pieces** **capstones** **unrated** **tournament** **opponent** |There is a new seek with seek no. **no** posted by **name** with board size **boardsize** with **time** seconds for each player. W, B or A denotes the color of the seeker, **opponent** is the name of the player allowed to join, blank to let anyone join |
+|Seek remove **no** **name** **boardsize** **time** **increment** **W/B/A** **komi** **pieces** **capstones** **unrated** **tournament** **opponent** |Existing seek no. **no** is removed (either the client has joined another game or has changed his seek or has quit)|
+|Observe **no** **player_white** **player_black** **size** **original_time** **incr** **komi** **pieces** **capstones** **unrated** **tournament** | Start observing the game number **no** of board size **size** with original time setting of **origin_time** seconds|
 |Shout \<**player**\> **text** |Chat message **text** from **player**|
 |Joined room **room** |Indicates you've joined the room **room**|
 |Left room **room** |Indicates you've left the room **room**|

@@ -21,7 +21,15 @@ body {
 	z-index: 10;
 }
 
-#watchgame-modal{
+#chat {
+	position: fixed;
+	right: 5px;
+	top: 42px;
+	bottom:5px;
+	z-index: 10;
+}
+
+#watchgame-modal, #joingame-modal{
 	overflow-x: auto;
 }
 
@@ -53,6 +61,12 @@ body {
 #notation-toggle-text {
 	position: absolute;
 	left: 202px;
+	top: 2px;
+}
+
+#chat-toggle-button{
+	position: absolute;
+	right: 202px;
 	top: 2px;
 }
 
@@ -177,6 +191,36 @@ input[type=range]::-webkit-slider-runnable-track {
 	z-index: 10;
 }
 
+#cmenu {
+	border-style: solid;
+	border-width: 2px;
+	border-color: black;
+	padding: 5px;
+	margin: 2px;
+	text-align: left;
+	overflow: hidden;
+	background-color: #e7e7e7;
+	top:0;
+	bottom:0;
+	right:0;
+	position:absolute;
+	display:flex;
+	flex-direction:column;
+	width:100%;
+}
+
+#roomslist{
+	max-height:20%;
+	overflow:auto;
+}
+#room_divs{
+	flex:1;
+	overflow:auto;
+}
+#chatwrite{
+	
+}
+
 #rmenu {
 	border-style: solid;
 	border-width: 2px;
@@ -204,7 +248,6 @@ input[type=range]::-webkit-slider-runnable-track {
 	border-bottom-color: #888;
 	border-bottom-width: 1px;
 	background-color: #eee;
-	height: 200px;
 	overflow: auto;
 	flex:1
 }
@@ -271,12 +314,32 @@ input[type=range]::-webkit-slider-runnable-track {
 	vertical-align: middle;
 }
 
-.selected {
-	background: red;
+.roomheader{
+	cursor:pointer;
+	padding:4px 8px;
+	border:1px solid #333;
+	border-radius:10px;
+	background-color:#999;
+	word-wrap:break-word;
+}
+.roomheader.newmessages{
+	background-color:#6c6;
+}
+.roomheader.selected {
+	background-color:#fff;
+	padding:8px;
+}
+.roombody{
+	display:none;
+	padding:3px;
+	word-wrap:break-word;
+}
+.roombody.selected{
+	display:block;
 }
 
-.unselected {
-	background: grey;
+.chatname{
+	font-weight:bold;
 }
 
 .selectplayer {
@@ -322,6 +385,7 @@ input[type=range]::-webkit-slider-runnable-track {
 	display: block;
 	height: 100%;
 	width: 100%;
+	word-wrap:break-word;
 }
 
 #moveslist tbody tr td a span:hover {
@@ -508,4 +572,30 @@ a.navitem, div.navitem{
 .linestable tr.headerrow{
 	border-top:2px solid #ccc;
 	border-bottom:2px solid #ccc;
+}
+
+.rulebox{
+	display:inline-block;
+	width:80px;
+	padding:5px;
+}
+#komirule{
+	text-align:right;
+}
+#piecerule{
+	text-align:left;
+}
+#hovertext{
+	display:none;
+	position:fixed;
+	pointer-events:none;
+	border:1px solid rgba(0,0,0,.6);
+	border-radius:6px;
+	background-color:#ffd;
+	padding:4px 7px;
+	z-index:10000;
+	max-width:400px;
+}
+.playerimg{
+	height:20px;
 }

@@ -411,6 +411,7 @@ function capgeometry(color){
 
 var board = {
 	size:0
+	,komi:0
 	,totcaps:0
 	,tottiles:0
 	,whitepiecesleft:0
@@ -452,8 +453,9 @@ var board = {
 	// the game has ended and play cannot continue
 	,isPlayEnded:false
 
-	,create:function(sz,color,isScratch,obs){
+	,create:function(sz,color,isScratch,obs,komi,pieces,capstones){
 		this.size = sz
+		this.komi=komi||0
 
 		if(sz === 3){
 			this.totcaps = 0
@@ -479,8 +481,17 @@ var board = {
 			this.totcaps = 2
 			this.tottiles = 50
 		}
+		if(pieces>=10){
+			this.tottiles=pieces
+		}
+		if(capstones>=0){
+			this.totcaps=capstones
+		}
 		this.whitepiecesleft = this.tottiles + this.totcaps
 		this.blackpiecesleft = this.tottiles + this.totcaps
+		
+		$("#komirule").html("+"+Math.floor(this.komi/2)+(this.komi&1?".5":".0"))
+		$("#piecerule").html(this.tottiles+"/"+this.totcaps)
 
 		this.mycolor = color
 		this.sq = []
@@ -1053,13 +1064,33 @@ var board = {
 		this.scratch = true
 		this.isPlayEnded = true
 	}
-	,newgame:function(sz,col){
+	,newgame:function(sz,col,komi,pieces,capstones){
 		this.clear()
-		this.create(sz,col,false,false)
+		this.create(sz,col,false,false,komi,pieces,capstones)
 		this.initEmpty()
 	}
+	,flatscore:function(ply){
+		var whitec = 0
+		var blackc = 0
+		if(!(ply>=0)){
+			ply=this.board_history.length-1
+		}
+		var position=this.board_history[ply]
+		if(!position){
+			return [0,0]
+		}
+		for(i = 0;i < this.size*this.size;i++){
+			if(position[i].length>0){
+				var toppiece=position[i][position[i].length-1]
+				whitec+=toppiece=="P"
+				blackc+=toppiece=="p"
+			}
+		}
+		return [whitec,blackc]
+	}
 	,findwhowon:function(){
-		var whitec = 0,blackc = 0
+		var whitec = 0
+		var blackc = this.komi/2
 		for(i = 0;i < this.size;i++){
 			for(j = 0;j < this.size;j++){
 				var stk = this.sq[i][j]
@@ -1202,7 +1233,9 @@ var board = {
 
 			var cell1 = row.insertCell(1)
 			var cell2 = row.insertCell(2)
-
+			
+			cell1.innerHTML = txt
+			/*
 			if(txt==='R-0' || txt==='F-0' || txt==='1-0'){
 				cell1.innerHTML = txt
 				cell2.innerHTML = '--'
@@ -1215,7 +1248,7 @@ var board = {
 				cell1.innerHTML = '1/2 - '
 				cell2.innerHTML = '1/2'
 			}
-
+			*/
 			$('#notationbar').scrollTop(10000)
 			return
 		}
@@ -1547,9 +1580,15 @@ var board = {
 
 		$('#player-me-time').addClass('player2-time')
 		$('#player-opp-time').addClass('player1-time')
-
+		
+		/*
 		$('#player-me-img').removeClass('white-player-color')
 		$('#player-opp-img').addClass('white-player-color')
+		*/
+		$('#player-me-black').removeClass("hidden")
+		$('#player-me-white').addClass("hidden")
+		$('#player-opp-black').addClass("hidden")
+		$('#player-opp-white').removeClass("hidden")
 
 		$('#player-opp').addClass('selectplayer')
 
@@ -1691,7 +1730,7 @@ var board = {
 			return
 		}
 		this.clear()
-		this.create(size,'white',true,false)
+		this.create(size,'white',true,false,+parsed.tags.Komi||0,+parsed.tags.Flats,+parsed.tags.Caps)
 		this.initEmpty()
 		$('.player1-name:first').html(parsed.tags.Player1)
 		$('.player2-name:first').html(parsed.tags.Player2)

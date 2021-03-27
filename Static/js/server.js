@@ -135,9 +135,9 @@ var server = {
 			var proto = 'wss://'
 			var url = window.location.host + '/ws'
 			if(window.location.host.indexOf("localhost")>-1 || window.location.host.indexOf("127.0.0.1")>-1 || window.location.host.indexOf("192.168.")==0){
-				url = "www.playtak.com/ws/"
-				//proto = 'ws://'
-				//url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
+				//url = "www.playtak.com/ws/"
+				proto = 'ws://'
+				url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
 			}
 			this.connection = new WebSocket(proto+url,"binary")
 			this.connection.onerror = function(e){
@@ -316,11 +316,11 @@ var server = {
 	,msg:function(e){
 		console.log(e)
 		output(e)
-		e = e.trim()
+		e = e.replace(/[\n\r]+$/,"")
 		if(startswith("Game Start",e)){
 			//Game Start no. size player_white vs player_black yourcolor time
 			var spl = e.split(" ")
-			board.newgame(Number(spl[3]),spl[7])
+			board.newgame(Number(spl[3]),spl[7],+spl[9],+spl[10],+spl[11])
 			board.gameno = Number(spl[2])
 			console.log("gno "+board.gameno)
 			//document.getElementById("scratchsize").disabled = true
@@ -344,9 +344,15 @@ var server = {
 
 				$('#player-me-time').addClass('player1-time')
 				$('#player-opp-time').addClass('player2-time')
-
+				
+				/*
 				$('#player-me-img').addClass('white-player-color')
 				$('#player-opp-img').removeClass('white-player-color')
+				*/
+				$('#player-me-black').addClass("hidden")
+				$('#player-me-white').removeClass("hidden")
+				$('#player-opp-black').removeClass("hidden")
+				$('#player-opp-white').addClass("hidden")
 
 				$('#player-me').addClass('selectplayer')
 			}
@@ -357,8 +363,14 @@ var server = {
 				$('#player-me-time').addClass('player2-time')
 				$('#player-opp-time').addClass('player1-time')
 
+				/*
 				$('#player-me-img').removeClass('white-player-color')
 				$('#player-opp-img').addClass('white-player-color')
+				*/
+				$('#player-me-black').removeClass("hidden")
+				$('#player-me-white').addClass("hidden")
+				$('#player-opp-black').addClass("hidden")
+				$('#player-opp-white').removeClass("hidden")
 
 				$('#player-opp').addClass('selectplayer')
 			}
@@ -373,61 +385,69 @@ var server = {
 			$('.player1-time:first').html(m+':'+s)
 			$('.player2-time:first').html(m+':'+s)
 
+			var opponentname
 			if(spl[7] === "white"){//I am white
-				if(!chathandler.roomExists('priv',spl[6])){chathandler.createPrivateRoom(spl[6])}
-				chathandler.setRoom('priv',spl[6])
+				opponentname=spl[6]
 			}
 			else{//I am black
-				if(!chathandler.roomExists('priv',spl[4])){chathandler.createPrivateRoom(spl[4])}
-				chathandler.setRoom('priv',spl[4])
+				opponentname=spl[4]
 			}
+			chathandler.createRoom("priv-"+opponentname,"<b>"+opponentname+"</b>")
+			chathandler.selectRoom("priv-"+opponentname)
 
 			var chimesound = document.getElementById("chime-sound")
 			//chimesound.pause()
 			chimesound.currentTime=0
 			chimesound.play()
 		}
-		else if(startswith("Observe Game#",e)){
+		else if(startswith("Observe ",e)){
 			//Observe Game#1 player1 vs player2, 4x4, 180, 7 half-moves played, player2 to move
 			var spl = e.split(" ")
 
 			var p1 = spl[2]
-			var p2 = spl[4].split(',')[0]
+			var p2 = spl[3]
 
 			board.clear()
-			board.create(Number(spl[5].split("x")[0]),"white",false,true)
+			board.create(+spl[4],"white",false,true,+spl[7],+spl[8],+spl[9])
 			board.initEmpty()
-			board.gameno = Number(spl[1].split("Game#")[1])
+			board.gameno = +spl[1]
 			$('.player1-name:first').html(p1)
 			$('.player2-name:first').html(p2)
 			document.title = "Tak: " + p1 + " vs " + p2
 
-			var time = Number(spl[6].split(",")[0])
+			var time = +spl[5]
 			var m = parseInt(time/60)
 			var s = getZero(parseInt(time%60))
 			$('.player1-time:first').html(m+':'+s)
 			$('.player2-time:first').html(m+':'+s)
 
-			if(!chathandler.roomExists('room','Game'+board.gameno)){chathandler.createGameRoom('Game'+board.gameno,p1,p2)}
+			/*
+			if(!chathandler.roomExists('room','Game'+board.gameno)) {chathandler.createGameRoom('Game'+board.gameno,p1,p2)}
 			chathandler.setRoom('room','Game'+board.gameno)
+			*/
 		}
-		else if(startswith("GameList Add Game#",e)){
+		else if(startswith("GameList Add ",e)){
 			//GameList Add Game#1 player1 vs player2, 4x4, 180, 15, 0 half-moves played, player1 to move
 			var spl = e.split(" ")
 			this.gameslist.push({
-				id:+spl[2].split("Game#")[1]
-				,time:Number(spl[7].split(",")[0])
-				,increment:spl[8].split(",")[0]
+				id:+spl[2]
+				,time:+spl[6]
+				,increment:+spl[7]
 				,player1:spl[3]
-				,player2:spl[5].split(",")[0]
-				,size:spl[6].split(",")[0]
+				,player2:spl[4]
+				,size:+spl[5]
+				,komi:+spl[8]
+				,pieces:+spl[9]
+				,capstones:+spl[10]
+				,unrated:spl[11]==1
+				,tournament:spl[12]==1
 			})
 			this.rendeergameslist()
 		}
-		else if(startswith("GameList Remove Game#",e)){
+		else if(startswith("GameList Remove ",e)){
 			//GameList Remove Game#1 player1 vs player2, 4x4, 180, 0 half-moves played, player1 to move
 			var spl = e.split(" ")
-			var id = +spl[2].split("Game#")[1]
+			var id = +spl[2]
 			var newgameslist=[]
 			var a
 			for(a=0;a<this.gameslist.length;a++){
@@ -508,7 +528,10 @@ var server = {
 					var type
 
 					if(spl[2] === "R-0" || spl[2] === "0-R"){type = "making a road"}
-					else if(spl[2] === "F-0" || spl[2] === "0-F"){type = "having more flats"}
+					else if(spl[2] === "F-0" || spl[2] === "0-F"){
+						var score=board.flatscore()
+						type = "having more top flats ("+score[0]+" to "+score[1]+"+"+Math.floor(board.komi/2)+(board.komi&1?".5":".0")+")"
+					}
 					else if(spl[2] === "1-0" || spl[2] === "0-1"){type = "resignation or time"}
 
 					if(spl[2] === "R-0" || spl[2] === "F-0" || spl[2] === "1-0"){
@@ -573,7 +596,7 @@ var server = {
 		}
 		else if(startswith("Login or Register",e)){
 			server.stopLoginTimer()
-			server.send("Client " + "TakWeb-16.05.26")
+			server.send("Client " + "TakWeb-21.03.11")
 			clearInterval(this.timeoutvar)
 			this.timeoutvar = setInterval(this.keepalive,30000)
 			if(localStorage.getItem('keeploggedin')==='true' && this.tries<3){
@@ -697,7 +720,8 @@ var server = {
 			var msg = e.split("CmdReply ")[1]
 			msg = '<span class="cmdreply">' + msg + '</span>'
 
-			chathandler.raw('global','global',msg)
+			//chathandler.raw('global','global',msg)
+			chathandler.recieved("global","","&gt;",msg)
 		}
 		//new seek
 		else if(startswith("Seek new",e)){
@@ -709,7 +733,13 @@ var server = {
 				,size:spl[4]+'x'+spl[4]
 				,time:Number(spl[5])
 				,increment:Number(spl[6])
-				,color:spl[7]||"A"
+				,color:spl[7]
+				,komi:+spl[8]
+				,pieces:+spl[9]
+				,capstones:+spl[10]
+				,unrated:spl[11]==1
+				,tournament:spl[12]==1
+				,opponent:spl[13]
 			})
 			this.rendeerseekslist()
 		}
@@ -753,6 +783,19 @@ var server = {
 
 			this.send("Login " + name + " " + pass)
 		}
+		else if(startswith("Joined room ",e)){
+			var spl = e.split(" ")
+			var roomname=spl[2]
+			var players=roomname.split("-")
+			var id="room-"+roomname
+			if(players.length==2){
+				chathandler.createRoom(id,"<b>"+players[0]+"</b> vs <b>"+players[1]+"</b>")
+			}
+			else{
+				chathandler.createRoom(id,roomname)
+			}
+			chathandler.selectRoom(id)
+		}
 	}
 	,updateplayerinfo:function(){
 		document.getElementById("playerinfo").innerHTML=""
@@ -767,20 +810,23 @@ var server = {
 			var game=this.gameslist[a]
 			var p1 = "<span class='playername'>"+game.player1+"</span>"
 			var p2 = "<span class='playername'>"+game.player2+"</span>"
-			var sz = "<span class='badge'>"+game.size+"</span>"
+			var sz = "<span class='badge'>"+game.size+"x"+game.size+"</span>"
 
 			var row = $('<tr/>')
 				.addClass('game'+game.id)
-				.click(game.id,function(ev){server.observegame(ev.data)})
+				.click(game,function(ev){server.observegame(ev.data)})
 				.appendTo($('#gamelist'))
-			$('<td/>').append(getratingstring(game.player1)).appendTo(row)
+			$('<td/>').append(getratingstring(game.player1)).attr("data-hover","Rating").appendTo(row)
 			$('<td/>').append(p1).addClass("right").appendTo(row)
 			$('<td/>').append('vs').addClass("center").appendTo(row)
 			$('<td/>').append(p2).appendTo(row)
-			$('<td/>').append(getratingstring(game.player2)).addClass("right").appendTo(row)
+			$('<td/>').append(getratingstring(game.player2)).addClass("right").attr("data-hover","Rating").appendTo(row)
 			$('<td/>').append(sz).addClass("right").appendTo(row)
-			$('<td/>').append(minuteseconds(game.time)).addClass("right").appendTo(row)
-			$('<td/>').append('+'+minuteseconds(game.increment)).addClass("right").appendTo(row)
+			$('<td/>').append(minuteseconds(game.time)).addClass("right").attr("data-hover","Time control").appendTo(row)
+			$('<td/>').append('+'+minuteseconds(game.increment)).addClass("right").attr("data-hover","Time increment per move").appendTo(row)
+			$('<td/>').append('+'+Math.floor(game.komi/2)+"."+(game.komi&1?"5":"0")).attr("data-hover","Komi - If the game ends without a road, black will get this number on top of their flat count when the winner is determined").addClass("right").appendTo(row)
+			$('<td/>').append(game.pieces+"/"+game.capstones).addClass("right").attr("data-hover","Stone count - The number of stones/capstones that each player has in this game").appendTo(row)
+			$('<td/>').append((game.unrated?"P":"")+(game.tournament?"T":"")).addClass("right").attr("data-hover",(game.unrated?"Pointless game":"")+(game.tournament?"Tournament game":"")).appendTo(row)
 		}
 		document.getElementById("gamecount").innerHTML=this.gameslist.length
 	}
@@ -801,6 +847,9 @@ var server = {
 		}
 		for(a=0;a<this.seekslist.length;a++){
 			var seek=this.seekslist[a]
+			if(seek.opponent!="" && seek.opponent.toLowerCase()!=this.myname.toLowerCase()){
+				continue
+			}
 			var img = "images/circle_any.svg"
 			if(seek.color=="W"){
 				img="images/circle_white.svg"
@@ -825,6 +874,7 @@ var server = {
 			}
 			var rating=getrating(seek.player)
 			var ratingdecoration=""
+			var ratingtext=""
 			if(rating){
 				if(rating>=myrating+levelgap){
 					ratingdecoration="<span class='ratingup'>"+("↑↑↑".slice(0,Math.min(Math.floor((rating-myrating)/levelgap),3)))+"</span>"
@@ -835,18 +885,43 @@ var server = {
 				else{
 					ratingdecoration="<span class='ratingequal'>≈</span>"
 				}
+				
+				if(rating>=myrating+levelgap*3){
+					ratingtext="This player is much stronger than you"
+				}
+				else if(rating>=myrating+levelgap*2){
+					ratingtext="This player is moderately stronger than you"
+				}
+				else if(rating>=myrating+levelgap*1){
+					ratingtext="This player is a bit stronger than you"
+				}
+				else if(myrating>=rating+levelgap*3){
+					ratingtext="This player is much weaker than you"
+				}
+				else if(myrating>=rating+levelgap*2){
+					ratingtext="This player is moderately weaker than you"
+				}
+				else if(myrating>=rating+levelgap*1){
+					ratingtext="This player is a bit weaker than you"
+				}
+				else{
+					ratingtext="This player is approximately your level"
+				}
 			}
 			$('<td/>').append(imgstring).appendTo(row)
 			$('<td/>').append(pspan).appendTo(row)
-			$('<td/>').append(ratingdecoration+getratingstring(seek.player)).addClass("right").appendTo(row)
+			$('<td/>').append(ratingdecoration+getratingstring(seek.player)).addClass("right").attr("data-hover",ratingtext).appendTo(row)
 			$('<td/>').append(sizespan).addClass("right").appendTo(row)
-			$('<td/>').append(minuteseconds(seek.time)).addClass("right").appendTo(row)
-			$('<td/>').append('+'+minuteseconds(seek.increment)).addClass("right").appendTo(row)
+			$('<td/>').append(minuteseconds(seek.time)).addClass("right").attr("data-hover","Time control").appendTo(row)
+			$('<td/>').append('+'+minuteseconds(seek.increment)).addClass("right").attr("data-hover","Time increment per move").appendTo(row)
+			$('<td/>').append('+'+Math.floor(seek.komi/2)+"."+(seek.komi&1?"5":"0")).addClass("right").attr("data-hover","Komi - If the game ends without a road, black will get this number on top of their flat count when the winner is determined").appendTo(row)
+			$('<td/>').append(seek.pieces+"/"+seek.capstones).addClass("right").attr("data-hover","Stone count - The number of stones/capstones that each player has in this game").appendTo(row)
+			$('<td/>').append((seek.unrated?"P":"")+(seek.tournament?"T":"")).addClass("right").attr("data-hover",(seek.unrated?"Pointless game":"")+(seek.tournament?"Tournament game":"")).appendTo(row)
 		}
 		if(!botcount){
-			$('<tr/>').append($('<td colspan="6"/>')).appendTo($('#seeklistbot'))
+			$('<tr/>').append($('<td colspan="9"/>')).appendTo($('#seeklistbot'))
 		}
-		$('<tr/>').append($('<td colspan="6"/>')).appendTo($('#seeklist'))
+		$('<tr/>').append($('<td colspan="9"/>')).appendTo($('#seeklist'))
 		document.getElementById("seekcount").innerHTML=playercount
 		document.getElementById("seekcountbot").innerHTML=botcount
 		this.changeseektime=Date.now()
@@ -868,20 +943,21 @@ var server = {
 		alert("danger",e)
 	}
 	,seek:function(){
-		var size = $('#boardsize').find(':selected').text()
-		size = parseInt(size)
-		var time = $('#timeselect').find(':selected').text()
-		var inc = $('#incselect').find(':selected').text()
-		var clrtxt = $('#colorselect').find(':selected').text()
-		var clr=''
-		if(clrtxt == 'White'){clr = ' W'}
-		if(clrtxt == 'Black'){clr = ' B'}
+		var size=+document.getElementById("boardsize").value
+		var time=+document.getElementById("timeselect").value
+		var inc=+document.getElementById("incselect").value
+		var color=document.getElementById("colorselect").value
+		var komi=+document.getElementById("komiselect").value
+		var pieces=+document.getElementById("piececount").value
+		var capstones=+document.getElementById("capcount").value
+		var gametype=+document.getElementById("gametype").value
+		var opponent=document.getElementById("opname").value.replace(/[^A-Za-z0-9_]/g,"")
 
-		this.send("Seek "+size+" " + (time*60) + " " + inc + clr)
+		this.send("Seek "+size+" "+(time*60)+" "+inc+" "+color+" "+komi+" "+pieces+" "+capstones+" "+(gametype==2?1:0)+" "+(gametype==1?1:0)+" "+opponent)
 		$('#creategamemodal').modal('hide')
 	}
 	,removeseek:function(){
-		this.send("Seek 0 0 0")
+		this.send("Seek 0 0 0 A 0 0 0 0 0 ")
 		$('#creategamemodal').modal('hide')
 	}
 	,draw:function(){
@@ -935,13 +1011,16 @@ var server = {
 	,unobserve:function(){
 		if(board.gameno !== 0){this.send("Unobserve " + board.gameno)}
 	}
-	,observegame:function(no){
+	,observegame:function(game){
 		$('#watchgame-modal').modal('hide')
 		if(board.observing === false && board.scratch === false){ //don't observe game while playing another
 			return
 		}
-		if(no === board.gameno){return}
+		if(game.id === board.gameno){return}
 		this.unobserve()
-		this.send("Observe " + no)
+		this.send("Observe " + game.id)
+		var players=[game.player1,game.player2]
+		players.sort()
+		this.send("JoinRoom "+players.join("-"))
 	}
 }

@@ -38,11 +38,11 @@ public class Client extends Thread {
 	static AtomicInteger totalClients = new AtomicInteger(0);
 	static AtomicInteger onlineClients = new AtomicInteger(0);
 
-	static Set<Client> clientConnections = new ConcurrentHashSet<>();
+	static ConcurrentHashSet<Client> clientConnections = new ConcurrentHashSet<>();
 
 	Seek seek = null;
-	ArrayList<Game> spectating;
-	Set<ChatRoom> chatRooms;
+	Set<Game> spectating;
+	Set<String> chatRooms;
 
 	String loginString = "^Login ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([^\n\r\\s]{6,50})";
 	Pattern loginPattern;
@@ -62,10 +62,10 @@ public class Client extends Thread {
 	String changePasswordString = "^ChangePassword ([^\n\r\\s]{6,50}) ([^\n\r\\s]{6,50})";
 	Pattern changePasswordPattern;
 	
-	String sendResetTokenString = "SendResetToken ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([A-Za-z.0-9_+!#$%&'*^?=-]{1,30}@[A-Za-z.0-9-]{3,30})";
+	String sendResetTokenString = "^SendResetToken ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([A-Za-z.0-9_+!#$%&'*^?=-]{1,30}@[A-Za-z.0-9-]{3,30})";
 	Pattern sendResetTokenPattern;
 	
-	String resetPasswordString = "ResetPassword ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([^\n\r\\s]{6,50}) ([^\n\r\\s]{6,50})";
+	String resetPasswordString = "^ResetPassword ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([^\n\r\\s]{6,50}) ([^\n\r\\s]{6,50})";
 	Pattern resetPasswordPattern;
 	
 	String placeString = "^Game#(\\d+) P ([A-Z])(\\d)( C)?( W)?";
@@ -89,8 +89,11 @@ public class Client extends Thread {
 	String resignString = "^Game#(\\d+) Resign";
 	Pattern resignPattern;
 
-	String seekString = "^Seek (\\d) (\\d+) (\\d+)( W)?( B)?";
+	String seekString = "^Seek (\\d) (\\d+) (\\d+) ([WBA]) (\\d+) (\\d+) (\\d+) (0|1) (0|1) ([A-Za-z0-9_]*)";
 	Pattern seekPattern;
+
+	String oldSeekString = "^Seek (\\d) (\\d+) (\\d+)( [WB])?";
+	Pattern oldSeekPattern;
 
 	String acceptSeekString = "^Accept (\\d+)";
 	Pattern acceptSeekPattern;
@@ -116,19 +119,19 @@ public class Client extends Thread {
 	String shoutString = "^Shout ([^\n\r]{1,256})";
 	Pattern shoutPattern;
 	
-	String shoutRoomString = "ShoutRoom ([^\n\r\\s]{4,15}) ([^\n\r]{1,256})";
+	String shoutRoomString = "^ShoutRoom ([^\n\r\\s]{1,64}) ([^\n\r]{1,256})";
 	Pattern shoutRoomPattern;
 	
-	String createRoomString = "CreateRoom ([^\n\r\\s]{4,15})";
-	Pattern createRoomPattern;
+	//String createRoomString = "CreateRoom ([^\n\r\\s]{4,15})";
+	//Pattern createRoomPattern;
 	
-	String joinRoomString = "JoinRoom ([^\n\r\\s]{4,15})";
+	String joinRoomString = "^JoinRoom ([^\n\r\\s]{1,64})";
 	Pattern joinRoomPattern;
 	
-	String leaveRoomString = "LeaveRoom ([^\n\r\\s]{4,15})";
+	String leaveRoomString = "^LeaveRoom ([^\n\r\\s]{1,64})";
 	Pattern leaveRoomPattern;
 	
-	String tellString = "Tell ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([^\n\r]{1,256})";
+	String tellString = "^Tell ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([^\n\r]{1,256})";
 	Pattern tellPattern;
 	
 	String pingString = "^PING$";
@@ -182,6 +185,7 @@ public class Client extends Thread {
 		resignPattern = Pattern.compile(resignString);
 		wrongRegisterPattern = Pattern.compile(wrongRegisterString);
 		seekPattern = Pattern.compile(seekString);
+		oldSeekPattern = Pattern.compile(oldSeekString);
 		acceptSeekPattern = Pattern.compile(acceptSeekString);
 		listPattern = Pattern.compile(listString);
 		gameListPattern = Pattern.compile(gameListString);
@@ -191,7 +195,7 @@ public class Client extends Thread {
 		getSqStatePattern = Pattern.compile(getSqStateString);
 		shoutPattern = Pattern.compile(shoutString);
 		shoutRoomPattern = Pattern.compile(shoutRoomString);
-		createRoomPattern = Pattern.compile(createRoomString);
+		//createRoomPattern = Pattern.compile(createRoomString);
 		joinRoomPattern = Pattern.compile(joinRoomString);
 		leaveRoomPattern = Pattern.compile(leaveRoomString);
 		tellPattern = Pattern.compile(tellString);
@@ -209,7 +213,7 @@ public class Client extends Thread {
 		broadcastPattern = Pattern.compile(broadcastString);
 
 		clientConnections.add(this);
-		spectating = new ArrayList<>();
+		spectating = new HashSet<>();
 		chatRooms = new HashSet<>();
 		/*
 		try{
@@ -253,24 +257,33 @@ public class Client extends Thread {
 	}
 	
 	static void sendAll(final String msg) {
+		for(Client c: clientConnections){
+			c.sendWithoutLogging(msg);
+		}
+		/*
 		new Thread() {
 			@Override
 			public void run() {
-				for(Client c: clientConnections)
-					c.sendWithoutLogging(msg);
+
 			}
 		}.start();
+		*/
 	}
 	
 	static void sendAllOnline(final String msg) {
+		for(Client c: clientConnections){
+			if(c.player!=null){
+				c.sendWithoutLogging(msg);
+			}
+		}
+		/*
 		new Thread() {
 			@Override
 			public void run() {
-				for(Client c: clientConnections)
-					if(c.player!=null)
-						c.sendWithoutLogging(msg);
+
 			}
 		}.start();
+		*/
 	}
 
 	void clientQuit() throws IOException {
@@ -333,7 +346,7 @@ public class Client extends Thread {
 						break mainloop;
 					}
 				}
-				temp = temp.trim();
+				temp = temp.replaceAll("[\\n\\r]+$","");
 				
 				if(temp.equals("quit")){
 					break;
@@ -350,7 +363,11 @@ public class Client extends Thread {
 				if (player == null) {
 					//Client name set
 					if((m = clientPattern.matcher(temp)).find()){
-						Log("Client "+m.group(1));
+						String clientversion=m.group(1);
+						Log("Client !"+clientversion+"!");
+						if(clientversion.equals("TreffnonX-08.09.16") || clientversion.equals("TakWeb-16.05.26")){
+							sendWithoutLogging("Shout <Server> Your Playtak client is unfortunately no longer compatible. Please go to https://www.playtak.com in order to play.");
+						}
 					}
 					//Login Guest
 					else if ((loginGuestPattern.matcher(temp)).find()) {
@@ -469,7 +486,9 @@ public class Client extends Thread {
 					//List all seeks
 					if ((m = listPattern.matcher(temp)).find()) {
 						Seek.sendListTo(this);
-					} //Seek a game
+
+					}
+					//Seek a game
 					else if (game==null && (m = seekPattern.matcher(temp)).find()) {
 						if (seek != null) {
 							Seek.removeSeek(seek.no);
@@ -481,19 +500,75 @@ public class Client extends Thread {
 						} else {
 							Seek.COLOR clr = Seek.COLOR.ANY;
 							
-							if(m.group(4)!=null)
+							if("W".equals(m.group(4)))
 								clr = Seek.COLOR.WHITE;
-							else if(m.group(5)!=null)
+							else if("B".equals(m.group(4)))
 								clr = Seek.COLOR.BLACK;
-							seek = Seek.newSeek(this, Integer.parseInt(m.group(1)),
-									Integer.parseInt(m.group(2)), Integer.parseInt(m.group(3)), clr);
+							seek = Seek.newSeek(
+								this
+								,Integer.parseInt(m.group(1))
+								,Integer.parseInt(m.group(2))
+								,Integer.parseInt(m.group(3))
+								,clr
+								,Integer.parseInt(m.group(5))
+								,Integer.parseInt(m.group(6))
+								,Integer.parseInt(m.group(7))
+								,Integer.parseInt(m.group(8))
+								,Integer.parseInt(m.group(9))
+								,m.group(10)
+							);
 							Log("Seek "+seek.boardSize);
 						}
-					} //Accept a seek
+					}
+					//Seek a game
+					else if (game==null && (m = oldSeekPattern.matcher(temp)).find()) {
+						if (seek != null) {
+							Seek.removeSeek(seek.no);
+						}
+						int no = Integer.parseInt(m.group(1));
+						if(no == 0) {
+							Log("Seek remove");
+							seek = null;
+						} else {
+							Seek.COLOR clr = Seek.COLOR.ANY;
+							
+							if(" W".equals(m.group(4)))
+								clr = Seek.COLOR.WHITE;
+							else if(" B".equals(m.group(4)))
+								clr = Seek.COLOR.BLACK;
+								
+							int capstonesCount=0;
+							int tilesCount=0;
+							switch(Integer.parseInt(m.group(1))) {
+								case 3: capstonesCount = 0; tilesCount = 10; break;
+								case 4: capstonesCount = 0; tilesCount = 15; break;
+								case 5: capstonesCount = 1; tilesCount = 21; break;
+								case 6: capstonesCount = 1; tilesCount = 30; break;
+								case 7: capstonesCount = 2; tilesCount = 40; break;
+								case 8: capstonesCount = 2; tilesCount = 50; break;
+							}
+								
+							seek = Seek.newSeek(
+								this
+								,Integer.parseInt(m.group(1))
+								,Integer.parseInt(m.group(2))
+								,Integer.parseInt(m.group(3))
+								,clr
+								,0
+								,tilesCount
+								,capstonesCount
+								,0
+								,0
+								,""
+							);
+							Log("Seek "+seek.boardSize);
+						}
+					}
+					//Accept a seek
 					else if (game==null && (m = acceptSeekPattern.matcher(temp)).find()) {
 						Seek sk = Seek.seeks.get(Integer.parseInt(m.group(1)));
 
-						if (sk != null && game == null && sk.client.player.getGame() == null && sk!=seek) {
+						if (sk != null && game == null && sk.client.player.getGame() == null && sk!=seek && (sk.opponent.toLowerCase().equals(player.getName().toLowerCase()) || sk.opponent.equals(""))) {
 							removeSeeks();
 
 							Client otherClient = sk.client;
@@ -504,15 +579,16 @@ public class Client extends Thread {
 							unspectateAll();
 							otherClient.unspectateAll();
 							
-							game = new Game(player, otherClient.player, sz, time, sk.incr, sk.color);
+							game = new Game(player, otherClient.player, sz, time, sk.incr, sk.color, sk.komi, sk.pieces, sk.capstones, sk.unrated, sk.tournament);
 							Game.addGame(game);
 							
 							player.setGame(game);
 							otherClient.player.setGame(game);
 							
 							String msg = "Game Start " + game.no +" "+sz+" "+game.white.getName()+" vs "+game.black.getName();
-							send(msg+" "+((game.white==player)?"white":"black")+" "+time);
-							otherClient.send(msg+" "+((game.white==otherClient.player)?"white":"black")+" "+time);
+							String msg2=time+" "+sk.komi+" "+sk.pieces+" "+sk.capstones;
+							send(msg+" "+((game.white==player)?"white":"black")+" "+msg2);
+							otherClient.send(msg+" "+((game.white==otherClient.player)?"white":"black")+" "+msg2);
 						} else {
 							sendNOK();
 						}
@@ -601,6 +677,9 @@ public class Client extends Thread {
 					else if ((m=observePattern.matcher(temp)).find()){
 						game = Game.games.get(Integer.parseInt(m.group(1)));
 						if(game!=null){
+							spectating.add(game);
+							game.newSpectator(player);
+							/*
 							if(spectating.contains(game)) {
 								send("Message you're already observing this game");
 							} else {
@@ -613,6 +692,7 @@ public class Client extends Thread {
 								}
 								addToRoom(room);
 							}
+							*/
 						} else
 							sendNOK();
 					}
@@ -635,47 +715,17 @@ public class Client extends Thread {
 						} else//send to only gagged player
 							sendWithoutLogging("Shout "+msg);
 					}
-					//CreateRoom
-					else if((m=createRoomPattern.matcher(temp)).find()) {
-						ChatRoom room = ChatRoom.addRoom(m.group(1));
-						if(room == null) {
-							send("Room already exists");
-						} else {
-							send("Created room "+room.getName());
-							addToRoom(room);
-						}
-					}
 					//JoinRoom
 					else if((m=joinRoomPattern.matcher(temp)).find()) {
-						ChatRoom room = ChatRoom.get(m.group(1));
-						if(room == null) {
-							send("No such room");
-						} else {
-							addToRoom(room);
-						}
+						addToRoom(m.group(1));
 					}
 					//LeaveRoom
 					else if((m=leaveRoomPattern.matcher(temp)).find()) {
-						ChatRoom room = ChatRoom.get(m.group(1));
-						if(room == null) {
-							send("No such room");
-						} else {
-							send("Left room "+room.getName());
-							removeFromRoom(room);
-						}
+						removeFromRoom(m.group(1));
 					}
 					//ShoutRoom
 					else if ((m=shoutRoomPattern.matcher(temp)).find()) {
-						ChatRoom room = ChatRoom.get(m.group(1));
-						if(room != null) {
-							if(chatRooms.contains(room))
-								room.shout(this, m.group(2));
-							else {
-								send("You should be in room to shout");
-							}
-						} else {
-							send("No such room");
-						}
+						ChatRoom.shout(m.group(1),this,m.group(2));
 					}
 					//Tell
 					else if ((m=tellPattern.matcher(temp)).find()) {
@@ -721,26 +771,22 @@ public class Client extends Thread {
 		}
 	}
 	
-	public void addToRoom(ChatRoom room) {
-		if(chatRooms.contains(room))
-			return;
-		
+	public void addToRoom(String room) {
 		chatRooms.add(room);
-		room.addMember(this);
-		send("Joined room "+room.getName());
+		ChatRoom.joinRoom(room,this);
+		send("Joined room "+room);
 	}
 	
-	public void removeFromRoom(ChatRoom room) {
+	public void removeFromRoom(String room) {
 		chatRooms.remove(room);
-		room.removeMember(this);
+		ChatRoom.leaveRoom(room,this);
 	}
 	
 	public void removeFromAllRooms() {
-		for(Iterator<ChatRoom> it = chatRooms.iterator();it.hasNext();) {
-			ChatRoom room = it.next();
-			it.remove();
-			removeFromRoom(room);
+		for(String room : chatRooms){
+			ChatRoom.leaveRoom(room,this);
 		}
+		chatRooms.clear();
 	}
 	
 	//this has more rights than p
