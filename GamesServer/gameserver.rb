@@ -79,6 +79,9 @@ class GamesController
 					querys[querys.count]="0-R"
 					querys[querys.count]="0-F"
 					querys[querys.count]="0-1"
+				elsif params["result"]=="1/2-1/2"
+					mirror_search += " and result = ?"
+					querys[querys.count] = params["result"]
 				else
 					mirror_search += " and result = ?"
 					querys[querys.count] = params["result"].reverse
@@ -225,8 +228,18 @@ class GamesController
 		ptn += get_header('Clock', get_timer_info(game.timertime, game.timerinc))
 		ptn += get_header('Result', game.result)
 		ptn += get_header('Size', game.size)
+		ptn += get_header('Komi', (game.komi/2).to_s)
+		
+		stdpieces=[0,0,0,10,15,21,30,40,50][game.size]
+		stdcaps=[0,0,0,0,0,1,1,2,2][game.size]
+		gpieces=game.pieces==-1 ? stdpieces : game.pieces
+		gcaps=game.capstones==-1 ? stdcaps : game.capstones
+		
+		ptn += get_header('Flats', gpieces)
+		ptn += get_header('Caps', gcaps)
 
 		ptn += get_moves("\n" + game.notation)
+		ptn+="\n"+game.result+"\n"
 		return ptn
 	end
 =begin
@@ -297,7 +310,7 @@ class GamesController
 		if(games.length == 1)
 			game = games[0]
 			ptn = get_ptn(game)
-			return 'http://ptn.ninja/#' + URI.encode_www_form_component(ptn).gsub("+","%20")#.gsub("[","%5B").gsub("]","%5D")
+			return 'http://ptn.ninja/' + URI.encode_www_form_component(ptn).gsub("+","%20").gsub("%0A","%20")#.gsub("[","%5B").gsub("]","%5D")
 		end
 		return ''
 	end
@@ -482,7 +495,7 @@ server.mount_proc '/' do |req, res|
 								if game.komi>0
 									searchvalues2['rules']+="<br>"
 								end
-								searchvalues2['rules']+="Pieces: "+gpieces+"/"+gcaps
+								searchvalues2['rules']+="Pieces: "+gpieces.to_s+"/"+gcaps.to_s
 							end
 							#gametime=Time.at(game.date/1000,in:"UTC")
 							gametime=Time.at(game.date/1000).utc
@@ -498,7 +511,7 @@ server.mount_proc '/' do |req, res|
 								searchvalues2['playerw']=game.player_white
 								searchvalues2['playerb']=game.player_black
 							end
-							if game.size<5 || game.unrated==1 || game.rating_white==0 || game.rating_black==0 || (game.result!="0-0" && game.notation.length<6) || (game.result=="0-0" && gametime<abandonedtime)
+							if game.size<5 || game.unrated==1 || game.rating_white==0 || game.rating_black==0 || (game.result!="0-0" && game.notation.length<6) || (game.result=="0-0" && gametime<abandonedtime) || (game.rating_change_white==-2000 && game.rating_change_black==-2000)
 								if game.rating_white>=100
 									searchvalues2['playerwrt']=game.rating_white.to_s
 								end

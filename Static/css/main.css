@@ -45,6 +45,11 @@ body {
 .playername {
 	font-weight: bold;
 }
+.playernamegame {
+	font-weight:bold;
+	word-wrap:break-word;
+	max-width:100px;
+}
 
 .bold {
 	font-weight: bold;
@@ -206,7 +211,7 @@ input[type=range]::-webkit-slider-runnable-track {
 	position:absolute;
 	display:flex;
 	flex-direction:column;
-	width:100%;
+	width:180px;
 }
 
 #roomslist{
@@ -325,9 +330,26 @@ input[type=range]::-webkit-slider-runnable-track {
 .roomheader.newmessages{
 	background-color:#6c6;
 }
-.roomheader.selected {
+.roomheader.selected{
 	background-color:#fff;
 	padding:8px;
+}
+.chatclose{
+	float:right;
+	width:20px;
+	height:20px;
+	border:none;
+	background:none;
+	text-align:center;
+	line-height:20px;
+	color:#666;
+	font-size:16px;
+	font-weight:bold;
+	display:inline-block;
+	padding:0;
+}
+.chatclose:hover{
+	color:#000;
 }
 .roombody{
 	display:none;
@@ -537,6 +559,7 @@ a.navitem, div.navitem{
 }
 .navicon{
 	height:20px;
+	width:20px;
 	vertical-align:middle;
 }
 #scratchlist{
@@ -564,10 +587,10 @@ a.navitem, div.navitem{
 	cursor:pointer;
 }
 .linestable td{
-	padding:8px;
+	padding:8px 4px;
 }
 .linestable th{
-	padding:8px;
+	padding:8px 4px;
 }
 .linestable tr.headerrow{
 	border-top:2px solid #ccc;
@@ -586,6 +609,8 @@ a.navitem, div.navitem{
 	text-align:left;
 }
 #hovertext{
+	top:0;
+	left:0;
 	display:none;
 	position:fixed;
 	pointer-events:none;
@@ -598,4 +623,8 @@ a.navitem, div.navitem{
 }
 .playerimg{
 	height:20px;
+	width:20px;
+}
+.privateseek{
+	background-color:#ffd;
 }

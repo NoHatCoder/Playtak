@@ -529,7 +529,7 @@ function adjustsidemenu(notation,chat){
 	localStorage[chatstore]=chatstate
 	if($('#cmenu').hasClass('hidden')){
 		if(chatstate=="show"){
-			$('#chat-toggle-button').css('right',chathandler.chat_width)
+			$('#chat-toggle-button').css('right',chathandler.chat_width+16)
 			$('#chat-toggle-button').html('&gt;&gt;<br>c<br>h<br>a<br>t')
 			$('#cmenu').removeClass('hidden')
 			generateCamera()
@@ -666,8 +666,7 @@ function isBreakpoint( alias ) {
 var haveplayedhurry=false
 function startTime(fromFn) {
 	if(typeof fromFn === 'undefined' && !server.timervar) {return}
-	var now = new Date()
-	var t = now.getTime()/1000
+	var t = invarianttime()
 	var elapsed = t-lastTimeUpdate
 	var t1
 	var nextupdate
@@ -677,31 +676,15 @@ function startTime(fromFn) {
 
 	if(board.movecount%2 === 0) {
 		t1f=Math.max(lastWt - elapsed,0)
-		t1 = Math.ceil(t1f)
-		nextupdate=1000*(1-t1+t1f)
-		$('.player1-time:first').html(Math.floor(t1/60)+':'+getZero(t1%60))
-		$('.player2-time:first').html(Math.floor(lastBt/60)+':'+getZero(lastBt%60))
+		t1=t1f
 	}
 	else{
 		t2f=Math.max(lastBt - elapsed,0)
-		t1 = Math.ceil(t2f)
-		nextupdate=1000*(1-t1+t2f)
-		$('.player2-time:first').html(Math.floor(t1/60)+':'+getZero(t1%60))
-		$('.player1-time:first').html(Math.floor(lastWt/60)+':'+getZero(lastWt%60))
+		t1=t2f
 	}
-	if(t1f<=10){
-		$('.player1-time:first').addClass("hurrytime")
-	}
-	else{
-		$('.player1-time:first').removeClass("hurrytime")
-	}
-	if(t2f<=10){
-		$('.player2-time:first').addClass("hurrytime")
-	}
-	else{
-		$('.player2-time:first').removeClass("hurrytime")
-	}
-	if(t1==10 && ismymove && !haveplayedhurry){
+	nextupdate=((t1-1)%100)+1
+	settimers(t1f,t2f)
+	if(t1<=10000 && ismymove && !haveplayedhurry){
 		haveplayedhurry=true
 		var hurrysound = document.getElementById("hurry-sound")
 		//hurrysound.pause()
@@ -720,8 +703,37 @@ function stopTime() {
 	server.timervar = null
 }
 
+function settimers(p1t,p2t,nohurry){
+	$('.player1-time:first').html(formatTime(p1t))
+	$('.player2-time:first').html(formatTime(p2t))
+	if(p1t<=10000 && !nohurry){
+		$('.player1-time:first').addClass("hurrytime")
+	}
+	else{
+		$('.player1-time:first').removeClass("hurrytime")
+	}
+	if(p2t<=10000 && !nohurry){
+		$('.player2-time:first').addClass("hurrytime")
+	}
+	else{
+		$('.player2-time:first').removeClass("hurrytime")
+	}
+}
 function getZero(t) {
 	return t<10?'0'+t:t
+}
+function formatTime(t){
+	if(t<0){
+		t=0
+	}
+	if(t>59900){
+		var st=Math.ceil(t/1000)
+		return Math.floor(st/60)+':'+getZero(st%60)
+	}
+	else{
+		var dst=Math.ceil(t/100)
+		return getZero(Math.floor(dst/10))+".<span style='font-size:70%;'>"+(dst%10)+"</span>"
+	}
 }
 
 
@@ -1103,9 +1115,9 @@ function getNotation() {
 		$('td',this).each(function() {
 			var val = $(this).text()
 			if(line && val){
-				res += ' '
+				line += ' '
 			}
-			res += val
+			line += val
 		})
 		res += line+'\r\n'
 	})
@@ -1211,11 +1223,11 @@ function dohovertext(ev){
 	var target=ev.target
 	var hoverstring=""
 	while(target){
-		if(target.dataset.hasOwnProperty("hover")){
+		if(target.dataset && target.dataset.hasOwnProperty("hover")){
 			hoverstring=target.dataset.hover
 			break
 		}
-		target=target.parentElement
+		target=target.parentNode
 	}
 	if(hoverstring && hovertext){
 		el.style.display="block"

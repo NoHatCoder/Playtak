@@ -26,14 +26,18 @@ public class ChatRoom {
 	
 	public static ChatRoom joinRoom(String name, Client client){
 		roommaplock.lock();
-		ChatRoom room=chatRooms.get(name);
-		if(room==null){
-			room = new ChatRoom();
-			chatRooms.put(name, room);
+		try{
+			ChatRoom room=chatRooms.get(name);
+			if(room==null){
+				room = new ChatRoom();
+				chatRooms.put(name, room);
+			}
+			room.members.add(client);
+			return room;
 		}
-		room.members.add(client);
-		roommaplock.unlock();
-		return room;
+		finally{
+			roommaplock.unlock();
+		}
 	}
 	
 	public static void shout(String name, Client client, String msg) {		
@@ -48,13 +52,17 @@ public class ChatRoom {
 	
 	public static void leaveRoom(String name, Client client){
 		roommaplock.lock();
-		ChatRoom room=chatRooms.get(name);
-		if(room!=null){
-			room.members.remove(client);
-			if(room.members.isEmpty()){
-				chatRooms.remove(name);
+		try{
+			ChatRoom room=chatRooms.get(name);
+			if(room!=null){
+				room.members.remove(client);
+				if(room.members.isEmpty()){
+					chatRooms.remove(name);
+				}
 			}
 		}
-		roommaplock.unlock();
+		finally{
+			roommaplock.unlock();
+		}
 	}
 }

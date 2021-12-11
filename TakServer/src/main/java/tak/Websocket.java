@@ -45,7 +45,7 @@ public class Websocket{
 		this.socket = socket;
 		streamended=false;
 		try{
-			socket.setSoTimeout(60*1000);
+			socket.setSoTimeout(90*1000);
 			stream=socket.getInputStream();
 			outstream=socket.getOutputStream();
 		}
@@ -253,6 +253,7 @@ public class Websocket{
 			}
 		}
 		catch(Throwable t){
+			t.printStackTrace();
 			kill(13);
 			return null;
 		}

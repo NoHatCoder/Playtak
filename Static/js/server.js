@@ -1,3 +1,44 @@
+function randomtoken(){
+	var a,b
+	var s=Math.random()+";"+Math.random()+";"+Math.random()+";"+(+new Date())+";"
+	if(window.crypto){
+		var a = new Uint8Array(16)
+		crypto.getRandomValues(a)
+		for(b=0;b<16;b++){
+			s+=a[b]+";"
+		}
+	}
+	if(window.performance && performance.now){
+		s+=performance.now()+";"
+	}
+	var rands=[0,0,0,0]
+	var muls=[10007,10069,10093,10099]
+	var mods=[2000000011,2000000063,2000000099,2000000333]
+	for(a=0;a<s.length;a++){
+		for(b=0;b<4;b++){
+			var cc=s.charCodeAt(a)
+			rands[b]=((rands[b]^cc)*muls[b])%mods[b]
+		}
+	}
+	var out=""
+	for(a=0;a<4;a++){
+		for(b=0;b<5;b++){
+			out+=String.fromCharCode(97+rands[a]%26)
+			rands[a]=Math.floor(rands[a]/26)
+		}
+	}
+	return out
+}
+function refreshguesttoken(){
+	var now=+new Date()
+	var tokenexpire=+localStorage["guesttokendecay"]
+	if(tokenexpire && now<tokenexpire){
+		localStorage.setItem("guesttokendecay",now+3600*1000*4)
+	}
+}
+refreshguesttoken()
+setInterval(refreshguesttoken,3600*1000)
+
 function decode_utf8(ar){
 	var a
 	out=""
@@ -51,6 +92,29 @@ function decode_utf8(ar){
 		}
 	}
 	return out
+}
+
+waitinginterval=null
+function waitforreply(){
+	if(waitinginterval===null){
+		waitinginterval=setInterval(waitedtoolong,2000)
+	}
+}
+function gotreply(){
+	if(waitinginterval!==null){
+		clearInterval(waitinginterval)
+		waitinginterval=null
+	}
+}
+function waitedtoolong(){
+	alert("danger","Server unresponsive")
+}
+
+function invarianttime(){
+	if(window.performance && performance.now){
+		return Math.floor(performance.now())
+	}
+	return +(new Date())
 }
 
 function minuteseconds(seconds){
@@ -131,6 +195,9 @@ var server = {
 		if(this.connection && this.connection.readyState>1){
 			this.connection = null
 		}
+		if(this.anotherlogin){
+			return
+		}
 		if(!this.connection){
 			var proto = 'wss://'
 			var url = window.location.host + '/ws'
@@ -152,6 +219,7 @@ var server = {
 					server.msg(res_text)
 				}
 				reader.readAsArrayBuffer(blob)
+				gotreply()
 			}
 			this.connection.onclose = function(e){
 				server.loggedin=false
@@ -218,11 +286,17 @@ var server = {
 	}
 
 	,loginTimerFn:function(){
-		server.connect()
-		server.loginTimer = setTimeout(server.loginTimerFn,5000)
+		if(!server.anotherlogin){
+			server.connect()
+			server.loginTimer = setTimeout(server.loginTimerFn,5000)
+		}
+		else{
+			server.loginTimer = null
+		}
 	}
 
 	,login:function(){
+		this.anotherlogin=false
 		this.connect()
 		if(this.connection.readyState==0){
 			this.connection.onopen=function(){server.login()}
@@ -235,15 +309,29 @@ var server = {
 		}
 	}
 	,guestlogin:function(){
+		this.anotherlogin=false
 		this.connect()
 		if(this.connection.readyState==0){
 			this.connection.onopen=function(){server.guestlogin()}
 		}
 		else if(this.connection.readyState==1){
-			this.send("Login Guest")
+			//this.send("Login Guest")
+			var now=+new Date()
+			var tokenexpire=+localStorage["guesttokendecay"]
+			var token
+			if(tokenexpire && now<tokenexpire){
+				token=localStorage["guesttoken"]
+			}
+			else{
+				token=randomtoken()
+				localStorage.setItem("guesttoken",token)
+			}
+			localStorage.setItem("guesttokendecay",now+3600*1000*4)
+			this.send("Login Guest "+token)
 		}
 	}
 	,register:function(){
+		this.anotherlogin=false
 		this.connect()
 		if(this.connection.readyState==0){
 			this.connection.onopen=function(){server.register()}
@@ -262,6 +350,7 @@ var server = {
 		}
 	}
 	,changepassword:function(){
+		this.anotherlogin=false
 		this.connect()
 		if(this.connection.readyState==0){
 			this.connection.onopen=function(){server.changepassword()}
@@ -280,6 +369,7 @@ var server = {
 		}
 	}
 	,sendresettoken:function(){
+		this.anotherlogin=false
 		this.connect()
 		if(this.connection.readyState==0){
 			this.connection.onopen=function(){server.sendresettoken()}
@@ -291,6 +381,7 @@ var server = {
 		}
 	}
 	,resetpwd:function(){
+		this.anotherlogin=false
 		this.connect()
 		if(this.connection.readyState==0){
 			this.connection.onopen=function(){server.resetpwd()}
@@ -380,10 +471,7 @@ var server = {
 			document.title = "Tak: " + spl[4] + " vs " + spl[6]
 
 			var time = Number(spl[8])
-			var m = parseInt(time/60)
-			var s = getZero(parseInt(time%60))
-			$('.player1-time:first').html(m+':'+s)
-			$('.player2-time:first').html(m+':'+s)
+			settimers(time*1000,time*1000)
 
 			var opponentname
 			if(spl[7] === "white"){//I am white
@@ -416,10 +504,7 @@ var server = {
 			document.title = "Tak: " + p1 + " vs " + p2
 
 			var time = +spl[5]
-			var m = parseInt(time/60)
-			var s = getZero(parseInt(time%60))
-			$('.player1-time:first').html(m+':'+s)
-			$('.player2-time:first').html(m+':'+s)
+			settimers(time*1000,time*1000)
 
 			/*
 			if(!chathandler.roomExists('room','Game'+board.gameno)) {chathandler.createGameRoom('Game'+board.gameno,p1,p2)}
@@ -481,13 +566,24 @@ var server = {
 				}
 				//Game#1 Time 170 200
 				else if(spl[1] === "Time"){
+					var wt = Math.max(+spl[2]||0,0)*1000
+					var bt = Math.max(+spl[3]||0,0)*1000
+					lastWt = wt
+					lastBt = bt
+
+					lastTimeUpdate = invarianttime()
+
+					board.timer_started = true
+					startTime(true)
+				}
+				//Game#1 Timems 170000 200000
+				else if(spl[1] === "Timems"){
 					var wt = Math.max(+spl[2]||0,0)
 					var bt = Math.max(+spl[3]||0,0)
 					lastWt = wt
 					lastBt = bt
 
-					var now = new Date()
-					lastTimeUpdate = now.getTime()/1000
+					lastTimeUpdate = invarianttime()
 
 					board.timer_started = true
 					startTime(true)
@@ -596,9 +692,10 @@ var server = {
 		}
 		else if(startswith("Login or Register",e)){
 			server.stopLoginTimer()
-			server.send("Client " + "TakWeb-21.03.11")
+			server.send("Client TakWeb-21.10.28")
+			server.send("Protocol 1")
 			clearInterval(this.timeoutvar)
-			this.timeoutvar = setInterval(this.keepalive,30000)
+			this.timeoutvar = setInterval(this.keepalive,10000)
 			if(localStorage.getItem('keeploggedin')==='true' && this.tries<3){
 				var uname = localStorage.getItem('usr')
 				var token = localStorage.getItem('token')
@@ -808,8 +905,8 @@ var server = {
 		var a
 		for(a=0;a<this.gameslist.length;a++){
 			var game=this.gameslist[a]
-			var p1 = "<span class='playername'>"+game.player1+"</span>"
-			var p2 = "<span class='playername'>"+game.player2+"</span>"
+			var p1 = game.player1
+			var p2 = game.player2
 			var sz = "<span class='badge'>"+game.size+"x"+game.size+"</span>"
 
 			var row = $('<tr/>')
@@ -817,16 +914,16 @@ var server = {
 				.click(game,function(ev){server.observegame(ev.data)})
 				.appendTo($('#gamelist'))
 			$('<td/>').append(getratingstring(game.player1)).attr("data-hover","Rating").appendTo(row)
-			$('<td/>').append(p1).addClass("right").appendTo(row)
+			$('<td class="playernamegame"/>').append(p1).addClass("right").appendTo(row)
 			$('<td/>').append('vs').addClass("center").appendTo(row)
-			$('<td/>').append(p2).appendTo(row)
+			$('<td class="playernamegame"/>').append(p2).appendTo(row)
 			$('<td/>').append(getratingstring(game.player2)).addClass("right").attr("data-hover","Rating").appendTo(row)
 			$('<td/>').append(sz).addClass("right").appendTo(row)
 			$('<td/>').append(minuteseconds(game.time)).addClass("right").attr("data-hover","Time control").appendTo(row)
 			$('<td/>').append('+'+minuteseconds(game.increment)).addClass("right").attr("data-hover","Time increment per move").appendTo(row)
 			$('<td/>').append('+'+Math.floor(game.komi/2)+"."+(game.komi&1?"5":"0")).attr("data-hover","Komi - If the game ends without a road, black will get this number on top of their flat count when the winner is determined").addClass("right").appendTo(row)
 			$('<td/>').append(game.pieces+"/"+game.capstones).addClass("right").attr("data-hover","Stone count - The number of stones/capstones that each player has in this game").appendTo(row)
-			$('<td/>').append((game.unrated?"P":"")+(game.tournament?"T":"")).addClass("right").attr("data-hover",(game.unrated?"Pointless game":"")+(game.tournament?"Tournament game":"")).appendTo(row)
+			$('<td/>').append((game.unrated?"P":"")+(game.tournament?"T":"")).addClass("right").attr("data-hover",(game.unrated?"Unrated game":"")+(game.tournament?"Tournament game":"")).appendTo(row)
 		}
 		document.getElementById("gamecount").innerHTML=this.gameslist.length
 	}
@@ -847,7 +944,7 @@ var server = {
 		}
 		for(a=0;a<this.seekslist.length;a++){
 			var seek=this.seekslist[a]
-			if(seek.opponent!="" && seek.opponent.toLowerCase()!=this.myname.toLowerCase()){
+			if(seek.opponent!="" && seek.opponent.toLowerCase()!=this.myname.toLowerCase() && seek.player.toLowerCase()!=this.myname.toLowerCase()){
 				continue
 			}
 			var img = "images/circle_any.svg"
@@ -864,6 +961,9 @@ var server = {
 			var row = $('<tr/>')
 				.addClass('seek'+seek.id)
 				.click(seek.id,function(ev){server.acceptseek(ev.data)})
+			if(seek.opponent!=""){
+				row.addClass("privateseek")
+			}
 			if(isbot(seek.player)){
 				row.appendTo($('#seeklistbot'))
 				botcount++
@@ -916,7 +1016,7 @@ var server = {
 			$('<td/>').append('+'+minuteseconds(seek.increment)).addClass("right").attr("data-hover","Time increment per move").appendTo(row)
 			$('<td/>').append('+'+Math.floor(seek.komi/2)+"."+(seek.komi&1?"5":"0")).addClass("right").attr("data-hover","Komi - If the game ends without a road, black will get this number on top of their flat count when the winner is determined").appendTo(row)
 			$('<td/>').append(seek.pieces+"/"+seek.capstones).addClass("right").attr("data-hover","Stone count - The number of stones/capstones that each player has in this game").appendTo(row)
-			$('<td/>').append((seek.unrated?"P":"")+(seek.tournament?"T":"")).addClass("right").attr("data-hover",(seek.unrated?"Pointless game":"")+(seek.tournament?"Tournament game":"")).appendTo(row)
+			$('<td/>').append((seek.unrated?"P":"")+(seek.tournament?"T":"")).addClass("right").attr("data-hover",(seek.unrated?"Unrated game":"")+(seek.tournament?"Tournament game":"")).appendTo(row)
 		}
 		if(!botcount){
 			$('<tr/>').append($('<td colspan="9"/>')).appendTo($('#seeklistbot'))
@@ -936,8 +1036,13 @@ var server = {
 		this.send('LeaveRoom ' + room)
 	}
 	,send:function(e){
-		if(this.connection && this.connection.readyState === 1){this.connection.send(e + "\n")}
-		else{this.error("You are not logged on to the server")}
+		if(this.connection && this.connection.readyState === 1){
+			this.connection.send(e + "\n")
+			waitforreply()
+		}
+		else{
+			this.error("You are not logged on to the server")
+		}
 	}
 	,error:function(e){
 		alert("danger",e)

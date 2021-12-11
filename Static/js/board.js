@@ -1594,8 +1594,9 @@ var board = {
 
 		$('.player1-name:first').html('You')
 		$('.player2-name:first').html('You')
-		$('.player1-time:first').html('0:00')
-		$('.player2-time:first').html('0:00')
+		settimers(0,0,true)
+		//$('.player1-time:first').html('0:00')
+		//$('.player2-time:first').html('0:00')
 
 		$('#gameoveralert').modal('hide')
 	}
@@ -1730,7 +1731,7 @@ var board = {
 			return
 		}
 		this.clear()
-		this.create(size,'white',true,false,+parsed.tags.Komi||0,+parsed.tags.Flats,+parsed.tags.Caps)
+		this.create(size,'white',true,false,(+parsed.tags.Komi||0)*2,+parsed.tags.Flats,+parsed.tags.Caps)
 		this.initEmpty()
 		$('.player1-name:first').html(parsed.tags.Player1)
 		$('.player2-name:first').html(parsed.tags.Player2)

@@ -19,13 +19,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.mindrot.jbcrypt.BCrypt;
 import tak.utils.ConcurrentHashSet;
+import java.util.concurrent.locks.*;
 
 /**
  *
  * @author chaitu
  */
 public class Player {
+	public static Lock loginLock=new ReentrantLock();
 	public static Map<String, Player> players = new ConcurrentHashMap<>();
+	public static Map<String, Player> guestsByToken = new ConcurrentHashMap<>();
 	public static ConcurrentHashSet<Player> modList = new ConcurrentHashSet<>();
 	public static ConcurrentHashSet<Player> gagList = new ConcurrentHashSet<>();
 	public static ConcurrentHashSet<String> takenName = new ConcurrentHashSet<>();
@@ -46,17 +49,40 @@ public class Player {
 	private int r7;
 	private int r8;
 	
-	private boolean guest; 
+	private boolean guest;
+	public boolean isbot=false;
 	private boolean mod = false;
 	private boolean gag = false;//don't broadcast his shouts
 	//variables not in database
-	private Client client;
+	public Client client;
 	private Game game;
+	public long lastActivity;
+	public static long lastCleanup=System.nanoTime();
 	
 	private String resetToken;
 	
+	static void cleanUpGuests(){
+		long now=System.nanoTime();
+		if(now-lastCleanup<3600000000000L){
+			return;
+		}
+		lastCleanup=now;
+		loginLock.lock();
+		try{
+			guestsByToken.forEach( (k, v) -> {
+				if(!v.isLoggedIn() && now-v.lastActivity>20000000000000L){
+					guestsByToken.remove(k);
+					players.remove(v.name);
+				}
+			});
+		}
+		finally{
+			loginLock.unlock();
+		}
+	}
+	
 	Player(String name, String email, String password, int id, int r4, int r5,
-						int r6, int r7, int r8, boolean guest) {
+						int r6, int r7, int r8, boolean guest, boolean bot) {
 		this.name = name;
 		this.email = email;
 		this.password = password;
@@ -68,9 +94,11 @@ public class Player {
 		this.r8 = r8;
 		this.guest = guest;
 		this.resetToken = "";
+		this.isbot=bot;
 		
 		client = null;
 		game = null;
+		this.lastActivity=System.nanoTime();
 	}
 	
 	public static String uniqifyName(String name){
@@ -94,7 +122,12 @@ public class Player {
 	}
 	
 	public boolean authenticate(String candidate) {
-		return BCrypt.checkpw(candidate, password);
+		if(guest){
+			return false;
+		}
+		else{
+			return BCrypt.checkpw(candidate, password);
+		}
 	}
 	
 	public void sendResetToken() {
@@ -194,12 +227,19 @@ public class Player {
 	}
 	
 	Player(String name, String email, String password, boolean guest) {
-		this(name, email, password, guest?0:++idCount, 0, 0, 0, 0, 0, guest);
+		this(name, email, password, guest?0:++idCount, 0, 0, 0, 0, 0, guest, false);
 	}
 	
 	Player() {
 		this("Guest"+guestCount.incrementAndGet(), "", "", true);
 		Player.players.put(this.name, this);
+		guestsByToken.put(this.name, this);
+	}
+	
+	Player(String token) {
+		this("Guest"+guestCount.incrementAndGet(), "", token, true);
+		Player.players.put(this.name, this);
+		guestsByToken.put(token, this);
 	}
 	
 	Client getClient() {
@@ -461,7 +501,9 @@ public class Player {
 						rs.getInt("r6"),
 						rs.getInt("r7"),
 						rs.getInt("r8"),
-						false);
+						false,
+						rs.getInt("isbot")==1
+						);
 
 				//System.out.println("Read player "+np);
 				players.put(np.name, np);

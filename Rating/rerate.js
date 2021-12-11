@@ -95,6 +95,7 @@ var bots=[
 	,"sTAKbot2"
 	,"DoubleStackBot"
 	,"antakonistbot"
+	,"CrumBot"
 ]
 var excluded=[
 	"FlashBot"
@@ -106,6 +107,7 @@ var excluded=[
 	,"DoubleStackBot"
 	,"antakonistbot"
 	,"CairnBot"
+	,"MatthewHtn"
 ]
 
 function accountsettings(){
@@ -175,6 +177,22 @@ else{
 	}
 }
 
+function gameeligible(game){
+	var eligible=game.size>=5
+	var limits=[null,null,null,null,null,[180,20,32,1,1],[240,25,40,1,2],[300,30,48,1,2],[360,40,64,1,3]][game.size]||[180,20,32,1,1]
+	if(game.pieces!=-1){
+		eligible=eligible&&(game.pieces>=limits[1])
+		eligible=eligible&&(game.pieces<=limits[2])
+		eligible=eligible&&(game.capstones>=limits[3])
+		eligible=eligible&&(game.capstones<=limits[4])
+	}
+	if(game.timertime>0){
+		eligible=eligible&&(limits[0]*3<=game.timertime*3+game.timerinc*limits[0])
+		eligible=eligible&&(game.timertime>=60)
+	}
+	return eligible
+}
+
 //g.sort(function(a,b){return a.id-b.id})
 
 //console.log(g[0])
@@ -211,11 +229,52 @@ function handlegames(){
 			rtb=plb.rating
 			artb=adjustedrating(plb,gm.date)
 		}
-		var artw2=artw-100
-		var artb2=artb-100
+		//var artw2=artw-100
+		//var artb2=artb-100
 		var quickresult={"R-0":1,"F-0":1,"1-0":1,"0-R":0,"0-F":0,"0-1":0,"1/2-1/2":0.5}[gm.result]
 		
-		if(plw && plb && gm.size>=5 && gm.unrated==0 && updating && plw!=plb && (gm.notationlength>6 || quickresult===undefined)){
+		if(plw && plb && gameeligible(gm) && gm.unrated==0 && plw!=plb){
+			if(updating){
+				if(gm.notationlength>6){
+					lastusedgame=gm.id
+					if(quickresult===undefined){
+						updategame.run(Math.floor(artw),Math.floor(artb),-2000,-2000,gm.id)
+					}
+					else{
+						var sw=Math.pow(10,rtw/400)
+						var sb=Math.pow(10,rtb/400)
+						var expected=sw/(sw+sb)
+						var fairness=expected*(1-expected)
+						var fatiguefactor=(1-(plw.fatigue[plb.id]||0)*0.4)*(1-(plb.fatigue[plw.id]||0)*0.4)
+						adjustplayer(plw,plb,quickresult-expected,fairness,fatiguefactor,gm.date)
+						adjustplayer(plb,plw,expected-quickresult,fairness,fatiguefactor,gm.date)
+						updatefatigue(plw,plb.id,fairness*fatiguefactor)
+						updatefatigue(plb,plw.id,fairness*fatiguefactor)
+						var artw2=adjustedrating(plw,gm.date)
+						var artb2=adjustedrating(plb,gm.date)
+						updategame.run(Math.floor(artw),Math.floor(artb),Math.round((artw2-artw)*10),Math.round((artb2-artb)*10),gm.id)
+					}
+				}
+				else{
+					if(quickresult===undefined && gm.date>recentlimit){
+						updating=false
+					}
+					else{
+						lastusedgame=gm.id
+						updategame.run(Math.floor(artw),Math.floor(artb),-2000,-2000,gm.id)
+					}
+				}
+			}
+		}
+		else{
+			if(updating){
+				lastusedgame=gm.id
+			}
+			updategame.run(Math.floor(artw),Math.floor(artb),-2000,-2000,gm.id)
+		}
+		
+		/*
+		if(plw && plb && gameeligible(gm) && gm.size>=5 && gm.unrated==0 && updating && plw!=plb && (gm.notationlength>6 || quickresult===undefined)){
 			if(quickresult===undefined && gm.date>recentlimit){
 				updating=false
 			}
@@ -238,12 +297,13 @@ function handlegames(){
 		else if(updating){
 			lastusedgame=gm.id
 		}
-		updategame.run(Math.floor(artw),Math.floor(artb),Math.round((artw2-artw)*10),Math.round((artb2-artb)*10),gm.id)
+		updategame.run(Math.floor(artw),Math.floor(artb),Math.round(( artw2-artw)*10),Math.round((artb2-artb)*10),gm.id)
+		*/
 	}
 }
 var count
 do{
-	g=games.prepare("select id,date,player_white,player_black,result,unrated,size,length(notation) as notationlength from games where date>1461430800000 and id>? order by id asc limit 50000;").all(lastusedgame)
+	g=games.prepare("select id,date,player_white,player_black,result,unrated,size,timertime,timerinc,pieces,capstones,length(notation) as notationlength from games where date>1461430800000 and id>? order by id asc limit 50000;").all(lastusedgame)
 	games.transaction(handlegames)()
 	count=g.length
 	g=null

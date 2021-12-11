@@ -34,6 +34,7 @@ public class Client extends Thread {
 	Websocket websocket;
 	Player player = null;
 	int clientNo;
+	public int protocolVersion=0;
 	
 	static AtomicInteger totalClients = new AtomicInteger(0);
 	static AtomicInteger onlineClients = new AtomicInteger(0);
@@ -47,7 +48,7 @@ public class Client extends Thread {
 	String loginString = "^Login ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([^\n\r\\s]{6,50})";
 	Pattern loginPattern;
 	
-	String loginGuestString = "^Login Guest";
+	String loginGuestString = "^Login Guest ?(([a-z]{20})?)";
 	Pattern loginGuestPattern;
 	
 	String registerString = "^Register ([a-zA-Z][a-zA-Z0-9_]{3,15}) ([A-Za-z.0-9_+!#$%&'*^?=-]{1,30}@[A-Za-z.0-9-]{3,30})";
@@ -56,8 +57,11 @@ public class Client extends Thread {
 	String wrongRegisterString = "^Register [^\n\r]{1,256}";
 	Pattern wrongRegisterPattern;
 	
-	String clientString = "^Client ([A-Za-z-.0-9]{4,15})";
+	String clientString = "^Client ([A-Za-z-.0-9]{1,60})";
 	Pattern clientPattern;
+	
+	String protocolString = "^Protocol ([1-9][0-9]{0,8})";
+	Pattern protocolPattern;
 	
 	String changePasswordString = "^ChangePassword ([^\n\r\\s]{6,50}) ([^\n\r\\s]{6,50})";
 	Pattern changePasswordPattern;
@@ -173,6 +177,7 @@ public class Client extends Thread {
 		loginPattern = Pattern.compile(loginString);
 		registerPattern = Pattern.compile(registerString);
 		clientPattern = Pattern.compile(clientString);
+		protocolPattern = Pattern.compile(protocolString);
 		changePasswordPattern = Pattern.compile(changePasswordString);
 		sendResetTokenPattern = Pattern.compile(sendResetTokenString);
 		resetPasswordPattern = Pattern.compile(resetPasswordString);
@@ -244,9 +249,15 @@ public class Client extends Thread {
 	
 
 	void removeSeeks() {
-		if (seek != null) {
-			Seek.removeSeek(seek.no);
-			seek = null;
+		Seek.seekStuffLock.lock();
+		try{
+			if (seek != null) {
+				Seek.removeSeek(seek.no);
+				seek = null;
+			}
+		}
+		finally{
+			Seek.seekStuffLock.unlock();
 		}
 	}
 	
@@ -353,6 +364,9 @@ public class Client extends Thread {
 				}
 				
 				if((pingPattern.matcher(temp)).find()) {
+					if(player!=null){
+						player.lastActivity=System.nanoTime();
+					}
 					sendWithoutLogging("OK");
 					temp=null;
 					continue;
@@ -368,59 +382,101 @@ public class Client extends Thread {
 						if(clientversion.equals("TreffnonX-08.09.16") || clientversion.equals("TakWeb-16.05.26")){
 							sendWithoutLogging("Shout <Server> Your Playtak client is unfortunately no longer compatible. Please go to https://www.playtak.com in order to play.");
 						}
+						else{
+							sendWithoutLogging("OK");
+						}
+					}
+					//Protocol version, while this has not been set, the protocol is version 0, which must be supported.
+					else if((m = protocolPattern.matcher(temp)).find()){
+						this.protocolVersion=Integer.parseInt(m.group(1));
+						sendWithoutLogging("OK");
 					}
 					//Login Guest
-					else if ((loginGuestPattern.matcher(temp)).find()) {
-						player = new Player();
-						player.login(this);
+					else if ((m=loginGuestPattern.matcher(temp)).find()) {
+						Player.loginLock.lock();
+						//Log("Guest login");
+						try{
+							Player.cleanUpGuests();
+							String token=m.group(1);
+							if(token!=""){
+								player=Player.guestsByToken.get(token);
+								if(player==null){
+									player = new Player(token);
+								}
+								else if(player.isLoggedIn()){
+									Client oldClient = player.getClient();
+									player.send("Message You've logged in from another window. Disconnecting");
+									player.logout();
+									try {
+										oldClient.join(1000);
+									} catch (InterruptedException ex) {
+										Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+									}
+								}
+							}
+							else{
+								player = new Player();
+							}
+							player.login(this);
+							player.lastActivity=System.nanoTime();
 
-						send("Welcome "+player.getName()+"!");
-						Log("Player logged in");
-						
-						Seek.registerListener(this);
-						Game.registerGameListListener(player);
-						
-						sendAllOnline("Online "+onlineClients.incrementAndGet());
+							send("Welcome "+player.getName()+"!");
+							Log("Player logged in");
+							
+							Seek.registerListener(this);
+							Game.registerGameListListener(player);
+							
+							sendAllOnline("Online "+onlineClients.incrementAndGet());
+						}
+						finally{
+							Player.loginLock.unlock();
+						}
 					}
 					//Login
 					else if ((m = loginPattern.matcher(temp)).find()) {
-						String tname = m.group(1).trim();
-						synchronized(Player.players) {
-							if (Player.players.containsKey(tname)) {
-								Player tplayer = Player.players.get(tname);
-								String pass = m.group(2).trim();
+						Player.loginLock.lock();
+						try{
+							String tname = m.group(1).trim();
+							synchronized(Player.players) {
+								if (Player.players.containsKey(tname)) {
+									Player tplayer = Player.players.get(tname);
+									String pass = m.group(2).trim();
 
-								if(!tplayer.authenticate(pass)) {
-									send("Authentication failure");
-//								} else if(tplayer.isLoggedIn()) {
-//									send("You're already logged in");
-								} else {
-									if(tplayer.isLoggedIn()) {
-										Client oldClient = tplayer.getClient();
-										tplayer.send("Message You've logged in from another window. Disconnecting");
-										tplayer.logout();
-										//Wait for other connection to close before logging in
-										try {
-											oldClient.join();
-										} catch (InterruptedException ex) {
-											Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+									if(!tplayer.authenticate(pass)) {
+										send("Authentication failure");
+	//								} else if(tplayer.isLoggedIn()) {
+	//									send("You're already logged in");
+									} else {
+										if(tplayer.isLoggedIn()) {
+											Client oldClient = tplayer.getClient();
+											tplayer.send("Message You've logged in from another window. Disconnecting");
+											tplayer.logout();
+											//Wait for other connection to close before logging in
+											try {
+												oldClient.join(1000);
+											} catch (InterruptedException ex) {
+												Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+											}
 										}
-									}
-									
-									player = tplayer;
+										
+										player = tplayer;
 
-									send("Welcome "+player.getName()+"!");
-									
-									player.login(this);
-									Log("Player logged in");
-									
-									Seek.registerListener(this);
-									Game.registerGameListListener(player);
-									
-									sendAllOnline("Online "+onlineClients.incrementAndGet());
-								}
-							} else
-								send("Authentication failure");
+										send("Welcome "+player.getName()+"!");
+										
+										player.login(this);
+										Log("Player logged in");
+										
+										Seek.registerListener(this);
+										Game.registerGameListListener(player);
+										
+										sendAllOnline("Online "+onlineClients.incrementAndGet());
+									}
+								} else
+									send("Authentication failure");
+							}
+						}
+						finally{
+							Player.loginLock.unlock();
 						}
 					}
 					//Registration
@@ -478,7 +534,7 @@ public class Client extends Thread {
 						}
 					}
 					else
-						send("Login or Register");
+						sendNOK();
 				} else {
 					Log("Read:"+temp);
 					
@@ -490,123 +546,154 @@ public class Client extends Thread {
 					}
 					//Seek a game
 					else if (game==null && (m = seekPattern.matcher(temp)).find()) {
-						if (seek != null) {
-							Seek.removeSeek(seek.no);
+						Seek.seekStuffLock.lock();
+						try{
+							if (seek != null) {
+								Seek.removeSeek(seek.no);
+							}
+							int no = Integer.parseInt(m.group(1));
+							if(no == 0) {
+								Log("Seek remove");
+								seek = null;
+							} else {
+								Seek.COLOR clr = Seek.COLOR.ANY;
+								
+								if("W".equals(m.group(4)))
+									clr = Seek.COLOR.WHITE;
+								else if("B".equals(m.group(4)))
+									clr = Seek.COLOR.BLACK;
+								seek = Seek.newSeek(
+									this
+									,Integer.parseInt(m.group(1))
+									,Integer.parseInt(m.group(2))
+									,Integer.parseInt(m.group(3))
+									,clr
+									,Integer.parseInt(m.group(5))
+									,Integer.parseInt(m.group(6))
+									,Integer.parseInt(m.group(7))
+									,Integer.parseInt(m.group(8))
+									,Integer.parseInt(m.group(9))
+									,m.group(10)
+								);
+								Log("Seek "+seek.boardSize);
+							}
 						}
-						int no = Integer.parseInt(m.group(1));
-						if(no == 0) {
-							Log("Seek remove");
-							seek = null;
-						} else {
-							Seek.COLOR clr = Seek.COLOR.ANY;
-							
-							if("W".equals(m.group(4)))
-								clr = Seek.COLOR.WHITE;
-							else if("B".equals(m.group(4)))
-								clr = Seek.COLOR.BLACK;
-							seek = Seek.newSeek(
-								this
-								,Integer.parseInt(m.group(1))
-								,Integer.parseInt(m.group(2))
-								,Integer.parseInt(m.group(3))
-								,clr
-								,Integer.parseInt(m.group(5))
-								,Integer.parseInt(m.group(6))
-								,Integer.parseInt(m.group(7))
-								,Integer.parseInt(m.group(8))
-								,Integer.parseInt(m.group(9))
-								,m.group(10)
-							);
-							Log("Seek "+seek.boardSize);
+						finally{
+							Seek.seekStuffLock.unlock();
 						}
 					}
 					//Seek a game
 					else if (game==null && (m = oldSeekPattern.matcher(temp)).find()) {
-						if (seek != null) {
-							Seek.removeSeek(seek.no);
-						}
-						int no = Integer.parseInt(m.group(1));
-						if(no == 0) {
-							Log("Seek remove");
-							seek = null;
-						} else {
-							Seek.COLOR clr = Seek.COLOR.ANY;
-							
-							if(" W".equals(m.group(4)))
-								clr = Seek.COLOR.WHITE;
-							else if(" B".equals(m.group(4)))
-								clr = Seek.COLOR.BLACK;
-								
-							int capstonesCount=0;
-							int tilesCount=0;
-							switch(Integer.parseInt(m.group(1))) {
-								case 3: capstonesCount = 0; tilesCount = 10; break;
-								case 4: capstonesCount = 0; tilesCount = 15; break;
-								case 5: capstonesCount = 1; tilesCount = 21; break;
-								case 6: capstonesCount = 1; tilesCount = 30; break;
-								case 7: capstonesCount = 2; tilesCount = 40; break;
-								case 8: capstonesCount = 2; tilesCount = 50; break;
+						Seek.seekStuffLock.lock();
+						try{
+							if (seek != null) {
+								Seek.removeSeek(seek.no);
 							}
+							int no = Integer.parseInt(m.group(1));
+							if(no == 0) {
+								Log("Seek remove");
+								seek = null;
+							} else {
+								Seek.COLOR clr = Seek.COLOR.ANY;
 								
-							seek = Seek.newSeek(
-								this
-								,Integer.parseInt(m.group(1))
-								,Integer.parseInt(m.group(2))
-								,Integer.parseInt(m.group(3))
-								,clr
-								,0
-								,tilesCount
-								,capstonesCount
-								,0
-								,0
-								,""
-							);
-							Log("Seek "+seek.boardSize);
+								if(" W".equals(m.group(4)))
+									clr = Seek.COLOR.WHITE;
+								else if(" B".equals(m.group(4)))
+									clr = Seek.COLOR.BLACK;
+									
+								int capstonesCount=0;
+								int tilesCount=0;
+								switch(Integer.parseInt(m.group(1))) {
+									case 3: capstonesCount = 0; tilesCount = 10; break;
+									case 4: capstonesCount = 0; tilesCount = 15; break;
+									case 5: capstonesCount = 1; tilesCount = 21; break;
+									case 6: capstonesCount = 1; tilesCount = 30; break;
+									case 7: capstonesCount = 2; tilesCount = 40; break;
+									case 8: capstonesCount = 2; tilesCount = 50; break;
+								}
+									
+								seek = Seek.newSeek(
+									this
+									,Integer.parseInt(m.group(1))
+									,Integer.parseInt(m.group(2))
+									,Integer.parseInt(m.group(3))
+									,clr
+									,0
+									,tilesCount
+									,capstonesCount
+									,0
+									,0
+									,""
+								);
+								Log("Seek "+seek.boardSize);
+							}
+						}
+						finally{
+							Seek.seekStuffLock.unlock();
 						}
 					}
 					//Accept a seek
 					else if (game==null && (m = acceptSeekPattern.matcher(temp)).find()) {
-						Seek sk = Seek.seeks.get(Integer.parseInt(m.group(1)));
+						Seek.seekStuffLock.lock();
+						try{
+							Seek sk = Seek.seeks.get(Integer.parseInt(m.group(1)));
 
-						if (sk != null && game == null && sk.client.player.getGame() == null && sk!=seek && (sk.opponent.toLowerCase().equals(player.getName().toLowerCase()) || sk.opponent.equals(""))) {
-							removeSeeks();
+							if (sk != null && game == null && sk.client.player.getGame() == null && sk!=seek && (sk.opponent.toLowerCase().equals(player.getName().toLowerCase()) || sk.opponent.equals(""))) {
+								removeSeeks();
 
-							Client otherClient = sk.client;
-							int sz = sk.boardSize;
-							int time = sk.time;
-							otherClient.removeSeeks();
+								Client otherClient = sk.client;
+								int sz = sk.boardSize;
+								int time = sk.time;
+								otherClient.removeSeeks();
 
-							unspectateAll();
-							otherClient.unspectateAll();
-							
-							game = new Game(player, otherClient.player, sz, time, sk.incr, sk.color, sk.komi, sk.pieces, sk.capstones, sk.unrated, sk.tournament);
-							Game.addGame(game);
-							
-							player.setGame(game);
-							otherClient.player.setGame(game);
-							
-							String msg = "Game Start " + game.no +" "+sz+" "+game.white.getName()+" vs "+game.black.getName();
-							String msg2=time+" "+sk.komi+" "+sk.pieces+" "+sk.capstones;
-							send(msg+" "+((game.white==player)?"white":"black")+" "+msg2);
-							otherClient.send(msg+" "+((game.white==otherClient.player)?"white":"black")+" "+msg2);
-						} else {
-							sendNOK();
+								unspectateAll();
+								otherClient.unspectateAll();
+								
+								game = new Game(player, otherClient.player, sz, time, sk.incr, sk.color, sk.komi, sk.pieces, sk.capstones, sk.unrated, sk.tournament);
+								game.gamelock.lock();
+								try{
+									Game.addGame(game);
+									
+									player.setGame(game);
+									otherClient.player.setGame(game);
+									
+									String msg = "Game Start " + game.no +" "+sz+" "+game.white.getName()+" vs "+game.black.getName();
+									String msg2=time+" "+sk.komi+" "+sk.pieces+" "+sk.capstones;
+									send(msg+" "+((game.white==player)?"white":"black")+" "+msg2);
+									otherClient.send(msg+" "+((game.white==otherClient.player)?"white":"black")+" "+msg2);
+								}
+								finally{
+									game.gamelock.unlock();
+								}
+							} else {
+								sendNOK();
+							}
+						}
+						finally{
+							Seek.seekStuffLock.unlock();
 						}
 					}
 					//Handle place move
 					else if (game != null && (m = placePattern.matcher(temp)).find() && game.no == Integer.parseInt(m.group(1))) {
-						Status st = game.placeMove(player, m.group(2).charAt(0), Integer.parseInt(m.group(3)), m.group(4) != null, m.group(5)!=null);
-						if(st.isOk()){
+						game.gamelock.lock();
+						try{
+							Status st = game.placeMove(player, m.group(2).charAt(0), Integer.parseInt(m.group(3)), m.group(4) != null, m.group(5)!=null);
+							if(st.isOk()){
 
-							if(game.gameState!=Game.gameS.NONE){
-								Player otherPlayer = (game.white==player)?game.black:game.white;
-								Game.removeGame(game);
-								player.removeGame();
-								otherPlayer.removeGame();
+								if(game.gameState!=Game.gameS.NONE){
+									Player otherPlayer = (game.white==player)?game.black:game.white;
+									Game.removeGame(game);
+									player.removeGame();
+									otherPlayer.removeGame();
+								}
+								sendWithoutLogging("OK");
+							} else {
+								sendNOK();
+								send("Error:"+st.msg());
 							}
-						} else {
-							sendNOK();
-							send("Error:"+st.msg());
+						}
+						finally{
+							game.gamelock.unlock();
 						}
 					}
 					//Handle move move
@@ -615,51 +702,74 @@ public class Client extends Thread {
 						int argsint[] = new int[args.length-1];
 						for(int i=1;i<args.length;i++)
 							argsint[i-1] = Integer.parseInt(args[i]);
-						Status st = game.moveMove(player, m.group(2).charAt(0), Integer.parseInt(m.group(3)), m.group(4).charAt(0), Integer.parseInt(m.group(5)), argsint);
-						if(st.isOk()){
+						game.gamelock.lock();
+						try{
+							Status st = game.moveMove(player, m.group(2).charAt(0), Integer.parseInt(m.group(3)), m.group(4).charAt(0), Integer.parseInt(m.group(5)), argsint);
+							if(st.isOk()){
 
-							if(game.gameState!=Game.gameS.NONE){
-								Player otherPlayer = (game.white==player)?game.black:game.white;
-								Game.removeGame(game);
-								player.removeGame();
-								otherPlayer.removeGame();
+								if(game.gameState!=Game.gameS.NONE){
+									Player otherPlayer = (game.white==player)?game.black:game.white;
+									Game.removeGame(game);
+									player.removeGame();
+									otherPlayer.removeGame();
+								}
+								sendWithoutLogging("OK");
+							} else {
+								sendNOK();
+								send("Error:"+st.msg());
 							}
-						} else {
-							sendNOK();
-							send("Error:"+st.msg());
+						}
+						finally{
+							game.gamelock.unlock();
 						}
 					}
 					//Handle undo offer
 					else if (game!=null && (m = undoPattern.matcher(temp)).find() && game.no == Integer.parseInt(m.group(1))) {
 						game.undo(player);
+						sendWithoutLogging("OK");
 					}
 					//Handle removing undo offer
 					else if (game!=null && (m = removeUndoPattern.matcher(temp)).find() && game.no == Integer.parseInt(m.group(1))) {
 						game.removeUndo(player);
+						sendWithoutLogging("OK");
 					}
 					//Handle draw offer
 					else if (game!=null && (m = drawPattern.matcher(temp)).find() && game.no == Integer.parseInt(m.group(1))) {
-						game.draw(player);
-						Player otherPlayer = (game.white==player)?game.black:game.white;
+						game.gamelock.lock();
+						try{
+							game.draw(player);
+							Player otherPlayer = (game.white==player)?game.black:game.white;
 
-						if(game.gameState!=Game.gameS.NONE){
-							Game.removeGame(game);
-							player.removeGame();
-							otherPlayer.removeGame();
+							if(game.gameState!=Game.gameS.NONE){
+								Game.removeGame(game);
+								player.removeGame();
+								otherPlayer.removeGame();
+							}
+							sendWithoutLogging("OK");
+						}
+						finally{
+							game.gamelock.unlock();
 						}
 					}
 					//Handle removing draw offer
 					else if (game!=null && (m = removeDrawPattern.matcher(temp)).find() && game.no == Integer.parseInt(m.group(1))) {
 						game.removeDraw(player);
+						sendWithoutLogging("OK");
 					}
 					//Handle resignation
 					else if (game!=null && (m = resignPattern.matcher(temp)).find() && game.no == Integer.parseInt(m.group(1))) {
-						game.resign(player);
-						Player otherPlayer = (game.white==player)?game.black:game.white;
-						
-						Game.removeGame(game);
-						player.removeGame();
-						otherPlayer.removeGame();
+						game.gamelock.lock();
+						try{
+							game.resign(player);
+							Player otherPlayer = (game.white==player)?game.black:game.white;
+							
+							Game.removeGame(game);
+							player.removeGame();
+							otherPlayer.removeGame();
+						}
+						finally{
+							game.gamelock.unlock();
+						}
 					}
 					//Show game state
 					else if (game != null && (m=gamePattern.matcher(temp)).find() && game.no == Integer.parseInt(m.group(1))) {
@@ -677,22 +787,14 @@ public class Client extends Thread {
 					else if ((m=observePattern.matcher(temp)).find()){
 						game = Game.games.get(Integer.parseInt(m.group(1)));
 						if(game!=null){
-							spectating.add(game);
-							game.newSpectator(player);
-							/*
-							if(spectating.contains(game)) {
-								send("Message you're already observing this game");
-							} else {
+							game.gamelock.lock();
+							try{
 								spectating.add(game);
 								game.newSpectator(player);
-								
-								ChatRoom room = ChatRoom.get("Game"+game.no);
-								if(room == null) {
-									room = ChatRoom.addRoom("Game"+game.no);
-								}
-								addToRoom(room);
 							}
-							*/
+							finally{
+								game.gamelock.unlock();
+							}
 						} else
 							sendNOK();
 					}
@@ -700,8 +802,15 @@ public class Client extends Thread {
 					else if ((m=unobservePattern.matcher(temp)).find()){
 						game = Game.games.get(Integer.parseInt(m.group(1)));
 						if(game!=null){
-							spectating.remove(game);
-							game.unSpectate(player);
+							game.gamelock.lock();
+							try{
+								spectating.remove(game);
+								game.unSpectate(player);
+								sendWithoutLogging("OK");
+							}
+							finally{
+								game.gamelock.unlock();
+							}
 						} else
 							sendNOK();
 					}
@@ -722,6 +831,7 @@ public class Client extends Thread {
 					//LeaveRoom
 					else if((m=leaveRoomPattern.matcher(temp)).find()) {
 						removeFromRoom(m.group(1));
+						sendWithoutLogging("OK");
 					}
 					//ShoutRoom
 					else if ((m=shoutRoomPattern.matcher(temp)).find()) {

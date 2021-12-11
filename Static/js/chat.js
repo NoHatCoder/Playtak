@@ -9,11 +9,26 @@ var chathandler={
 		}
 		var header=$("<div class='roomheader'/>").append(name).click(selectThis)
 		var roombody=$("<div class='roombody'/>")
-		this.rooms[id]=[header,roombody]
+		if(id!="global-"){
+			var closebutton=$("<button class='chatclose'>×</button>").click(closeThis)
+			header.prepend(closebutton)
+		}
+		this.rooms[id]=[header,roombody,""]
 		$("#roomslist").append(header)
 		$("#room_divs").append(roombody)
 		function selectThis(){
 			chathandler.selectRoom(id)
+		}
+		function closeThis(){
+			header.remove()
+			roombody.remove()
+			delete chathandler.rooms[id]
+			if(chathandler.cur_room==id){
+				chathandler.selectRoom("global-")
+			}
+			if(id.split("-")[0]=="room"){
+				server.leaveroom(id.replace(/^room\-/,""))
+			}
 		}
 	}
 	,createPrivateRoom:function(name){
@@ -65,9 +80,9 @@ var chathandler={
 				cls = cls + ' hidden'
 			}
 
-			if(timenow !== this.lastChatTime){
+			if(timenow !== this.rooms[id][2]){
 				$cs.append('<div class="' + cls + '">' + timenow + '</div>')
-				this.lastChatTime = timenow
+				this.rooms[id][2] = timenow
 			}
 			$cs.append('<span class="chatname context-player">' + name + ':</span>')
 			var options = {/* ... */}
@@ -91,9 +106,9 @@ var chathandler={
 
 		$('#chat-size-display').html(this.chat_width)
 		$('#chat-size-slider').val(this.chat_width)
-		$('#chat').width(this.chat_width)
+		$('#cmenu').width(this.chat_width)
 
-		$('#chat-toggle-button').css('right',this.chat_width)
+		$('#chat-toggle-button').css('right',this.chat_width+16)
 	}
 	,hideChatTime:function(){
 		if(document.getElementById('hide-chat-time').checked){
@@ -111,16 +126,17 @@ var chathandler={
 	}
 	,send:function(){
 		var msg = $('#chat-me').val()
-		if(this.cur_room.startsWith('global')){
+		if(this.cur_room=="global-"){
 			server.chat('global','',msg)
 		}
-		else if(this.cur_room.startsWith('room-')){
+		else if(this.cur_room.split("-")[0]=="room"){
 			server.chat('room',this.cur_room.split('room-')[1],msg)
 		}
 		else{ //Assuming priv
 			server.chat('priv',this.cur_room.split('priv-')[1],msg)
 		}
 		$('#chat-me').val('')
+		return false
 	}
 }
 

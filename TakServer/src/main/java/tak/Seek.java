@@ -11,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import static tak.Game.DEFAULT_SIZE;
 import tak.utils.ConcurrentHashSet;
+import java.util.concurrent.locks.*;
 
 /**
  *
@@ -30,6 +31,7 @@ public class Seek {
 	String opponent;
 	enum COLOR {WHITE, BLACK, ANY};
 	COLOR color;
+	public static Lock seekStuffLock=new ReentrantLock();
 	
 	static AtomicInteger seekNo = new AtomicInteger(0);
 	
@@ -37,76 +39,122 @@ public class Seek {
 	static ConcurrentHashSet<Client> seekListeners = new ConcurrentHashSet<>();
 	
 	static Seek newSeek(Client c, int b, int t, int i, COLOR clr, int komi, int pieces, int capstones, int unrated, int tournament, String opponent) {
-		Seek sk = new Seek(c, b, t, i, clr, komi, pieces, capstones, unrated, tournament, opponent);
-		addSeek(sk);
-		return sk;
+		seekStuffLock.lock();
+		try{
+			Seek sk = new Seek(c, b, t, i, clr, komi, pieces, capstones, unrated, tournament, opponent);
+			addSeek(sk);
+			return sk;
+		}
+		finally{
+			seekStuffLock.unlock();
+		}
 	}
 	
 	Seek(Client c, int b, int t, int i, COLOR clr, int komi, int pieces, int capstones, int unrated, int tournament, String opponent) {
-		client = c;
-		no = seekNo.incrementAndGet();
-		time = t;
-		incr = i;
-		color = clr;
-		this.komi=Math.min(komi,8);
-		this.pieces=Math.max(Math.min(pieces,80),10);
-		this.capstones=Math.min(capstones,5);
-		this.unrated=unrated;
-		this.tournament=tournament;
-		this.opponent=opponent;
-		
-		if (b < 3 || b > 8)
-			b = DEFAULT_SIZE;
-		boardSize = b;
+		seekStuffLock.lock();
+		try{
+			client = c;
+			no = seekNo.incrementAndGet();
+			time = t;
+			incr = i;
+			color = clr;
+			this.komi=Math.min(komi,8);
+			this.pieces=Math.max(Math.min(pieces,80),10);
+			this.capstones=Math.min(capstones,5);
+			this.unrated=unrated;
+			this.tournament=tournament;
+			this.opponent=opponent;
+			
+			if (b < 3 || b > 8)
+				b = DEFAULT_SIZE;
+			boardSize = b;
+		}
+		finally{
+			seekStuffLock.unlock();
+		}
 	}
 
 	static void removeSeek(int b) {
-		Seek sk=Seek.seeks.get(b);
-		Seek.seeks.remove(b);
-		updateListeners("remove "+sk.toString());
+		seekStuffLock.lock();
+		try{
+			Seek sk=Seek.seeks.get(b);
+			Seek.seeks.remove(b);
+			updateListeners("remove "+sk.toString());
+		}
+		finally{
+			seekStuffLock.unlock();
+		}
 	}
 	
 	static void addSeek(Seek sk) {
-		Seek.seeks.put(sk.no, sk);
-		updateListeners("new "+sk.toString());
+		seekStuffLock.lock();
+		try{
+			Seek.seeks.put(sk.no, sk);
+			updateListeners("new "+sk.toString());
+		}
+		finally{
+			seekStuffLock.unlock();
+		}
 	}
 		
 	static void sendListTo(Client c) {
-		for (Integer no : Seek.seeks.keySet()) {
-			c.send("Seek new "+Seek.seeks.get(no));
+		seekStuffLock.lock();
+		try{
+			for (Integer no : Seek.seeks.keySet()) {
+				c.send("Seek new "+Seek.seeks.get(no));
+			}
+		}
+		finally{
+			seekStuffLock.unlock();
 		}
 	}
 	
 	static void registerListener(Client c) {
-		seekListeners.add(c);
-		sendListTo(c);
+		seekStuffLock.lock();
+		try{
+			seekListeners.add(c);
+			sendListTo(c);
+		}
+		finally{
+			seekStuffLock.unlock();
+		}
 	}
 	
 	static void updateListeners(final String st) {
-		for (Client cc : seekListeners) {
-			cc.sendWithoutLogging("Seek " + st);
-		}
-		/*
-		new Thread() {
-			@Override
-			public void run() {
-
+		seekStuffLock.lock();
+		try{
+			for (Client cc : seekListeners) {
+				cc.sendWithoutLogging("Seek " + st);
 			}
-		}.start();
-		*/
+		}
+		finally{
+			seekStuffLock.unlock();
+		}
 	}
 	
 	static void unregisterListener(Client c) {
-		seekListeners.remove(c);
+		seekStuffLock.lock();
+		try{
+			seekListeners.remove(c);
+		}
+		finally{
+			seekStuffLock.unlock();
+		}
 	}
 	@Override
 	public String toString() {
-		String clr = "A";
-		if(color == COLOR.WHITE)
-			clr = "W";
-		else if(color == COLOR.BLACK)
-			clr = "B";
-		
-		return (no+" "+client.player.getName()+" "+boardSize+" "+time+" "+incr+" "+clr+" "+komi+" "+pieces+" "+capstones+" "+unrated+" "+tournament+" "+opponent);
+		seekStuffLock.lock();
+		try{
+			String clr = "A";
+			if(color == COLOR.WHITE)
+				clr = "W";
+			else if(color == COLOR.BLACK)
+				clr = "B";
+			
+			return (no+" "+client.player.getName()+" "+boardSize+" "+time+" "+incr+" "+clr+" "+komi+" "+pieces+" "+capstones+" "+unrated+" "+tournament+" "+opponent);
+		}
+		finally{
+			seekStuffLock.unlock();
+		}
 	}
 }
