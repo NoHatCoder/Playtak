@@ -20,6 +20,7 @@ Currently two protocol versions are supported, 0 and 1. The only difference bein
 |Register **username email** |Register with the given username and email|
 |Login **username password** |Login with the username and password|
 |Login Guest |Login as a guest|
+|Login Guest **token**|Login as a guest and set a token for rejoining, use the same token within 4 hours of last activity to continue using the same guest account. The token must be a cryptographically random composition of 20 lower-case letters|
 |Seek **no** **time** **incr** **W/B** |Seeks a game of board size **no** with time per player **time** specified in seconds, increment per move **incr** specified in seconds and an optional choice of color **W** for white, **B** for black|
 |Seek **no** **time** **incr** **W/B/A** **komi** **pieces** **capstones** **unrated** **tournament** **opponent** |Seeks a game of board size **no** with time per player **time** specified in seconds, increment per move **incr** specified in seconds, **opponent** is the name of the opponent allowed to join, blank to allow anyone to join|
 |Accept **no** |Accepts the seek with the number **no**|
