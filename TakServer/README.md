@@ -1,6 +1,6 @@
 # TakServer
 
-*Last updated on March 23rd 2021*
+*Last updated on December 11th 2021*
 
 Server to handle online TAK games
 
@@ -11,9 +11,12 @@ The client to server commands and their format is as below
 
 Komi is given in half flats as an integer from 0 to 8, denoting komis from +0.0 to +4.0
 
+Currently two protocol versions are supported, 0 and 1. The only difference being that version 1 sends time in milliseconds instead of seconds.
+
 |Commands to server|Description|
 |-----------------|-----------|
 |Client **client name**      |Informs the server of the client being connected from|
+|Protocol **version**        |Changes protocol version, do not send to stay on version 0, may only be sent before logging in|
 |Register **username email** |Register with the given username and email|
 |Login **username password** |Login with the username and password|
 |Login Guest |Login as a guest|
@@ -56,7 +59,8 @@ The list does not include error messages, you're free to poke around and figure 
 |Game Start **no** **size** **player_white** vs **player_black** **your color** **time** **komi** **pieces** **capstones** |Notifies client to start a game. The game no. being **no**, players' names being **white_player**, **black_player** and **your_color** being your color which could be either "white" or "black"|
 |Game#**no** P **Sq** C\|W|The 'Place' move played by the other player in game number **no**. The format is same as the command from client to server|
 |Game#**no** M **Sq1** **Sq2** **no1** **no2**...|The 'Move' move played by the other player in game number **no**. The format is same as the command from client to server|
-|Game#**no** Time **whitetime** **blacktime** |Update the clock with the time specified for white and black players|
+|Game#**no** Time **whitetime** **blacktime** |Update the clock with the time specified for white and black players, time given in seconds|
+|Game#**no** Timems **whitetime** **blacktime** |Update the clock with the time specified for white and black players, time given in milliseconds, only sent if the client has opted in to protocol version 1 or later|
 |Game#**no** Over **result**|Game number **no** is over. **result** is one of *R-0*, *0-R*, *F-0*, *0-F*, *1/2-1/2*|
 |Game#**no** OfferDraw |Indicates the opponent has offered a draw|
 |Game#**no** RemoveDraw |Indicates your opponent has taken back his offer to draw|
