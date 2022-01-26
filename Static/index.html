@@ -16,9 +16,7 @@
 
 		<link rel="stylesheet" href="css/thirdparty/bootstrap.min.css">
 		<link rel="stylesheet" href="css/thirdparty/jquery.contextMenu.min.css">
-		<!--<link rel="stylesheet" href="css/thirdparty/font-awesome.min.css">-->
 		<link rel="stylesheet" href="css/main.css">
-		<!--<link rel="stylesheet" href="css/chat.css">-->
 		
 		<script>
 			var errorslogged=0;
@@ -122,14 +120,6 @@
 					<button class="navitem" onclick="server.resign()" data-hover="Resign - You lose the game immediately">
 						<svg class="navicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M336.174 80c-49.132 0-93.305-32-161.913-32-31.301 0-58.303 6.482-80.721 15.168a48.04 48.04 0 0 0 2.142-20.727C93.067 19.575 74.167 1.594 51.201.104 23.242-1.71 0 20.431 0 48c0 17.764 9.657 33.262 24 41.562V496c0 8.837 7.163 16 16 16h16c8.837 0 16-7.163 16-16v-83.443C109.869 395.28 143.259 384 199.826 384c49.132 0 93.305 32 161.913 32 58.479 0 101.972-22.617 128.548-39.981C503.846 367.161 512 352.051 512 335.855V95.937c0-34.459-35.264-57.768-66.904-44.117C409.193 67.309 371.641 80 336.174 80zM464 336c-21.783 15.412-60.824 32-102.261 32-59.945 0-102.002-32-161.913-32-43.361 0-96.379 9.403-127.826 24V128c21.784-15.412 60.824-32 102.261-32 59.945 0 102.002 32 161.913 32 43.271 0 96.32-17.366 127.826-32v240z"></path></svg>
 					</button>
-					<!--
-					<a href="#" title="Undo" class="btn" onclick="undoButton()">
-					<i id="undo" class="fa fa-undo fa-lg request-undo" aria-hidden="true"></i></a>
-					<a href="#" title="Offer/Accept draw" class="btn" onclick="server.draw()">
-					<i id="draw" class="fa fa-handshake-o fa-lg offer-draw" aria-hidden="true"></i></a>
-					<a href="#" title="Resign" class="btn" onclick="server.resign()">
-					<i class="fa fa-flag-o fa-lg" aria-hidden="true"></i></a>
-					-->
 				</div>
 
 				<div id="notationbar">
@@ -150,16 +140,6 @@
 					<button class="navitem" onclick="fastforward()">
 						<svg class="navicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M512 76v360c0 6.6-5.4 12-12 12h-40c-6.6 0-12-5.4-12-12V284.1L276.5 440.6c-20.6 17.2-52.5 2.8-52.5-24.6V284.1L52.5 440.6C31.9 457.8 0 443.4 0 416V96c0-27.4 31.9-41.7 52.5-24.6L224 226.8V96c0-27.4 31.9-41.7 52.5-24.6L448 226.8V76c0-6.6 5.4-12 12-12h40c6.6 0 12 5.4 12 12z"></path></svg>
 					</button>
-					<!--
-					<a href="#" title="First move" class="btn" onclick="fastrewind()">
-					<i class="fa fa-fast-backward" aria-hidden="true"></i></a>
-					<a href="#" title="Step back" class="btn" onclick="stepback()">
-					<i class="fa fa-backward" aria-hidden="true"></i></a>
-					<a href="#" title="Step forward" class="btn" onclick="stepforward()">
-					<i class="fa fa-forward" aria-hidden="true"></i></a>
-					<a href="#" title="Current move" class="btn" onclick="fastforward()">
-					<i class="fa fa-fast-forward" aria-hidden="true"></i></a>
-					-->
 				</div>
 
 				<div class="optlist center">
@@ -169,14 +149,6 @@
 					<button class="navitem" onclick="copyNotationLink()" data-hover="Copy a link to this game to your clipboard">
 						<svg class="navicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M433.941 65.941l-51.882-51.882A48 48 0 0 0 348.118 0H176c-26.51 0-48 21.49-48 48v48H48c-26.51 0-48 21.49-48 48v320c0 26.51 21.49 48 48 48h224c26.51 0 48-21.49 48-48v-48h80c26.51 0 48-21.49 48-48V99.882a48 48 0 0 0-14.059-33.941zM266 464H54a6 6 0 0 1-6-6V150a6 6 0 0 1 6-6h74v224c0 26.51 21.49 48 48 48h96v42a6 6 0 0 1-6 6zm128-96H182a6 6 0 0 1-6-6V54a6 6 0 0 1 6-6h106v88c0 13.255 10.745 24 24 24h88v202a6 6 0 0 1-6 6zm6-256h-64V48h9.632c1.591 0 3.117.632 4.243 1.757l48.368 48.368a6 6 0 0 1 1.757 4.243V112z"></path></svg>
 					</button>
-					<!--
-					<a id="download_notation" href="#" title="Download notation" class="btn" onclick="downloadNotation();">
-					<i class="fa fa-download fa-lg" aria-hidden="true"></i>
-					</a>
-					<a id="notation_link" href="#" title="Copy a link to this game" class="btn" onclick="copyNotationLink();">
-					<i class="fa fa-clipboard fa-lg" aria-hidden="true"></i>
-					</a>
-					-->
 				</div>
 
 				<div class="center">
@@ -448,11 +420,6 @@
 										<label for="email">Re-type Email address:</label>
 										<input type="email" class="form-control" id="retype-register-email">
 									</div>
-									<!--
-									<div class="checkbox" style="visibility:hidden">
-										<label><input type="checkbox" value="">Keep me logged in</label>
-									</div>
-									-->
 									<button type="submit" class="btn btn-primary">Sign up</button>
 								</form>
 							</div>
@@ -470,7 +437,6 @@
 						<button type="button" class="btn btn-default" data-dismiss="modal" onclick="$('#login').modal('hide')">Close</button>
 					</div>
 				</div>
-
 		</div></div>
 
 		<div id="settings-modal" class="modal fade">
@@ -682,42 +648,231 @@
 						<h4 class="modal-title">Help</h4>
 					</div>
 					<div class="modal-body">
-						<ul>
-							<li><ul> <a href="#" onclick="showPrivacyPolicy();"> Privacy Policy</a><br> </ul></li>
-							<li><ul> Playtak house rules
-									<li>Standard rules for Tak can be found <a target="_blank" href="https://cheapass.com/wp-content/uploads/2018/04/UniversityRulesSM.pdf">here</a> [PDF]</li>
-									<li>White always moves first</li>
-									<li>Games are played with komi, meaning that if the game ends in a flat count, black has a number of virtual flats added to their flat count, so that black may win or draw with slightly fewer flats.</li>
-									<li>The size of the of the komi is adjustable</li>
-									<li>If for 25 consecutive moves neither player plays a flat or flatten a standing stone, the game is ruled a draw.</li>
-									<li>You can learn about the game notation <a target="_blank" href="https://www.reddit.com/r/Tak/wiki/portable_tak_notation">here</a></li>
-								</ul></li>
-							<li><ul>Controls:
-									<li>Left click-drag (or touch-drag) to rotate board</li>
-									<li>Left click a piece to select it. Left click on it again (or right click) to rotate it</li>
-									<li>Left click on a square to place selected piece or to pick up stack</li>
-									<li>Right click on a stack to hide pieces on all other squares (to see stack clearly)</li>
-									<li>Scroll wheel to zoom in/out. For touch devices, use two-finger pinch.</li>
-									<li>Current player to move is indicated by highlighting their name with a border</li>
-									<li>If any of the above controls don't work, it means that control is invalid for current move</li>
-								</ul></li>
-							<li><ul>Play locally:
-									<li>Select board size to create a new empty board on which you can play locally</li>
-								</ul></li>
-							<li><ul>Play online:
-									<li>Login to server by clicking "Login" button, signup and then login</li>
-									<li>Post your seek by selecting board size in "Create game" menu or accept another player's
-										seek by selecting it in "Join game" menu</li>
-									<li>Click on one of any ongoing games from "Watch" menu to watch an ongoing game</li>
-								</ul></li>
-							<li><ul>About the game:
-									<li>Rules for TAK are made by <a target="_blank" href="https://en.wikipedia.org/wiki/James_Ernest">James Ernest</a> and <a target="_blank" href="https://en.wikipedia.org/wiki/Patrick_Rothfuss">Patrick Rothfuss</a>. Visit <a target="_blank" href="http://cheapass.com/games/tak">cheapass.com</a> for more info</li>
-									<li>This is an unofficial implementation by <a target="_blank" href="https://github.com/chaitu236">Chaitanya Vadrevu</a> with the help of other volunteers. Currently maintained by the <a href="https://ustak.org/" target="_blank">US Tak Association</a></li>
-									<li>Code can be found <a target="_blank" href="https://github.com/NoHatCoder/Playtak">here</a></li>
-									<li>Check out the <a target="_blank" href="https://www.reddit.com/r/Tak/">Tak subreddit</a> and the <a target="_blank" href="https://discord.gg/2xEt42X">Tak Talk discord</a></li>
-									<li>Ticking sound by FoolBoyMedia</li>
-								</ul></li>
+						<ul class="nav nav-tabs" role="tablist">
+							<li class="nav-item active">
+								<a class="active" data-toggle="tab" href="#help-info" role="tab" aria-controls="help-info" aria-selected="true">
+									Info
+								</a>
+							</li>
+							<li class="nav-item">
+								<a data-toggle="tab" href="#help-rules" role="tab" aria-controls="help-rules" aria-selected="false">
+									Rules
+								</a>
+							</li>
+							<li class="nav-item">
+								<a data-toggle="tab" href="#help-controls" role="tab" aria-controls="help-controls" aria-selected="false">
+									Controls
+								</a>
+							</li>
 						</ul>
+						<!-- content -->
+						<div class="tab-content">
+							<!-- 1st card -->
+							<div class="tab-pane fade active in" id="help-info" role="tabpanel" aria-labelledby="help-info">
+								<div>
+									<h4>General information</h4>
+									<ul>
+										<li>
+											Join the Tak communities:
+											<ul>
+												<li>
+													US Tak Association: <a href="https://ustak.org/" target="_blank" rel="noopener noreferrer">https://ustak.org/</a>
+												</li>
+												<li> For daily puzzles, homemade sets, asynchronous games, discussion, and more:
+													<a href="https://discord.gg/2xEt42X" target="_blank" rel="noopener noreferrer">
+														Tak Talk discord
+													</a>
+												</li>
+												<li>
+													<a href="https://www.reddit.com/r/Tak/" target="_blank" rel="noopener noreferrer">
+														Tak subreddit
+													</a>
+												</li>
+											</ul>
+										</li>
+										<li>
+											Physical Tak sets can be purchased at:
+											<ul>
+												<li>
+													<a href="https://worldbuildersmarket.com/collections/tak-a-beautiful-game" target="_blank" rel="noopener noreferrer">
+														https://worldbuildersmarket.com
+													</a>
+												</li>
+												<li>
+													<a href="https://aswood.works/shop" target="_blank" rel="noopener noreferrer">
+														https://aswood.works/shop
+													</a>
+												</li>
+											</ul>
+
+										</li>
+										<li>
+											Rules for Tak were made by
+											<a href="https://en.wikipedia.org/wiki/James_Ernest"
+												target="_blank"
+												rel="noopener noreferrer"
+												>James Ernest</a
+											>
+											and
+											<a href="https://en.wikipedia.org/wiki/Patrick_Rothfuss"
+											target="_blank"
+											rel="noopener noreferrer"
+												>Patrick Rothfuss</a
+											>.
+										</li>
+										<li>
+											This is an unofficial implementation by
+											<a 
+											href="https://github.com/chaitu236"
+											target="_blank" 
+											rel="noopener noreferrer"
+												>Chaitanya Vadrevu</a
+											>
+											with the help of other volunteers. Currently maintained by
+											the
+											<a href="https://ustak.org/" target="_blank" rel="noopener noreferrer"
+												>US Tak Association</a
+											>.
+										</li>
+										<li>
+											Code can be found here: 
+											<a
+											href="https://github.com/NoHatCoder/Playtak"
+											target="_blank"
+											rel="noopener noreferrer"
+												>Playtak - Github</a
+											>
+										</li>
+										<li>Game sounds by FoolBoyMedia.</li>
+										<li>
+											<a href="#" onclick="showPrivacyPolicy();">
+												Privacy Policy</a>
+										</li>
+									</ul>
+								</div>
+							</div>
+							<!-- 2nd card -->
+							<div class="tab-pane fade" id="help-rules" role="tabpanel" aria-labelledby="help-rules" >
+								<div>
+									<h4>Playtak House Rules</h4>
+									<ul>
+										<li>
+											Standard rules for Tak can be found here:
+											<ul>
+												<li>
+													<a href="https://ustak.org/play-beautiful-game-tak/" target="_blank" rel="noopener noreferrer">
+														USTA Rules
+													</a> 
+												</li>
+												<li>
+													<a href="https://www.youtube.com/watch?v=M-Fh50QD4qI" target="_blank" rel="noopener noreferrer">
+														Greater Than Games - How to play Tak
+													</a> [video]
+												</li>
+											</ul>
+
+										</li>
+										<li>White always moves first, though they place a Black stone on their first move.</li>
+										<li>
+											Games may be played with komi, meaning that if the game ends in a flat count, 
+											black has a number of virtual flats added to their flat count, 
+											so that black may win or draw with fewer flats. The size of the komi is adjustable.
+										</li>
+										<li>
+											If neither player plays a flat, a captone, or flattens a standing stone for 25 moves, the game is ruled a draw. 
+										</li>
+									</ul>
+									<h4>Portable Tak Notation</h4>
+									<ul>
+										<li>PTN or Portable Tak Notation is a method of recording games and describing moves using text.</li>
+										<li>
+											You can learn about the game notation here:
+											<ul>
+												<li>
+													<a
+													href="https://ustak.org/portable-tak-notation/"
+													target="_blank"
+													rel="noopener noreferrer"
+													>USTA - Portable Tak Notation</a
+												>
+												</li>
+												<li>
+													<a
+													href="https://www.youtube.com/watch?v=9TIamK9Skhs"
+													target="_blank"
+													rel="noopener noreferrer"
+													>Simmon - Portable Tak Notation</a
+												> [video]
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</div>
+							</div>
+							<!-- 3nd card -->
+							<div class="tab-pane fade third" id="help-controls" role="tabpanel" aria-labelledby="help-controls">
+								<div>
+									<h4>Apperance</h4>
+									<ul>
+										<li>
+										Check out the settings menu (gear icon), you can adjust
+										many aspects of how the game appears and behaves.
+										</li>
+									</ul>
+									<h4>Controls</h4>
+									<ul>
+										<li>Left click-drag (or touch-drag) to rotate board.</li>
+										<li>
+											Left click a piece to select it. Left click on it again
+											(or right click) to rotate it.
+										</li>
+										<li>
+											Left click on a square to place selected piece or to pick
+											up stack.
+										</li>
+										<li>
+											Right click on a stack to hide pieces on all other squares
+											(to see stack clearly).
+										</li>
+										<li>
+											Scroll wheel to zoom in/out. For touch devices, use
+											two-finger pinch.
+										</li>
+										<li>
+											Current player to move is indicated by highlighting their
+											name with a border.
+										</li>
+										<li>
+											If any of the above controls don't work, it means that
+											control is invalid for current move.
+										</li>
+									</ul>
+									<h4>Play Locally</h4>
+									<ul>
+										<li>
+											Select board size to create a new empty board on which you
+											can play locally.
+										</li>
+									</ul>
+									<h4>Play Online</h4>
+									<ul>
+										<li>
+											Login to server by clicking "Login" button, signup and
+											then login.
+										</li>
+										<li>
+											Click on "New Seek" in the menu to start a new game
+											or accept another player's seek by selecting it in
+											"Join game" menu.
+										</li>
+										<li>
+											Click on one of any ongoing games from "Watch" menu to
+											watch an ongoing game.
+										</li>
+									</ul>
+								</div>
+							</div>
+						</div>
 					</div>
 				</div>
 		</div></div>
@@ -742,11 +897,6 @@
 									<td class="right">Komi</td>
 									<td class="right">Stones</td>
 									<td class="right"></td>
-									<!--
-									<th class="center" colspan="9" title="Play against another player">
-										Human games offered
-									</th>
-									-->
 								</tr>
 							</tbody>
 							<tbody id="seeklist"></tbody>
@@ -761,11 +911,6 @@
 									<td class="right">Komi</td>
 									<td class="right">Stones</td>
 									<td class="right"></td>
-									<!--
-									<th class="center" colspan="9" title="Play against a program">
-										AI games offered
-									</th>
-									-->
 								</tr>
 							</tbody>
 							<tbody id="seeklistbot"></tbody>
