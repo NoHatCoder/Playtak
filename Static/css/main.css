@@ -1,10 +1,11 @@
 /* || General styles */
+
 body {
 	margin: 0px;
 	padding: 0px;
 	width: 100%;
 	overflow: hidden;
-	height:100px;
+	height: 100px;
 }
 
 #gamecanvas{
@@ -127,13 +128,13 @@ a.navitem, div.navitem{
 	text-align: left;
 	overflow: hidden;
 	background-color: #e7e7e7;
-	top:0;
-	bottom:0;
-	left:0;
-	position:absolute;
-	display:flex;
-	flex-direction:column;
-	max-height:1200px;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	max-height: 1200px;
 }
 
 .rulebox{
@@ -169,7 +170,6 @@ a.navitem, div.navitem{
 .optlist a {
 	margin-top: 2px;
 	margin-bottom: 2px;
-
 	margin-left: 10px;
 	margin-right: 10px;
 	padding: 0px;
@@ -486,7 +486,7 @@ input[type=range]::-webkit-slider-runnable-track {
 #alertbox {
 	position: fixed;
 	bottom: 0px;
-	left:0px;
+	left: 0px;
 	width: 100%;
 	z-index: 8;
 }
@@ -503,22 +503,22 @@ input[type=range]::-webkit-slider-runnable-track {
 /* || Table */
 
 .linestable{
-	width:100%;
+	width: 100%;
 }
 .linestable tr{
-	border-top:1px solid #ccc;
-	border-bottom:1px solid #ccc;
+	border-top: 1px solid #ccc;
+	border-bottom: 1px solid #ccc;
 }
 
 .linestable td{
-	padding:8px 4px;
+	padding: 8px 4px;
 }
 .linestable th{
-	padding:8px 4px;
+	padding: 8px 4px;
 }
 .linestable tr.headerrow{
-	border-top:2px solid #ccc;
-	border-bottom:2px solid #ccc;
+	border-top: 2px solid #ccc;
+	border-bottom: 2px solid #ccc;
 }
 
 /* || UTILITIES */
@@ -564,24 +564,24 @@ input[type=range]::-webkit-slider-runnable-track {
 }
 
 .border {
-	border-radius : 20px;
+	border-radius: 20px;
 	padding: 5px;
 	margin: 2px;
 	border: 2px solid black;
 }
 
 #hovertext{
-	top:0;
-	left:0;
-	display:none;
-	position:fixed;
-	pointer-events:none;
-	border:1px solid rgba(0,0,0,.6);
-	border-radius:6px;
-	background-color:#ffd;
-	padding:4px 7px;
-	z-index:10000;
-	max-width:400px;
+	top: 0;
+	left: 0;
+	display: none;
+	position: fixed;
+	pointer-events: none;
+	border: 1px solid rgba(0,0,0,.6);
+	border-radius: 6px;
+	background-color: #ffd;
+	padding: 4px 7px;
+	z-index: 10000;
+	max-width: 400px;
 }
 
 /* || Responsive CSS */
@@ -590,10 +590,12 @@ input[type=range]::-webkit-slider-runnable-track {
 	.navbar-nav > li > a{
 		padding: 8px;
 	}
+
 	.navbar{
 		min-height: 36px;
 		margin-bottom: 0px;
 	}
+
 	.navbar-btn {
 		margin-top: 1px;
 		margin-bottom: 1px;
@@ -604,6 +606,7 @@ input[type=range]::-webkit-slider-runnable-track {
 		width: 269px;
 		height: 280px;
 	}
+
 	.leftmost{
 		margin-right: 18px;
 	}
