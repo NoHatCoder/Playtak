@@ -102,6 +102,19 @@ a.navitem, div.navitem{
 	user-select: none;
 }
 
+/* || Info bar */
+
+#infobar{
+	position:absolute;
+	min-height:20px;
+	background-color:#fff;
+	border:1px solid #666;
+	border-radius:6px;
+	padding:8px;
+	text-align:center;
+	font-size:110%;
+}
+
 /* || Notation */
 
 #notation-toggle-text {
