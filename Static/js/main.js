@@ -861,6 +861,20 @@ function formatTime(t){
  * First the left-hand div, then the right-hand div.
  */
 function loadSettings() {
+	// Load theme
+	var storedTheme = localStorage.getItem('theme') || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark-theme" : null);
+	if (storedTheme === 'dark-theme'){
+		var body = document.body;
+		body.classList.add(storedTheme);
+		document.getElementById('dark-mode').checked = true;
+		if(!localStorage.getItem('clearcolor')) {
+			console.log('no color')
+			localStorage.setItem('clearcolor', '#152028');
+			document.getElementById("clearcolorbox").value = '#152028';
+			clearcolorchange();
+		}
+	}
+	
 	// load the setting for wall orientation.
 	if(localStorage.getItem('diagonal_walls')==='true') {
 		document.getElementById('wall-orientation').checked = true
@@ -988,8 +1002,37 @@ function loadSettings() {
 		document.getElementById('auto-rotate-checkbox').checked = false
 	}
 	
-	document.getElementById("clearcolorbox").value=localStorage["clearcolor"]||"#ddd"
+	document.getElementById("clearcolorbox").value=localStorage["clearcolor"]||"#dddddd"
 	clearcolorchange()
+}
+
+/*
+ * Notify checkbox change for checkbox:
+ *	 Dark Mode
+ */
+ function checkboxDarkMode() {
+	 var body = document.body;
+	 // Handle switching from light to dark
+	if(document.getElementById('dark-mode').checked) {
+		localStorage.setItem('theme','dark-theme');
+		// Add attribute to body
+		body.classList.add('dark-theme');
+		if(localStorage.getItem('clearcolor') === '#dddddd') {
+			localStorage.removeItem('clearcolor');
+			document.getElementById("clearcolorbox").value = '#152028'
+			clearcolorchange();
+		}
+	}else {
+		// Handle switching from dark to light
+		if(localStorage.getItem('clearcolor') === '#152028'){
+			localStorage.removeItem('clearcolor');
+			document.getElementById("clearcolorbox").value = '#dddddd';
+			clearcolorchange();
+		}
+		localStorage.setItem('theme','light-theme');
+		body.classList.remove('dark-theme');
+		body.classList.add('light-theme')
+	}
 }
 
 /*
@@ -1140,27 +1183,11 @@ function checkboxHover() {
 	}
 }
 
-function clearcolorchange(){
-	var ccb=document.getElementById("clearcolorbox")
-	ccb.style.backgroundColor="#ddd"
-	ccb.style.backgroundColor=ccb.value
-	localStorage["clearcolor"]=ccb.value
-	var colorstring=window.getComputedStyle(ccb).getPropertyValue('background-color')
-	var regresult=colorstring.match(/(\d+)\D+(\d+)\D+(\d+)/)
-	if(regresult){
-		var lum=(0.299*regresult[1]*regresult[1] + 0.587*regresult[2]*regresult[2] + 0.114*regresult[3]*regresult[3])/(255*255)
-		if(lum>0.4){
-			ccb.style.color="#000"
-		}
-		else{
-			ccb.style.color="#fff"
-		}
-		clearcolor=regresult[1]*256*256+regresult[2]*256+(+regresult[3])
-	}
-	else{
-		ccb.style.color="#000"
-		clearcolor=0xdddddd
-	}
+function clearcolorchange(value){
+	if( value && value.length < 7){ return; }
+	var val = document.getElementById("clearcolorbox").value;
+	localStorage["clearcolor"] = val;
+	clearcolor = parseInt(val.replace('#', '0x'));
 	if(renderer){
 		renderer.setClearColor(clearcolor,1)
 		settingscounter=(settingscounter+1)&15
