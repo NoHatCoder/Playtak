@@ -1,3 +1,5 @@
 node_modules
 ratinglist.json
 .vscode
+.idea
+.DS_Store

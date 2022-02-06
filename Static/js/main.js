@@ -25,6 +25,104 @@ function alert2(type,msg) {
 	})
 }
 
+var infobartimer=0
+var currentinfomessage=1
+var infochangetime=-Infinity
+var infodisplaytimes=[]
+function infobar(){
+	var bar=document.getElementById("infobar")
+	if(!bar){
+		bar=document.createElement("div")
+		bar.id="infobar"
+		document.body.appendChild(bar)
+	}
+	var cuttop=$('nav').height()+10
+	var cutleft=($('#rmenu').hasClass('hidden')?0:209)+10
+	var cutright=($('#cmenu').hasClass('hidden')?0:24+(+localStorage.getItem('chat_size')||180))+10
+	bar.style.top=(cuttop+2)+"px"
+	bar.style.left=(cutleft+20)+"px"
+	bar.style.right=(cutright+20)+"px"
+	
+	var messages=[
+		{
+			m:"You need to log in in order to play."
+			,c:function(){return !server.loggedin}
+			,t:20
+		}
+		,{
+			m:"Join the <a target='_blank' href='https://discord.gg/2xEt42X'>Tak community on Discord</a>."
+			,c:function(){return true}
+			,t:20
+		}
+		,{
+			m:"There is a daily puzzle on <a target='_blank' href='https://ditaktic.blogspot.com/'>ditaktic.blogspot.com</a>."
+			,c:function(){return true}
+			,t:20
+		}
+		,{
+			m:"Visit <a target='_blank' href='https://cheapass.com/tak-university-edition/'>cheapass.com</a> or <a target='_blank' href='https://worldbuildersmarket.com/collections/tak-a-beautiful-game'>worldbuildersmarket.com</a> in order to buy a physical Tak set."
+			,c:function(){return true}
+			,t:20
+		}
+		,{
+			m:"Have you read <a target='_blank' href='https://cheapass.com/wp-content/uploads/2018/04/UniversityRulesSM.pdf'>the rules</a>?"
+			,c:function(){return server.loggedin}
+			,t:20
+		}
+		,{
+			m:"Check out the settings menu (gear icon), you can adjust many aspects of how the game appears and behaves."
+			,c:function(){return server.loggedin}
+			,t:30
+		}
+		,{
+			m:"You can join the <a target='_blank' href='https://ustak.org/'>US Tak Association</a>."
+			,c:function(){return server.loggedin}
+			,t:20
+		}
+	]
+	changemessage()
+	function changemessage(){
+		var now=invarianttime()
+		var a
+		var nextmessage=0
+		clearTimeout(infobartimer)
+		if(now>infochangetime || !(messages[currentinfomessage].c())){
+			var possibilities=[]
+			for(a=0;a<messages.length;a++){
+				infodisplaytimes[a]=infodisplaytimes[a]||(-Math.floor(Math.random()*1000000000))
+				if(messages[a].c() && currentinfomessage!=a){
+					possibilities.push(a)
+				}
+			}
+			if(possibilities[0]==0){
+				nextmessage=0
+			}
+			else{
+				possibilities.sort(function(a,b){return infodisplaytimes[a]-infodisplaytimes[b]})
+				if(possibilities.length>=2){
+					nextmessage=possibilities[Math.floor(Math.random()*2)]
+				}
+				else if(possibilities.length>=1){
+					nextmessage=possibilities[0]
+				}
+			}
+			currentinfomessage=nextmessage
+			infochangetime=now+1000*messages[nextmessage].t
+			bar.innerHTML=messages[nextmessage].m
+			infodisplaytimes[nextmessage]=now
+		}
+		infobartimer=setTimeout(changemessage,infochangetime-now)
+	}
+}
+function infobaroff(){
+	try{
+		document.getElementById("infobar").style.display="none"
+	}
+	catch(e){
+		
+	}
+}
+
 var camera,scene,renderer,light,canvas,controls = null
 var perspective
 var ismobile=false
@@ -86,7 +184,7 @@ function generateCamera(){
 	
 	var cuttop=$('nav').height()+10
 	var cutleft=($('#rmenu').hasClass('hidden')?0:209)+10
-	var cutright=($('#cmenu').hasClass('hidden')?0:6+(+localStorage.getItem('chat_size')||180))+10
+	var cutright=($('#cmenu').hasClass('hidden')?0:24+(+localStorage.getItem('chat_size')||180))+10
 	var cutbottom=0+10
 
 	var pointlist=[]
@@ -280,6 +378,25 @@ function init() {
 			ev.preventDefault()
 		}
 	}
+	
+	var fson=false
+	if(ismobile && !isidevice){
+		var fsbutton=document.createElement("button")
+		fsbutton.className="navitem"
+		fsbutton.innerHTML="Fullscreen"
+		fsbutton.onclick=togglefs
+		document.getElementById("menubar").appendChild(fsbutton)
+	}
+	function togglefs(){
+		if(fson){
+			document.exitFullscreen()
+		}
+		else{
+			document.documentElement.requestFullscreen()
+		}
+		fson=!fson
+	}
+	
 	/*
 	document.body.onclick=document.body.onmousedown=document.body.onmouseup=document.body.onmousemove=function(ev){
 		if(ev.target && (ev.target.nodeName=="BUTTON" || ev.target.nodeName=="INPUT" || ev.target.nodeName=="A" || ev.target.onclick)){
@@ -335,10 +452,10 @@ function onWindowResize() {
 
 		generateCamera()
 
-		$('#chat').css("top",($('nav').height() + 5)+"px")
+		$('#chat').css("top",($('nav').height() + 6)+"px")
 		//$('#chat-toggle-button').css("top",($('nav').height() + 7)+"px")
 		//$('#chat').height(window.innerHeight - $('nav').height() - 118)
-		$('#floating').css("top",($('nav').height() + 5)+"px")
+		$('#floating').css("top",($('nav').height() + 6)+"px")
 		//alert("info",$('nav').height())
 	}
 }
@@ -541,6 +658,7 @@ function adjustsidemenu(notation,chat){
 		$('#cmenu').addClass('hidden')
 		generateCamera()
 	}
+	infobar()
 }
 function rmenu() {
 	if($('#rmenu').hasClass('hidden')) {showrmenu()}
@@ -743,6 +861,20 @@ function formatTime(t){
  * First the left-hand div, then the right-hand div.
  */
 function loadSettings() {
+	// Load theme
+	var storedTheme = localStorage.getItem('theme') || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark-theme" : null);
+	if (storedTheme === 'dark-theme'){
+		var body = document.body;
+		body.classList.add(storedTheme);
+		document.getElementById('dark-mode').checked = true;
+		if(!localStorage.getItem('clearcolor')) {
+			console.log('no color')
+			localStorage.setItem('clearcolor', '#152028');
+			document.getElementById("clearcolorbox").value = '#152028';
+			clearcolorchange();
+		}
+	}
+	
 	// load the setting for wall orientation.
 	if(localStorage.getItem('diagonal_walls')==='true') {
 		document.getElementById('wall-orientation').checked = true
@@ -876,8 +1008,37 @@ function loadSettings() {
 		document.getElementById('auto-rotate-checkbox').checked = false
 	}
 	
-	document.getElementById("clearcolorbox").value=localStorage["clearcolor"]||"#ddd"
+	document.getElementById("clearcolorbox").value=localStorage["clearcolor"]||"#dddddd"
 	clearcolorchange()
+}
+
+/*
+ * Notify checkbox change for checkbox:
+ *	 Dark Mode
+ */
+ function checkboxDarkMode() {
+	 var body = document.body;
+	 // Handle switching from light to dark
+	if(document.getElementById('dark-mode').checked) {
+		localStorage.setItem('theme','dark-theme');
+		// Add attribute to body
+		body.classList.add('dark-theme');
+		if(localStorage.getItem('clearcolor') === '#dddddd') {
+			localStorage.removeItem('clearcolor');
+			document.getElementById("clearcolorbox").value = '#152028'
+			clearcolorchange();
+		}
+	}else {
+		// Handle switching from dark to light
+		if(localStorage.getItem('clearcolor') === '#152028'){
+			localStorage.removeItem('clearcolor');
+			document.getElementById("clearcolorbox").value = '#dddddd';
+			clearcolorchange();
+		}
+		localStorage.setItem('theme','light-theme');
+		body.classList.remove('dark-theme');
+		body.classList.add('light-theme')
+	}
 }
 
 /*
@@ -1037,27 +1198,11 @@ function checkboxHover() {
 	}
 }
 
-function clearcolorchange(){
-	var ccb=document.getElementById("clearcolorbox")
-	ccb.style.backgroundColor="#ddd"
-	ccb.style.backgroundColor=ccb.value
-	localStorage["clearcolor"]=ccb.value
-	var colorstring=window.getComputedStyle(ccb).getPropertyValue('background-color')
-	var regresult=colorstring.match(/(\d+)\D+(\d+)\D+(\d+)/)
-	if(regresult){
-		var lum=(0.299*regresult[1]*regresult[1] + 0.587*regresult[2]*regresult[2] + 0.114*regresult[3]*regresult[3])/(255*255)
-		if(lum>0.4){
-			ccb.style.color="#000"
-		}
-		else{
-			ccb.style.color="#fff"
-		}
-		clearcolor=regresult[1]*256*256+regresult[2]*256+(+regresult[3])
-	}
-	else{
-		ccb.style.color="#000"
-		clearcolor=0xdddddd
-	}
+function clearcolorchange(value){
+	if( value && value.length < 7){ return; }
+	var val = document.getElementById("clearcolorbox").value;
+	localStorage["clearcolor"] = val;
+	clearcolor = parseInt(val.replace('#', '0x'));
 	if(renderer){
 		renderer.setClearColor(clearcolor,1)
 		settingscounter=(settingscounter+1)&15
@@ -1273,4 +1418,5 @@ $(document).ready(function() {
 		$('#login').modal('show')
 	}
 	fetchratings()
+	infobar()
 })

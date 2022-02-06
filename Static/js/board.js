@@ -1457,6 +1457,7 @@ var board = {
 		}
 	}
 	,notate:function(txt){
+		infobaroff()
 		var res=false
 		if(txt==='R-0'||txt==='0-R'||txt==='F-0'||txt==='0-F'||txt==='1-0'||txt==='0-1'||txt==='1/2-1/2'){
 			var ol = document.getElementById("moveslist")
@@ -1644,6 +1645,7 @@ var board = {
 		piece.isstanding = true
 	}
 	,rightclick:function(){
+		settingscounter=(settingscounter+1)&15
 		if(this.selected && this.movecount>=2){
 			this.rotate(this.selected)
 		}
@@ -1651,26 +1653,21 @@ var board = {
 			this.showmove(this.moveshown,true)
 		}
 		else{
-			raycaster.setFromCamera(mouse,camera)
-			var intersects = raycaster.intersectObjects(scene.children)
-			if(intersects.length > 0){
-				var obj = intersects[0].object
-				var sq = obj
-				var stk = [];
-				if(!obj.isboard){sq = obj.onsquare}
-				if(sq) {
-					stk = this.get_stack(sq)
+			var pick=this.mousepick()
+			if(pick[0]=="board"){
+				var square=pick[1]
+				var stack=this.get_stack(square)
+				var i
+				for(i=0;i<scene.children.length;i++){
+					var obj=scene.children[i]
+					if(!obj.isboard && obj.onsquare){
+						obj.visible=false
+					}
 				}
-				if(stk.length === 0){return}
-				for(var i = 0;i < scene.children.length;i++){
-					var obj = scene.children[i]
-					if(obj.isboard || !obj.onsquare){continue}
-					obj.visible = false
+				for(i=0;i<stack.length;i++){
+					stack[i].visible=true
 				}
-				for(var i = 0;i < stk.length;i++){
-					stk[i].visible = true
-				}
-				this.totalhighlighted = sq
+				this.totalhighlighted=square
 			}
 		}
 	}
@@ -1685,6 +1682,7 @@ var board = {
 		}
 	}
 	,rightup:function(){
+		settingscounter=(settingscounter+1)&15
 		console.log('right up')
 		this.remove_total_highlight()
 	}
