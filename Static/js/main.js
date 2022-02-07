@@ -888,6 +888,12 @@ function loadSettings() {
 		document.getElementById('piece-size-slider').value = piece_size
 	}
 
+	// load the setting for displaying the table.
+	if(localStorage.getItem('show_table')!==null) {
+		show_table = JSON.parse(localStorage.getItem('show_table'));
+		document.getElementById('show-table').checked = show_table;
+	}
+
 	// load white piece style.
 	if(localStorage.getItem('piece_style_white3')!==null) {
 		var styleName = localStorage.getItem('piece_style_white3')
@@ -1062,6 +1068,15 @@ function sliderPieceSize(newSize) {
 	if(fixedcamera || true){
 		generateCamera()
 	}
+}
+
+/*
+ * Notify checkbox change for checkbox:
+ *	 Show or hide table
+ */
+ function showTable(event) {
+	localStorage.setItem('show_table', event.target.checked);
+	board.table.visible = event.target.checked
 }
 
 function perspectiveChange(newPerspective) {

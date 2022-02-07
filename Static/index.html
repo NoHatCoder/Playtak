@@ -473,6 +473,10 @@
 									<input id="piece-size-slider" type="range" value="60" step="2" min="40" max="80" oninput="sliderPieceSize(this.value)" onChange="board.updatepieces()">
 									<span id="piece-size-display">60</span>
 								</form><br>
+								<form>
+									<input id="show-table" type="checkbox" onChange="showTable(event)">
+									Show table
+								</form><br>
 								<form id="white_pieces_form">
 									White pieces<br>
 								</form><br>
