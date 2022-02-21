@@ -60,19 +60,24 @@ function infobar(){
 			,t:20
 		}
 		,{
-			m:"Visit <a target='_blank' href='https://cheapass.com/tak-university-edition/'>cheapass.com</a> or <a target='_blank' href='https://worldbuildersmarket.com/collections/tak-a-beautiful-game'>worldbuildersmarket.com</a> in order to buy a physical Tak set."
+			m:"Visit <a target='_blank' href='https://worldbuildersmarket.com/collections/tak-a-beautiful-game'>worldbuildersmarket.com</a> or <a target='_blank' href='https://aswood.works/shop>aswood.works</a> in order to buy a physical Tak set."
 			,c:function(){return true}
 			,t:20
 		}
 		,{
-			m:"Have you read <a target='_blank' href='https://cheapass.com/wp-content/uploads/2018/04/UniversityRulesSM.pdf'>the rules</a>?"
+			m:"Have you read <a target='_blank' href='https://ustak.org/play-beautiful-game-tak/'>the rules</a>?"
 			,c:function(){return server.loggedin}
 			,t:20
 		}
 		,{
-			m:"Check out the settings menu (gear icon), you can adjust many aspects of how the game appears and behaves."
-			,c:function(){return server.loggedin}
+			m:"In settings (gear icon), you can set the perspective to 0 and fix the camera in order to get a 2D experience."
+			,c:function(){return server.loggedin && !(perspective==0 && fixedcamera)}
 			,t:30
+		}
+		,{
+			m:"In settings (gear icon), you can enable perspective and make the board rotatable."
+			,c:function(){return server.loggedin && (perspective==0 && fixedcamera && ismobile)}
+			,t:20
 		}
 		,{
 			m:"You can join the <a target='_blank' href='https://ustak.org/'>US Tak Association</a>."
