@@ -60,7 +60,7 @@ function infobar(){
 			,t:20
 		}
 		,{
-			m:"Visit <a target='_blank' href='https://worldbuildersmarket.com/collections/tak-a-beautiful-game'>worldbuildersmarket.com</a> or <a target='_blank' href='https://aswood.works/shop>aswood.works</a> in order to buy a physical Tak set."
+			m:"Visit <a target='_blank' href='https://worldbuildersmarket.com/collections/tak-a-beautiful-game'>worldbuildersmarket.com</a> or <a target='_blank' href='https://aswood.works/shop'>aswood.works</a> in order to buy a physical Tak set."
 			,c:function(){return true}
 			,t:20
 		}
