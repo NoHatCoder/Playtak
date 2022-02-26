@@ -1814,10 +1814,10 @@ var board = {
 		$('#player-me-img').removeClass('white-player-color')
 		$('#player-opp-img').addClass('white-player-color')
 		*/
-		$('#player-me-black').removeClass("hidden")
-		$('#player-me-white').addClass("hidden")
-		$('#player-opp-black').addClass("hidden")
-		$('#player-opp-white').removeClass("hidden")
+		$('#player-me-img').removeClass("iswhite")
+		$('#player-me-img').addClass("isblack")
+		$('#player-opp-img').removeClass("isblack")
+		$('#player-opp-img').addClass("iswhite")
 
 		$('#player-opp').addClass('selectplayer')
 

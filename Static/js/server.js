@@ -445,10 +445,10 @@ var server = {
 				$('#player-me-img').addClass('white-player-color')
 				$('#player-opp-img').removeClass('white-player-color')
 				*/
-				$('#player-me-black').addClass("hidden")
-				$('#player-me-white').removeClass("hidden")
-				$('#player-opp-black').removeClass("hidden")
-				$('#player-opp-white').addClass("hidden")
+				$('#player-me-img').addClass("iswhite")
+				$('#player-me-img').removeClass("isblack")
+				$('#player-opp-img').addClass("isblack")
+				$('#player-opp-img').removeClass("iswhite")
 
 				$('#player-me').addClass('selectplayer')
 			}
@@ -463,10 +463,10 @@ var server = {
 				$('#player-me-img').removeClass('white-player-color')
 				$('#player-opp-img').addClass('white-player-color')
 				*/
-				$('#player-me-black').removeClass("hidden")
-				$('#player-me-white').addClass("hidden")
-				$('#player-opp-black').addClass("hidden")
-				$('#player-opp-white').removeClass("hidden")
+				$('#player-me-img').removeClass("iswhite")
+				$('#player-me-img').addClass("isblack")
+				$('#player-opp-img').removeClass("isblack")
+				$('#player-opp-img').addClass("iswhite")
 
 				$('#player-opp').addClass('selectplayer')
 			}
@@ -954,6 +954,16 @@ var server = {
 			if(seek.opponent!="" && seek.opponent.toLowerCase()!=this.myname.toLowerCase() && seek.player.toLowerCase()!=this.myname.toLowerCase()){
 				continue
 			}
+			var colourleft="white"
+			var colourright="black"
+			if(seek.color=="W"){
+				colourright="white"
+			}
+			if(seek.color=="B"){
+				colourleft="black"
+			}
+			var imgstring='<svg class="colourcircle" height="16" width="16" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="6" stroke-width="2" fill="'+colourleft+'"></circle><clipPath id="g-clip"><rect height="16" width="8" x="8" y="0"></rect></clipPath><circle cx="8" cy="8" r="6" stroke-width="2" fill="'+colourright+'" clip-path="url(#g-clip)"></circle></svg>'
+			/*
 			var img = "images/circle_any.svg"
 			if(seek.color=="W"){
 				img="images/circle_white.svg"
@@ -962,6 +972,7 @@ var server = {
 				img="images/circle_black.svg"
 			}
 			var imgstring = '<img src="'+img+'"/>'
+			*/
 
 			var pspan = "<span class='playername'>"+seek.player+"</span>"
 			var sizespan = "<span class='badge'>"+seek.size+"</span>"
