@@ -842,6 +842,29 @@ input[type=range] {
 	border-color: #999;
 }
 
+/* || Alerts */
+
+.dark-theme .alert-success{
+	color: #6d6;
+	background-color: #050;
+	border-color: #3a3;
+}
+.dark-theme .alert-info{
+	color: #8af;
+	background-color: #026;
+	border-color: #68c;
+}
+.dark-theme .alert-warning{
+	color: #dd3;
+	background-color: #440;
+	border-color: #aa3;
+}
+.dark-theme .alert-danger{
+	color: #e33;
+	background-color: #600;
+	border-color: #b33;
+}
+
 /* || Table */
 
 .dark-theme .linestable tr.headerrow{
@@ -874,4 +897,9 @@ input[type=range] {
 	color: #ddd;
 	background-color: #02a;
 	border-color: #57c;
+}
+
+.dark-theme #hovertext{
+	border-color: rgba(255,255,255,.6);
+	background-color: #660;
 }

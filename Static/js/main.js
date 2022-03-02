@@ -984,7 +984,7 @@ function loadSettings() {
 		//$('#chat').height(window.innerHeight - $('nav').height() - 51)
 	}
 
-	sliderChatSize(+localStorage.getItem('chat_size')||180)
+	chathandler.adjustChatWidth(+localStorage.getItem('chat_size')||180)
 	adjustsidemenu()
 
 	perspective=localStorage.getItem("perspective")
@@ -1021,9 +1021,9 @@ function loadSettings() {
  * Notify checkbox change for checkbox:
  *	 Dark Mode
  */
- function checkboxDarkMode() {
-	 var body = document.body;
-	 // Handle switching from light to dark
+function checkboxDarkMode() {
+	var body = document.body;
+	// Handle switching from light to dark
 	if(document.getElementById('dark-mode').checked) {
 		localStorage.setItem('theme','dark-theme');
 		// Add attribute to body
@@ -1067,11 +1067,13 @@ function checkboxDiagonalWalls() {
  *	 Piece size
  */
 function sliderPieceSize(newSize) {
-	localStorage.setItem('piece_size',newSize)
-	document.getElementById('piece-size-display').innerHTML=newSize
-	piece_size = parseInt(newSize)
-	if(fixedcamera || true){
-		generateCamera()
+	if(parseInt(newSize)!=piece_size){
+		localStorage.setItem('piece_size',newSize)
+		document.getElementById('piece-size-display').innerHTML=newSize
+		piece_size = parseInt(newSize)
+		if(fixedcamera || true){
+			generateCamera()
+		}
 	}
 }
 
@@ -1079,16 +1081,18 @@ function sliderPieceSize(newSize) {
  * Notify checkbox change for checkbox:
  *	 Show or hide table
  */
- function showTable(event) {
+function showTable(event) {
 	localStorage.setItem('show_table', event.target.checked);
 	board.table.visible = event.target.checked
 }
 
 function perspectiveChange(newPerspective) {
-	localStorage.setItem('perspective',newPerspective)
-	document.getElementById('perspective-display').innerHTML=newPerspective
-	perspective = +newPerspective
-	generateCamera()
+	if(perspective != +newPerspective){
+		localStorage.setItem('perspective',newPerspective)
+		document.getElementById('perspective-display').innerHTML=newPerspective
+		perspective = +newPerspective
+		generateCamera()
+	}
 }
 
 /*
@@ -1316,27 +1320,33 @@ function copyNotationLink() {
 }
 
 function sliderChatSize(newSize) {
-	chathandler.adjustChatWidth(+newSize)
-	localStorage.setItem('chat_size',newSize)
-	//adjustsidemenu(null,"show")
-	generateCamera()
+	if(newSize!=localStorage['chat_size']){
+		chathandler.adjustChatWidth(+newSize)
+		localStorage.setItem('chat_size',newSize)
+		//adjustsidemenu(null,"show")
+		generateCamera()
+	}
 }
 
-function sliderAniso(anisoin) {
-	anisolevel=[1,4,8,16][anisoin]
-	localStorage['aniso']=anisoin
-	$('#aniso-display').html(["Off","4x","8x","16x"][anisoin])
-	$('#aniso-slider').val(anisoin)
-	materials.updateBoardMaterials()
-	materials.updatePieceMaterials()
+function sliderAniso(anisoin,lazy) {
+	if(!lazy || localStorage['aniso']!=anisoin){
+		anisolevel=[1,4,8,16][anisoin]
+		localStorage['aniso']=anisoin
+		$('#aniso-display').html(["Off","4x","8x","16x"][anisoin])
+		$('#aniso-slider').val(anisoin)
+		materials.updateBoardMaterials()
+		materials.updatePieceMaterials()
+	}
 }
 
-function sliderScale(scalein) {
-	scalelevel=[0.5,Math.SQRT1_2,1,Math.SQRT2,2][scalein]
-	localStorage['scale']=scalein
-	$('#scale-display').html(["0.5","0.7","1.0","1.4","2.0"][scalein])
-	$('#scale-slider').val(scalein)
-	onWindowResize()
+function sliderScale(scalein,lazy) {
+	if(!lazy || localStorage['scale']!=scalein){
+		scalelevel=[0.5,Math.SQRT1_2,1,Math.SQRT2,2][scalein]
+		localStorage['scale']=scalein
+		$('#scale-display').html(["0.5","0.7","1.0","1.4","2.0"][scalein])
+		$('#scale-slider').val(scalein)
+		onWindowResize()
+	}
 }
 
 function undoButton() {

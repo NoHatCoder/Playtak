@@ -468,7 +468,7 @@
 								</form><br>
 								<form>
 									Piece size
-									<input id="piece-size-slider" type="range" value="60" step="2" min="40" max="80" oninput="sliderPieceSize(this.value)" onChange="board.updatepieces()">
+									<input id="piece-size-slider" type="range" value="60" step="2" min="40" max="80" oninput="sliderPieceSize(this.value);board.updatepieces()" onChange="sliderPieceSize(this.value);board.updatepieces()">
 									<span id="piece-size-display">60</span>
 								</form><br>
 								<form>
@@ -501,14 +501,14 @@
 									<br>
 									<span data-hover="Makes textures sharper">
 										Anisotropic filtering
-										<input id="aniso-slider" type="range" value="3" step="1" min="0" max="3" oninput="sliderAniso(this.value)">
+										<input id="aniso-slider" type="range" value="3" step="1" min="0" max="3" oninput="sliderAniso(this.value,true)" onchange="sliderAniso(this.value,true)">
 										<span id="aniso-display">16x</span>
 									</span>
 									<br>
 									<br>
 									<span data-hover="Additional antialiasing, high performance impact">
 										Rendering scale
-										<input id="scale-slider" type="range" value="2" step="1" min="0" max="4" oninput="sliderScale(this.value)">
+										<input id="scale-slider" type="range" value="2" step="1" min="0" max="4" oninput="sliderScale(this.value,true)" onchange="sliderScale(this.value,true)">
 										<span id="scale-display">1x</span>
 									</span>
 									<br>
@@ -526,13 +526,13 @@
 									<br>
 									<br>
 									Chat size
-									<input id="chat-size-slider" type="range" value="180" step="2" min="100" max="500" oninput="sliderChatSize(this.value)">
+									<input id="chat-size-slider" type="range" value="180" step="2" min="100" max="500" oninput="sliderChatSize(this.value)" onchange="sliderChatSize(this.value)">
 									<span id="chat-size-display">180</span>
 									<br>
 									<br>
 									<span data-hover="How much objects grow smaller with distance">
 										Perspective
-										<input id="perspective-slider" type="range" value="90" step="10" min="0" max="150" oninput="perspectiveChange(this.value)">
+										<input id="perspective-slider" type="range" value="90" step="10" min="0" max="150" oninput="perspectiveChange(this.value)" onchange="perspectiveChange(this.value)">
 										<span id="perspective-display">90</span>
 									</span>
 									<br>
