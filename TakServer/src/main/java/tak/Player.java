@@ -248,7 +248,20 @@ public class Player {
 	
 	static SecureRandom random = new SecureRandom();
 	public static Player createPlayer(String name, String email) {
-		String tmpPass = new BigInteger(130, random).toString(32);
+		BigInteger pwsource = new BigInteger(95, random);
+		BigInteger n26 = new BigInteger("26");
+		String tmpPass = "";
+		int a;
+		for(a=0;a<5;a++){
+			tmpPass+=pwsource.mod(n26).add(BigInteger.TEN).toString(36);
+			pwsource=pwsource.divide(n26);
+			tmpPass+=pwsource.mod(n26).add(BigInteger.TEN).toString(36);
+			pwsource=pwsource.divide(n26);
+			tmpPass+=pwsource.mod(BigInteger.TEN).toString();
+			pwsource=pwsource.divide(BigInteger.TEN);
+			tmpPass+=pwsource.mod(BigInteger.TEN).toString();
+			pwsource=pwsource.divide(BigInteger.TEN);
+		}
 		
 		Player np = new Player(name, email, Player.hash(tmpPass), false);
 		String sql = "INSERT INTO players (id,name,password,email,r4,r5,r6,r7,r8) "+
@@ -270,7 +283,7 @@ public class Player {
 			stmt.executeUpdate();
 			stmt.close();
 			
-			EMail.send(np.email, "playtak.com password", "Hello "+np.name+", your password is "+tmpPass+". You can change it on playtak.com.");
+			EMail.send(np.email, "playtak.com password", "Hello "+np.name+", your password is "+tmpPass+" You can change it on playtak.com.");
 			players.put(np.name, np);
 			takeName(np.name);
 		} catch (SQLException ex) {

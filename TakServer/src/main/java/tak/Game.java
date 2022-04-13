@@ -415,6 +415,7 @@ public class Game {
 				updateTimeTurnChange();
 				undoRequestedBy = null;
 				undoPosition();
+				updateOutOfTime();
 				white.send("Game#"+no+" Undo");
 				black.send("Game#"+no+" Undo");
 				sendToSpectators("Game#"+no+" Undo");
@@ -609,9 +610,9 @@ public class Game {
 	private void updateTime(Player p) {
 		justUpdateTime();
 		try{
-			String msg="Game#"+no+" Time "+whiteTime/1000+" "+blackTime/1000;
+			String msg="Game#"+no+" Time "+Math.max(whiteTime/1000,0L)+" "+Math.max(blackTime/1000,0L);
 			if(p.client.protocolVersion>=1){
-				msg="Game#"+no+" Timems "+whiteTime+" "+blackTime;
+				msg="Game#"+no+" Timems "+Math.max(whiteTime,0L)+" "+Math.max(blackTime,0L);
 			}
 			p.sendWithoutLogging(msg);
 		}
@@ -621,8 +622,8 @@ public class Game {
 	}
 	
 	private void sendTimeToAll(){
-		String msg="Game#"+no+" Time "+whiteTime/1000+" "+blackTime/1000;
-		String msgms="Game#"+no+" Timems "+whiteTime+" "+blackTime;
+		String msg="Game#"+no+" Time "+Math.max(whiteTime/1000,0L)+" "+Math.max(blackTime/1000,0L);
+		String msgms="Game#"+no+" Timems "+Math.max(whiteTime,0L)+" "+Math.max(blackTime,0L);
 		try{
 			if(white.client.protocolVersion>=1){
 				white.sendWithoutLogging(msgms);
@@ -735,7 +736,8 @@ public class Game {
 		else{
 			whiteTime += incrementTime;
 		}
-		updateOutOfTime();
+		justUpdateTime();
+		//updateOutOfTime();
 		sendTimeToAll();
 	}
 
@@ -789,6 +791,7 @@ public class Game {
 				sq.add(ch);
 				updateTimeTurnChange();
 				board.moveCount++;
+				updateOutOfTime();
 				board.lastResetMove=board.moveCount;
 				String move="P "+file+rank+" "+(capstone?"C":"")+(wall?"W":"");
 				moveList.add(move.trim());
@@ -980,7 +983,7 @@ public class Game {
 			}
 			updateTimeTurnChange();
 			board.moveCount++;
-
+			updateOutOfTime();
 			String move = "M "+f1+r1+" "+f2+r2+" ";
 			for(int val: vals)
 				move+=val+" ";

@@ -205,7 +205,7 @@ var server = {
 				//url = "www.playtak.com/ws/"
 				proto = 'ws://'
 				url=window.location.host.replace(/\:\d+$/,"")+":9999" + '/ws'
-				if(true){
+				if(false){
 					url = "www.playtak.com/ws/"
 					proto = 'wss://'
 				}
@@ -298,6 +298,11 @@ var server = {
 			server.loginTimer = null
 		}
 	}
+	
+	,sendClient:function(){
+		server.send("Client TakWeb-22.04.12")
+		server.send("Protocol 1")
+	}
 
 	,login:function(){
 		this.anotherlogin=false
@@ -306,9 +311,10 @@ var server = {
 			this.connection.onopen=function(){server.login()}
 		}
 		else if(this.connection.readyState==1){
-			var name = $('#login-username').val()
+			var name = $('#login-username').val().replace(/\s/g,"")
 			var pass = $('#login-pwd').val()
 
+			server.sendClient()
 			this.send("Login " + name + " " + pass)
 		}
 	}
@@ -331,6 +337,7 @@ var server = {
 				localStorage.setItem("guesttoken",token)
 			}
 			localStorage.setItem("guesttokendecay",now+3600*1000*4)
+			server.sendClient()
 			this.send("Login Guest "+token)
 		}
 	}
@@ -698,13 +705,14 @@ var server = {
 		}
 		else if(startswith("Login or Register",e)){
 			server.stopLoginTimer()
-			server.send("Client TakWeb-21.10.28")
-			server.send("Protocol 1")
+			//server.send("Client TakWeb-21.10.28")
+			//server.send("Protocol 1")
 			clearInterval(this.timeoutvar)
 			this.timeoutvar = setInterval(this.keepalive,10000)
 			if(localStorage.getItem('keeploggedin')==='true' && this.tries<3){
 				var uname = localStorage.getItem('usr')
 				var token = localStorage.getItem('token')
+				server.sendClient()
 				server.send("Login " + uname + " " + token)
 				this.tries++
 			}
@@ -884,7 +892,8 @@ var server = {
 
 			var name = $('#resetpwd-username').val()
 			var pass = $('#reset-new-pwd').val()
-
+			
+			server.sendClient()
 			this.send("Login " + name + " " + pass)
 		}
 		else if(startswith("Joined room ",e)){

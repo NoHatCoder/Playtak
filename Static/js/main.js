@@ -28,7 +28,8 @@ function alert2(type,msg) {
 var infobartimer=0
 var currentinfomessage=1
 var infochangetime=-Infinity
-var infodisplaytimes=[]
+//var infodisplaytimes=[]
+var infodisplayweights=[]
 function infobar(){
 	var bar=document.getElementById("infobar")
 	if(!bar){
@@ -48,44 +49,93 @@ function infobar(){
 			m:"You need to log in in order to play."
 			,c:function(){return !server.loggedin}
 			,t:20
+			,f:100
 		}
 		,{
 			m:"Join the <a target='_blank' href='https://discord.gg/2xEt42X'>Tak community on Discord</a>."
 			,c:function(){return true}
 			,t:20
+			,f:1
 		}
 		,{
 			m:"There is a daily puzzle on <a target='_blank' href='https://ditaktic.blogspot.com/'>ditaktic.blogspot.com</a>."
 			,c:function(){return true}
 			,t:20
+			,f:1
 		}
 		,{
 			m:"Visit <a target='_blank' href='https://worldbuildersmarket.com/collections/tak-a-beautiful-game'>worldbuildersmarket.com</a> or <a target='_blank' href='https://aswood.works/shop'>aswood.works</a> in order to buy a physical Tak set."
 			,c:function(){return true}
 			,t:20
+			,f:1
 		}
 		,{
 			m:"Have you read <a target='_blank' href='https://ustak.org/play-beautiful-game-tak/'>the rules</a>?"
 			,c:function(){return server.loggedin}
 			,t:20
+			,f:1
 		}
 		,{
 			m:"In settings (gear icon), you can set the perspective to 0 and fix the camera in order to get a 2D experience."
 			,c:function(){return server.loggedin && !(perspective==0 && fixedcamera)}
 			,t:30
+			,f:1
 		}
 		,{
 			m:"In settings (gear icon), you can enable perspective and make the board rotatable."
 			,c:function(){return server.loggedin && (perspective==0 && fixedcamera && ismobile)}
 			,t:20
+			,f:1
 		}
 		,{
 			m:"You can join the <a target='_blank' href='https://ustak.org/'>US Tak Association</a>."
 			,c:function(){return server.loggedin}
 			,t:20
+			,f:1
+		}
+		,{
+			m:"Sign up for the <a target='_blank' href='https://play.toornament.com/en_US/tournaments/5570424523300052992/'>US Tak Beginner tournament</a>."
+			,c:function(){var myrating=1000;if(server.myname){myrating=getrating(server.myname)||1000};return server.loggedin && myrating<1500}
+			,t:20
+			,f:10
 		}
 	]
 	changemessage()
+	function changemessage(){
+		var now=invarianttime()
+		var a
+		var nextmessage=0
+		clearTimeout(infobartimer)
+		if(now>infochangetime || !(messages[currentinfomessage].c())){
+			var possibilities=[]
+			for(a=0;a<messages.length;a++){
+				infodisplayweights[a]=(infodisplayweights[a]||Math.random())+messages[a].f
+				if(messages[a].c()){
+					if(currentinfomessage!=a){
+						possibilities.push(a)
+					}
+				}
+				else{
+					infodisplayweights[a]=Math.min(infodisplayweights[a],messages[a].f*(10+Math.random()))
+				}
+			}
+
+			possibilities.sort(function(a,b){return infodisplayweights[b]-infodisplayweights[a]})
+			if(possibilities.length>=2){
+				nextmessage=possibilities[Math.random()>(infodisplayweights[possibilities[0]]/(infodisplayweights[possibilities[0]]+infodisplayweights[possibilities[1]]))?1:0]
+			}
+			else if(possibilities.length>=1){
+				nextmessage=possibilities[0]
+			}
+
+			currentinfomessage=nextmessage
+			infochangetime=now+1000*messages[nextmessage].t
+			bar.innerHTML=messages[nextmessage].m
+			infodisplayweights[nextmessage]*=.5
+		}
+		infobartimer=setTimeout(changemessage,infochangetime-now)
+	}
+	/*
 	function changemessage(){
 		var now=invarianttime()
 		var a
@@ -118,6 +168,7 @@ function infobar(){
 		}
 		infobartimer=setTimeout(changemessage,infochangetime-now)
 	}
+	*/
 }
 function infobaroff(){
 	try{
