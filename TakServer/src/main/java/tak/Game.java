@@ -283,7 +283,7 @@ public class Game {
 					public void run() {
 						gamelock.lock();
 						try{
-							if(board.moveCount==0){
+							if(board.moveCount==0 && gameState==gameS.NONE){
 								gameState = gameS.BLACK;
 								whenGameEnd();
 								timeCleanup();
