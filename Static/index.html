@@ -74,11 +74,11 @@
 			</div>
 			<button class="navitem" id="moremenu" onclick="$('#menubar').toggleClass('singleline');onWindowResize()">
 				<svg class="navicon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M448 80v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48zM92.5 220.5l123 123c4.7 4.7 12.3 4.7 17 0l123-123c7.6-7.6 2.2-20.5-8.5-20.5H101c-10.7 0-16.1 12.9-8.5 20.5z"></path></svg>
-			</button><button class="navitem" onclick="$('#creategamemodal').modal('show')">New Seek</button
+			</button><button class="navitem" onclick="$('#creategamemodal').modal('show')">New Game</button
 			><button class="navitem" style="min-width:124px;" onclick="$('#joingame-modal').modal('show')">Join Game <span class="badge" data-hover="Available humans + AIs to play against"><span id="seekcount">0</span> + <span id="seekcountbot">0</span></span></button
 			><button class="navitem" style="min-width:76px;" onclick="$('#watchgame-modal').modal('show')">Watch <span class="badge" id="gamecount" data-hover="Games in progress">0</span></button
 			><button class="navitem" onclick="$('#help-modal').modal('show')" data-hover="Information on game rules and Tak communities">Help</button
-			><a class="navitem" href="/games" target="_blank" data-hover="Find and review old games">History</a
+			><a class="navitem" href="/games" target="_blank" data-hover="Find and review old games">Old Games</a
 			><button class="navitem" id="scratchbutton" style="position:relative;top:0;left:0;" onclick="togglescratch()" onblur="$('#scratchlist').hide()" data-hover="Open a scratch board">Board <span class="caret"></span><div id="scratchlist" style="display:none;">
 				<div class="scratchsize" onclick="scratchbutton(3)">3x3</div>
 				<div class="scratchsize" onclick="scratchbutton(4)">4x4</div>

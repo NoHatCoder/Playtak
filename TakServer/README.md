@@ -68,7 +68,7 @@ The list does not include error messages, you're free to poke around and figure 
 |Game#**no** RequestUndo |Request from opponent to undo the last move|
 |Game#**no** RemoveUndo |Opponent removes his undo request|
 |Game#**no** Undo |Undo the last move. Client is supposed to keep track of previous board states and undo to the last state.|
-|Game#**no** Abandoned|Game number **no** is abandoned by the opponent as he quit. Clients can treat this as resign.|
+|Game#**no** Abandoned. **player** quit|Game number **no** is abandoned by **player** as he quit. Clients can treat this as resign.|
 |Seek new **no** **name** **boardsize** **time** **increment** **W/B/A** **komi** **pieces** **capstones** **unrated** **tournament** **opponent** |There is a new seek with seek no. **no** posted by **name** with board size **boardsize** with **time** seconds for each player. W, B or A denotes the color of the seeker, **opponent** is the name of the player allowed to join, blank to let anyone join |
 |Seek remove **no** **name** **boardsize** **time** **increment** **W/B/A** **komi** **pieces** **capstones** **unrated** **tournament** **opponent** |Existing seek no. **no** is removed (either the client has joined another game or has changed his seek or has quit)|
 |Observe **no** **player_white** **player_black** **size** **original_time** **incr** **komi** **pieces** **capstones** **unrated** **tournament** | Start observing the game number **no** of board size **size** with original time setting of **origin_time** seconds|
