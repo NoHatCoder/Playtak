@@ -228,7 +228,7 @@ class GamesController
 		ptn += get_header('Clock', get_timer_info(game.timertime, game.timerinc))
 		ptn += get_header('Result', game.result)
 		ptn += get_header('Size', game.size)
-		ptn += get_header('Komi', (game.komi/2).to_s)
+		ptn += get_header('Komi', (game.komi.to_f/2).to_s)
 		
 		stdpieces=[0,0,0,10,15,21,30,40,50][game.size]
 		stdcaps=[0,0,0,0,0,1,1,2,2][game.size]
